@@ -28,6 +28,7 @@ Audit receipt:
 
 - `audit/receipts/2026-06-25-first-vertical-slice.receipt.json`
 - `audit/receipts/2026-06-25-lemonade-runtime-verified.receipt.json`
+- `audit/receipts/2026-06-25-candidate-model-acquisition.receipt.json`
 
 ## Daily Commands
 

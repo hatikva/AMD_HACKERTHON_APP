@@ -41,9 +41,10 @@
     },
     {
       "id": "candidate-model-acquisition",
-      "status": "queued",
+      "status": "in_progress",
       "command": "scripts/pull-candidate-models.sh",
-      "next_action": "Pull exact candidate model IDs through Lemonade with LEMONADE_MODEL_PULL_TIMEOUT_SECONDS bounding each model pull."
+      "evidence": "Qwen3-4B-Instruct-2507-GGUF is downloaded. Phi-4-mini-instruct-GGUF remains available_not_downloaded. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be silently substituted.",
+      "next_action": "Continue exact-ID acquisition for Phi-4-mini-instruct-GGUF and verify official guidance for LFM2.5-1.2B-Instruct-GGUF."
     },
     {
       "id": "profile-benchmark-evidence",

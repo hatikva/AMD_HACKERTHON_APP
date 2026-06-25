@@ -16,7 +16,7 @@ services:
       LEMONADE_HOST: "0.0.0.0"
       LEMONADE_PORT: "13305"
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:13305/live', timeout=5)"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:13305/api/v1/models"]
       interval: 15s
       timeout: 5s
       retries: 10

@@ -13,6 +13,7 @@
     "Pinned Lemonade image ghcr.io/lemonade-sdk/lemonade-server:v9.1.3 builds under Podman-backed Compose.",
     "Lemonade service starts on 127.0.0.1:13305.",
     "OpenAI-compatible /api/v1/models endpoint responds.",
+    "Compose healthcheck targets /api/v1/models for this image version using curl, which is available inside the pinned image.",
     "Compose renders loopback-only host publishing.",
     "Compose configuration contains no CUDA, ROCm, Vulkan, NPU, GPU device, or accelerator configuration."
   ],

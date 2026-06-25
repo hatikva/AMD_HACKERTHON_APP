@@ -1,0 +1,33 @@
+{
+  "id": "candidate-model-acquisition",
+  "status": "in_progress",
+  "completed_at": "2026-06-25",
+  "target_boundary": "application_repository",
+  "commands": [
+    "LEMONADE_MODEL_PULL_TIMEOUT_SECONDS=300 scripts/advance-pipeline.sh lemonade-runtime-start",
+    "docker compose -f compose.dev.yml exec lemonade ./lemonade-server list"
+  ],
+  "candidate_status": [
+    {
+      "model_id": "Qwen3-4B-Instruct-2507-GGUF",
+      "status": "downloaded",
+      "evidence": "Lemonade model list reports Downloaded=Yes."
+    },
+    {
+      "model_id": "Phi-4-mini-instruct-GGUF",
+      "status": "available_not_downloaded",
+      "next_action": "Run scripts/advance-pipeline.sh candidate-model-acquisition with sufficient timeout to pull remaining available models."
+    },
+    {
+      "model_id": "LFM2.5-1.2B-Instruct-GGUF",
+      "status": "registry_mismatch",
+      "evidence": "The exact requested ID was not present in the Lemonade model list observed on 2026-06-25.",
+      "next_action": "Verify official event/model guidance before substituting; do not silently replace this model ID."
+    }
+  ],
+  "pipeline_continuation": {
+    "stage": "candidate-model-acquisition",
+    "status": "in_progress",
+    "next_command": "scripts/advance-pipeline.sh candidate-model-acquisition"
+  }
+}
