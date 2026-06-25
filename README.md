@@ -128,7 +128,7 @@ OLLAMA_CLOUD_MODEL=nemotron-3-ultra:cloud
 OLLAMA_CLOUD_ALT_MODEL=qwen3-coder:480b-cloud
 FIREWORKS_API_KEY=...
 FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
-FIREWORKS_MODEL=accounts/fireworks/models/llama-v3p3-70b-instruct
+FIREWORKS_MODEL=accounts/fireworks/models/deepseek-v4-flash
 ```
 
 Keep these values in `.env` or the process environment. Do not commit secrets.

@@ -35,10 +35,10 @@
     },
     {
       "id": "fireworks-provider-verify",
-      "status": "integrated_verification_blocked_by_provider_access",
+      "status": "complete",
       "command": "FIREWORKS_API_KEY=<secret> python3 -m amd_hackathon_app.cli run-scenario --scenario reasoning-escalation-boundary --provider fireworks",
-      "evidence": "Fireworks is wired as a first-class remote provider through OpenAI-compatible chat completions and the phi-fireworks-balanced profile pair. Local preflight detects FIREWORKS_API_KEY when present. Real chat verification returned HTTP 404 with model not found/inaccessible/not deployed for the configured Fireworks model. Model-list verification returned HTTP 401 for the provided credential value.",
-      "next_action": "Provide a valid Fireworks API key and an accessible serverless model ID, then rerun the Fireworks smoke/profile route."
+      "evidence": "Fireworks is wired as a first-class remote provider through OpenAI-compatible chat completions and the phi-fireworks-balanced profile pair. Local preflight detects FIREWORKS_API_KEY when present. The corrected key successfully listed serverless models. App route verification selected Fireworks with accounts/fireworks/models/deepseek-v4-flash for reasoning-escalation-boundary and returned a validation-passing completion with token usage recorded.",
+      "next_action": "Run profile-pair benchmarks across Ollama Cloud and Fireworks remotes."
     },
     {
       "id": "ollama-cloud-provider-verify",

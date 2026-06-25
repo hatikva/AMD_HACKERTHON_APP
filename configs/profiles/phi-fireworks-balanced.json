@@ -4,7 +4,7 @@
   "local_provider": "local",
   "local_model": "Phi-4-mini-instruct-GGUF",
   "remote_provider": "fireworks",
-  "remote_model": "accounts/fireworks/models/llama-v3p3-70b-instruct",
+  "remote_model": "accounts/fireworks/models/deepseek-v4-flash",
   "task_thresholds": {
     "classification": { "max_local_difficulty": 2, "min_router_confidence": 0.7 },
     "json_extraction": { "max_local_difficulty": 0, "min_router_confidence": 0.75 },

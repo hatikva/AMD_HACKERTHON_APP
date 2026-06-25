@@ -460,7 +460,7 @@ def preflight() -> dict[str, Any]:
         "lemonade_base_url": os.environ.get("LEMONADE_BASE_URL", "http://127.0.0.1:13305/api/v1"),
         "fireworks_configured": bool(os.environ.get("FIREWORKS_API_KEY")),
         "ollama_cloud_configured": bool(os.environ.get("OLLAMA_API_KEY")),
-        "fireworks_model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p3-70b-instruct"),
+        "fireworks_model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/deepseek-v4-flash"),
         "ollama_cloud_model": os.environ.get("OLLAMA_CLOUD_MODEL", "nemotron-3-ultra:cloud"),
         "ollama_cloud_alt_model": os.environ.get("OLLAMA_CLOUD_ALT_MODEL", "qwen3-coder:480b-cloud"),
         "routing_profile": os.environ.get("ROUTING_PROFILE", "balanced-local-first"),

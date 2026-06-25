@@ -28,7 +28,7 @@ local_model: Phi-4-mini-instruct-GGUF
 
 ## Fireworks Verification
 
-Fireworks is integrated as a remote provider, but real inference is not yet verified. On 2026-06-25, the configured Fireworks profile route reached the API and returned HTTP 404 indicating the model was not found, inaccessible, or not deployed for the account. A model-list request returned HTTP 401 for the provided credential value. The app now surfaces those provider errors clearly without logging API keys.
+Fireworks is integrated and verified as a remote provider. On 2026-06-25, the corrected Fireworks key successfully listed serverless models. The app route for `reasoning-escalation-boundary` selected Fireworks through `phi-fireworks-balanced`, used `accounts/fireworks/models/deepseek-v4-flash`, passed validation, and recorded token usage. The earlier `deepseek-v3p1` quickstart and Llama profile seeds were not available to this account/serverless catalog.
 
 ## Profile-Pair Update
 
@@ -38,4 +38,4 @@ The benchmark/UI path now treats a profile as a local/remote model pair plus rou
 | --- | --- | --- |
 | `phi-nemotron-balanced` | `Phi-4-mini-instruct-GGUF` | `ollama_cloud` / `nemotron-3-ultra:cloud` |
 | `phi-qwen-coder-balanced` | `Phi-4-mini-instruct-GGUF` | `ollama_cloud` / `qwen3-coder:480b-cloud` |
-| `phi-fireworks-balanced` | `Phi-4-mini-instruct-GGUF` | `fireworks` / `accounts/fireworks/models/llama-v3p3-70b-instruct` |
+| `phi-fireworks-balanced` | `Phi-4-mini-instruct-GGUF` | `fireworks` / `accounts/fireworks/models/deepseek-v4-flash` |
