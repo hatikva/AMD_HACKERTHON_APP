@@ -1,0 +1,44 @@
+{
+  "id": "first-vertical-slice",
+  "status": "validated-offline",
+  "completed_at": "2026-06-25",
+  "target_boundary": "application_repository",
+  "validation_command": "scripts/validate-app.sh",
+  "evidence": [
+    {
+      "path": "src/amd_hackathon_app/pipeline.py",
+      "description": "Implements task classification, difficulty estimation, MDR packet compilation, accuracy-first routing, provider boundaries, validation, and execution record writing."
+    },
+    {
+      "path": "configs/profiles/balanced-local-first.json",
+      "description": "Defines local/API model pairing, task thresholds, MDR budget, and validation policy."
+    },
+    {
+      "path": "benchmarks/scenarios.json",
+      "description": "Defines compact benchmark scenarios for classification, JSON extraction, and routing escalation boundary coverage."
+    },
+    {
+      "path": "compose.dev.yml",
+      "description": "Defines loopback-only Lemonade development service with CPU config mounted outside hidden named volumes."
+    },
+    {
+      "path": "docs/ENVIRONMENT_PREFLIGHT.md",
+      "description": "Records observed WSL, Podman-backed Compose, memory, disk, Ollama, and port state."
+    }
+  ],
+  "verified": [
+    "offline mock vertical slice produces required MDR/routing evidence fields",
+    "unit tests pass",
+    "preflight command emits environment and credential state",
+    "Compose configuration renders with loopback Lemonade port mapping",
+    "Lemonade image is pinned to ghcr.io/lemonade-sdk/lemonade-server:v9.1.3",
+    "CPU backend default is recorded"
+  ],
+  "blocked_or_pending": [
+    "Lemonade container runtime verification is pending because docker command is backed by Podman/podman-compose in this environment.",
+    "Ollama is currently listening on 127.0.0.1:11434 and must be stopped before local Lemonade verification.",
+    "Fireworks execution is unverified because FIREWORKS_API_KEY is not configured.",
+    "Candidate local models have not been pulled or benchmarked yet.",
+    "Submission image is a scaffold until model selection and organiser constraints are known."
+  ]
+}

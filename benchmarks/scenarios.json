@@ -1,0 +1,26 @@
+[
+  {
+    "id": "classification-basic",
+    "task_family": "classification",
+    "prompt": "Classify this request as one of: bugfix, feature, docs. Request: Add a troubleshooting section to the README.",
+    "expected_format": "plain_text",
+    "difficulty_hint": 1,
+    "evidence_refs": ["memory/project-doctrine.md"]
+  },
+  {
+    "id": "json-extraction-basic",
+    "task_family": "json_extraction",
+    "prompt": "Extract JSON with keys name and track from: Hatikva is building an AMD Hackathon Track 1 routing agent.",
+    "expected_format": "json",
+    "difficulty_hint": 1,
+    "evidence_refs": ["memory/project-doctrine.md"]
+  },
+  {
+    "id": "reasoning-escalation-boundary",
+    "task_family": "reasoning",
+    "prompt": "Given strict accuracy requirements, explain whether a small local model should handle an ambiguous multi-step task without validation.",
+    "expected_format": "plain_text",
+    "difficulty_hint": 3,
+    "evidence_refs": ["memory/routing-policy.md"]
+  }
+]

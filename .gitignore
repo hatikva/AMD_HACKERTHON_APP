@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+benchmarks/results/*
+!benchmarks/results/.gitkeep
+runs/*
+!runs/.gitkeep
+*.gguf
+models/
+.DS_Store
+*.log

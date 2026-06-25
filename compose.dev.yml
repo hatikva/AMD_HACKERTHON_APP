@@ -1,0 +1,28 @@
+services:
+  lemonade:
+    build:
+      context: .
+      dockerfile: containers/lemonade/Dockerfile
+    image: amd-hackathon-lemonade:v9.1.3-cpu
+    container_name: amd-hackathon-lemonade
+    ports:
+      - "127.0.0.1:13305:13305"
+    volumes:
+      - lemonade-cache:/root/.cache/huggingface
+      - lemonade-llama:/opt/lemonade/llama
+      - lemonade-recipe:/root/.cache/lemonade
+      - ./containers/lemonade/defaults.json:/root/.cache/lemonade/config.json:ro
+    environment:
+      LEMONADE_HOST: "0.0.0.0"
+      LEMONADE_PORT: "13305"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:13305/live', timeout=5)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  lemonade-cache:
+  lemonade-llama:
+  lemonade-recipe:
