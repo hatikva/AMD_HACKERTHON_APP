@@ -1,0 +1,61 @@
+{
+  "schema": "amd_hackathon.pipeline.v1",
+  "updated_at": "2026-06-25",
+  "principle": "Unfinished work remains in the implementation pipeline with an executable next action; it is not reported as an unmanaged blocker.",
+  "stages": [
+    {
+      "id": "planning-audit-gate",
+      "status": "complete",
+      "command": "cd ../AMD_HACKERTHON_IMPLEMENTATION_PLAN && python3 tools/validate-planning-repo.py",
+      "evidence": "Planning repository audit validation passed before app execution."
+    },
+    {
+      "id": "offline-router-vertical-slice",
+      "status": "complete",
+      "command": "scripts/validate-app.sh",
+      "evidence": "Mock provider route produces MDR packet, routing decision, validation result, token accounting, and execution record."
+    },
+    {
+      "id": "ollama-port-handoff",
+      "status": "complete",
+      "command": "scripts/stop-ollama.sh",
+      "evidence": "scripts/advance-pipeline.sh ollama-port-handoff reported that Ollama is not listening on 11434."
+    },
+    {
+      "id": "lemonade-runtime-start",
+      "status": "complete",
+      "command": "scripts/setup-lemonade.sh",
+      "evidence": "LEMONADE_BUILD_TIMEOUT_SECONDS=240 scripts/advance-pipeline.sh lemonade-runtime-start started the pinned CPU-only Lemonade service on 127.0.0.1:13305."
+    },
+    {
+      "id": "lemonade-runtime-verify",
+      "status": "complete",
+      "command": "scripts/verify-lemonade.sh",
+      "evidence": "scripts/advance-pipeline.sh lemonade-runtime-verify passed against /api/v1/models and loopback-only Compose configuration."
+    },
+    {
+      "id": "fireworks-provider-verify",
+      "status": "queued",
+      "command": "FIREWORKS_API_KEY=<secret> python3 -m amd_hackathon_app.cli run-scenario --scenario reasoning-escalation-boundary --provider fireworks",
+      "next_action": "Verify Fireworks provider once credentials are available through environment variables."
+    },
+    {
+      "id": "candidate-model-acquisition",
+      "status": "queued",
+      "command": "scripts/pull-candidate-models.sh",
+      "next_action": "Pull exact candidate model IDs through Lemonade with LEMONADE_MODEL_PULL_TIMEOUT_SECONDS bounding each model pull."
+    },
+    {
+      "id": "profile-benchmark-evidence",
+      "status": "queued",
+      "command": "PROVIDER_OVERRIDE=local scripts/benchmark-profiles.sh",
+      "next_action": "Run profile benchmarks after candidate models are available, then compare quality before token and latency metrics."
+    },
+    {
+      "id": "submission-packaging",
+      "status": "queued",
+      "command": "docker build -f Dockerfile.submission --build-arg SELECTED_MODEL=<model> .",
+      "next_action": "Advance only after benchmark evidence selects exactly one local model and organiser packaging constraints are known."
+    }
+  ]
+}

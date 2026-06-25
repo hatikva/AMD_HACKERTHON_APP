@@ -14,4 +14,4 @@ if ! docker compose -f compose.dev.yml ps lemonade >/dev/null 2>&1; then
   exit 1
 fi
 
-docker compose -f compose.dev.yml exec lemonade lemonade "$@"
+docker compose -f compose.dev.yml exec lemonade ./lemonade-server "$@"

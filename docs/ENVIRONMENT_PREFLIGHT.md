@@ -17,3 +17,13 @@ port_13305: not observed listening
 ```
 
 Implication: local Lemonade runtime verification is pending. The development files are Compose-compatible, but the current environment is Podman-backed rather than Docker Desktop-backed.
+
+Runtime discovery later confirmed that the pinned `ghcr.io/lemonade-sdk/lemonade-server:v9.1.3` image exposes the packaged binary as `/opt/lemonade/lemonade-server`, not `lemond`.
+
+Ollama service discovery found:
+
+```text
+system_service: ollama.service exists and was stopped
+user_service: ollama-host.service exists, was enabled, and restarted ollama serve on 127.0.0.1:11434
+handoff_policy: scripts/stop-ollama.sh disables/stops user-level Ollama units for this project and preserves Ollama data
+```

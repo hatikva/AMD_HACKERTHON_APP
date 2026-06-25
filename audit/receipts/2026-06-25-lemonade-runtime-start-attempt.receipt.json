@@ -1,0 +1,18 @@
+{
+  "id": "lemonade-runtime-start-attempt",
+  "status": "pipeline-queued-after-bounded-attempt",
+  "completed_at": "2026-06-25",
+  "target_boundary": "application_repository",
+  "command": "scripts/advance-pipeline.sh lemonade-runtime-start",
+  "observations": [
+    "The pinned Lemonade image pull/build started through Podman-backed Compose.",
+    "The initial command had no build timeout and was terminated by the operator/agent to avoid an unmanaged long-running process.",
+    "Ollama reappeared on 127.0.0.1:11434 during the attempt, so Ollama handoff was hardened to stop ordinary ollama processes and wait for the port to clear.",
+    "A bounded retry built the pinned image but found the initial command path wrong for v9.1.3; the image uses /opt/lemonade/lemonade-server rather than lemond."
+  ],
+  "pipeline_result": {
+    "stage": "lemonade-runtime-start",
+    "status": "queued",
+    "next_action": "Run scripts/advance-pipeline.sh lemonade-runtime-start with bounded build and model-pull timeouts."
+  }
+}

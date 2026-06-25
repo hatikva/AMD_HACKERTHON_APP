@@ -22,11 +22,12 @@ This repository contains the first vertical-slice scaffold:
 - compact benchmark scenarios
 - audit/result records under ignored `runs/` and `benchmarks/results/`
 
-Runtime Lemonade verification is pending because the current container CLI reports Podman/podman-compose rather than Docker Desktop.
+Unfinished runtime work is tracked in `audit/pipeline.json`. Items that cannot be completed in the current environment remain queued with a command and next action; they are not treated as unmanaged blockers.
 
 Audit receipt:
 
 - `audit/receipts/2026-06-25-first-vertical-slice.receipt.json`
+- `audit/receipts/2026-06-25-lemonade-runtime-verified.receipt.json`
 
 ## Daily Commands
 
@@ -54,6 +55,16 @@ Run the app audit gate:
 
 ```bash
 scripts/validate-app.sh
+```
+
+Show or advance the implementation pipeline:
+
+```bash
+scripts/advance-pipeline.sh show
+scripts/advance-pipeline.sh ollama-port-handoff
+scripts/advance-pipeline.sh lemonade-runtime-start
+scripts/advance-pipeline.sh lemonade-runtime-verify
+scripts/advance-pipeline.sh candidate-model-acquisition
 ```
 
 Inspect environment:

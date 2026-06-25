@@ -1,0 +1,24 @@
+{
+  "id": "lemonade-runtime-verified",
+  "status": "complete",
+  "completed_at": "2026-06-25",
+  "target_boundary": "application_repository",
+  "commands": [
+    "scripts/advance-pipeline.sh ollama-port-handoff",
+    "LEMONADE_BUILD_TIMEOUT_SECONDS=240 scripts/advance-pipeline.sh lemonade-runtime-start",
+    "scripts/advance-pipeline.sh lemonade-runtime-verify"
+  ],
+  "verified": [
+    "Ollama is not listening on 127.0.0.1:11434.",
+    "Pinned Lemonade image ghcr.io/lemonade-sdk/lemonade-server:v9.1.3 builds under Podman-backed Compose.",
+    "Lemonade service starts on 127.0.0.1:13305.",
+    "OpenAI-compatible /api/v1/models endpoint responds.",
+    "Compose renders loopback-only host publishing.",
+    "Compose configuration contains no CUDA, ROCm, Vulkan, NPU, GPU device, or accelerator configuration."
+  ],
+  "pipeline_continuation": {
+    "next_stage": "candidate-model-acquisition",
+    "command": "scripts/advance-pipeline.sh candidate-model-acquisition",
+    "note": "Candidate model downloads are intentionally separated from service startup because each model pull can take longer than the runtime health gate."
+  }
+}

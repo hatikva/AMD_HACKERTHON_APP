@@ -12,7 +12,12 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 docker compose version >/dev/null
-docker compose -f compose.dev.yml up -d --build
+build_timeout="${LEMONADE_BUILD_TIMEOUT_SECONDS:-1200}"
+if command -v timeout >/dev/null 2>&1; then
+  timeout "$build_timeout" docker compose -f compose.dev.yml up -d --build
+else
+  docker compose -f compose.dev.yml up -d --build
+fi
 
 for _ in $(seq 1 60); do
   if curl -fsS http://127.0.0.1:13305/api/v1/models >/dev/null 2>&1 || curl -fsS http://127.0.0.1:13305/live >/dev/null 2>&1; then
@@ -28,10 +33,8 @@ if ! curl -fsS http://127.0.0.1:13305/api/v1/models >/dev/null 2>&1 && ! curl -f
   exit 1
 fi
 
-for model in Qwen3-4B-Instruct-2507-GGUF Phi-4-mini-instruct-GGUF LFM2.5-1.2B-Instruct-GGUF; do
-  echo "Pulling $model"
-  docker compose -f compose.dev.yml exec lemonade lemonade pull "$model"
-done
-
-docker compose -f compose.dev.yml exec lemonade lemonade list || true
-docker system df || true
+if [[ "${LEMONADE_PULL_MODELS:-0}" == "1" ]]; then
+  scripts/pull-candidate-models.sh
+else
+  echo "Lemonade started. Candidate model pulls are a separate pipeline stage."
+fi

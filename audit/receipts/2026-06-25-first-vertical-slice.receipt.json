@@ -34,11 +34,9 @@
     "Lemonade image is pinned to ghcr.io/lemonade-sdk/lemonade-server:v9.1.3",
     "CPU backend default is recorded"
   ],
-  "blocked_or_pending": [
-    "Lemonade container runtime verification is pending because docker command is backed by Podman/podman-compose in this environment.",
-    "Ollama is currently listening on 127.0.0.1:11434 and must be stopped before local Lemonade verification.",
-    "Fireworks execution is unverified because FIREWORKS_API_KEY is not configured.",
-    "Candidate local models have not been pulled or benchmarked yet.",
-    "Submission image is a scaffold until model selection and organiser constraints are known."
-  ]
+  "pipeline_continuation": {
+    "path": "audit/pipeline.json",
+    "principle": "Unfinished work remains in the implementation pipeline with an executable next action; it is not reported as an unmanaged blocker.",
+    "next_command": "scripts/advance-pipeline.sh show"
+  }
 }
