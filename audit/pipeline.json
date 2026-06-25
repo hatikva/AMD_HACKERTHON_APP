@@ -41,16 +41,17 @@
     },
     {
       "id": "candidate-model-acquisition",
-      "status": "complete_for_available_exact_ids",
+      "status": "complete_for_benchmarkable_exact_ids",
       "command": "scripts/pull-candidate-models.sh",
-      "evidence": "Qwen3-4B-Instruct-2507-GGUF and Phi-4-mini-instruct-GGUF are downloaded. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be silently substituted.",
-      "next_action": "Carry the LFM2.5 exact-ID mismatch into organiser/model-source verification while continuing benchmarks with downloaded exact candidates."
+      "evidence": "Phi-4-mini-instruct-GGUF is downloaded and benchmarkable. Qwen3-4B-Instruct-2507-GGUF is listed as downloaded but failed GGUF loading. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be silently substituted.",
+      "next_action": "Benchmark with Phi while carrying Qwen cache integrity and LFM2.5 exact-ID mismatch as model-source verification items."
     },
     {
       "id": "profile-benchmark-evidence",
-      "status": "queued",
+      "status": "complete_initial_local",
       "command": "PROVIDER_OVERRIDE=local scripts/benchmark-profiles.sh",
-      "next_action": "Run profile benchmarks after candidate models are available, then compare quality before token and latency metrics."
+      "evidence": "Initial local benchmark with Phi passed classification, failed strict JSON validation, and confirmed reasoning boundary should normally escalate.",
+      "next_action": "Verify Fireworks provider, then run routed benchmarks without forcing local."
     },
     {
       "id": "submission-packaging",

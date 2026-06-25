@@ -1,10 +1,10 @@
 {
   "profile_id": "balanced-local-first",
-  "local_model": "Qwen3-4B-Instruct-2507-GGUF",
+  "local_model": "Phi-4-mini-instruct-GGUF",
   "api_model_env": "FIREWORKS_MODEL",
   "task_thresholds": {
     "classification": { "max_local_difficulty": 2, "min_router_confidence": 0.7 },
-    "json_extraction": { "max_local_difficulty": 2, "min_router_confidence": 0.75 },
+    "json_extraction": { "max_local_difficulty": 0, "min_router_confidence": 0.75 },
     "summarisation": { "max_local_difficulty": 2, "min_router_confidence": 0.7 },
     "reasoning": { "max_local_difficulty": 1, "min_router_confidence": 0.8 },
     "code_transform": { "max_local_difficulty": 1, "min_router_confidence": 0.85 },

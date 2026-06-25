@@ -227,7 +227,14 @@ def run_scenario(
 
     provider_name = provider_override or decision.provider
     provider = provider_for(provider_name)
-    model = "mock-model" if provider_name == "mock" else decision.model
+    if provider_name == "mock":
+        model = "mock-model"
+    elif provider_override == "local":
+        model = profile["local_model"]
+    elif provider_override == "fireworks":
+        model = os.environ.get(profile.get("api_model_env", "FIREWORKS_MODEL"), decision.model)
+    else:
+        model = decision.model
     result = provider.complete(packet["compiled_prompt"], model)
     validation = validate_output(scenario.expected_format, result.text)
 

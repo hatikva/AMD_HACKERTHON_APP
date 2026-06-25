@@ -1,0 +1,34 @@
+{
+  "id": "profile-benchmark-evidence",
+  "status": "complete_initial_local",
+  "completed_at": "2026-06-25",
+  "target_boundary": "application_repository",
+  "command": "PROVIDER_OVERRIDE=local PYTHONPATH=src scripts/advance-pipeline.sh profile-benchmark-evidence",
+  "result_file": "benchmarks/results/profile-benchmark-20260625T191604Z.jsonl",
+  "findings": [
+    {
+      "scenario": "classification-basic",
+      "status": "passed",
+      "model": "Phi-4-mini-instruct-GGUF",
+      "total_tokens": 99,
+      "latency_ms": 1448
+    },
+    {
+      "scenario": "json-extraction-basic",
+      "status": "failed_validation",
+      "model": "Phi-4-mini-instruct-GGUF",
+      "reason": "invalid_json",
+      "profile_change": "json_extraction.max_local_difficulty set to 0"
+    },
+    {
+      "scenario": "reasoning-escalation-boundary",
+      "status": "forced_local_passed_but_should_escalate",
+      "model": "Phi-4-mini-instruct-GGUF",
+      "router_reason": "difficulty_above_local_threshold"
+    }
+  ],
+  "pipeline_continuation": {
+    "next_stage": "fireworks-provider-verify",
+    "next_command": "FIREWORKS_API_KEY=<secret> python3 -m amd_hackathon_app.cli run-scenario --scenario reasoning-escalation-boundary --provider fireworks"
+  }
+}

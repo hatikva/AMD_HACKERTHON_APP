@@ -10,8 +10,8 @@
   "candidate_status": [
     {
       "model_id": "Qwen3-4B-Instruct-2507-GGUF",
-      "status": "downloaded",
-      "evidence": "Lemonade model list reports Downloaded=Yes."
+      "status": "downloaded_unloadable",
+      "evidence": "Lemonade model list reports Downloaded=Yes, but local benchmark logs show llama.cpp failed to load the cache path as a GGUF file."
     },
     {
       "model_id": "Phi-4-mini-instruct-GGUF",
@@ -27,7 +27,7 @@
   ],
   "pipeline_continuation": {
     "stage": "candidate-model-acquisition",
-    "status": "complete_for_available_exact_ids",
+    "status": "complete_for_benchmarkable_exact_ids",
     "next_command": "PROVIDER_OVERRIDE=local scripts/benchmark-profiles.sh"
   }
 }

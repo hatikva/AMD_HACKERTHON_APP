@@ -3,7 +3,8 @@
     {
       "action": "skipped",
       "model_id": "Qwen3-4B-Instruct-2507-GGUF",
-      "status": "downloaded"
+      "status": "downloaded_unloadable",
+      "note": "Lemonade lists the model as downloaded, but benchmark logs show llama.cpp received the model directory instead of a GGUF file and failed to read magic."
     },
     {
       "action": "pull_attempted",
@@ -21,6 +22,6 @@
       "status": "registry_mismatch"
     }
   ],
-  "complete_for_available_exact_ids": true,
+  "complete_for_available_exact_ids": false,
   "updated_at": "2026-06-25T19:11:36.319103+00:00"
 }
