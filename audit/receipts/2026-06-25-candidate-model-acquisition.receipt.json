@@ -1,6 +1,6 @@
 {
   "id": "candidate-model-acquisition",
-  "status": "in_progress",
+  "status": "complete_for_available_exact_ids",
   "completed_at": "2026-06-25",
   "target_boundary": "application_repository",
   "commands": [
@@ -15,8 +15,8 @@
     },
     {
       "model_id": "Phi-4-mini-instruct-GGUF",
-      "status": "available_not_downloaded",
-      "next_action": "Run scripts/advance-pipeline.sh candidate-model-acquisition with sufficient timeout to pull remaining available models."
+      "status": "downloaded",
+      "evidence": "Lemonade model list reports Downloaded=Yes after scripts/advance-pipeline.sh candidate-model-acquisition."
     },
     {
       "model_id": "LFM2.5-1.2B-Instruct-GGUF",
@@ -27,7 +27,7 @@
   ],
   "pipeline_continuation": {
     "stage": "candidate-model-acquisition",
-    "status": "in_progress",
-    "next_command": "scripts/advance-pipeline.sh candidate-model-acquisition"
+    "status": "complete_for_available_exact_ids",
+    "next_command": "PROVIDER_OVERRIDE=local scripts/benchmark-profiles.sh"
   }
 }

@@ -12,6 +12,7 @@ python3 -m amd_hackathon_app.cli run-scenario \
   --scenario classification-basic \
   --provider mock \
   --run-dir /tmp/amd-hackathon-app-runs >/tmp/amd-hackathon-app-vertical-slice.json
+python3 -m py_compile scripts/model-acquisition.py scripts/show-pipeline.py
 python3 scripts/show-pipeline.py >/tmp/amd-hackathon-app-pipeline.txt
 docker compose -f compose.dev.yml config >/tmp/amd-hackathon-app-compose.yml
 

@@ -41,10 +41,10 @@
     },
     {
       "id": "candidate-model-acquisition",
-      "status": "in_progress",
+      "status": "complete_for_available_exact_ids",
       "command": "scripts/pull-candidate-models.sh",
-      "evidence": "Qwen3-4B-Instruct-2507-GGUF is downloaded. Phi-4-mini-instruct-GGUF remains available_not_downloaded. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be silently substituted.",
-      "next_action": "Continue exact-ID acquisition for Phi-4-mini-instruct-GGUF and verify official guidance for LFM2.5-1.2B-Instruct-GGUF."
+      "evidence": "Qwen3-4B-Instruct-2507-GGUF and Phi-4-mini-instruct-GGUF are downloaded. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be silently substituted.",
+      "next_action": "Carry the LFM2.5 exact-ID mismatch into organiser/model-source verification while continuing benchmarks with downloaded exact candidates."
     },
     {
       "id": "profile-benchmark-evidence",
