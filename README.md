@@ -93,6 +93,12 @@ Benchmark routing profiles:
 scripts/benchmark-profiles.sh
 ```
 
+Audit existing Ollama GGUF blobs without redownloading models:
+
+```bash
+python3 scripts/audit-ollama-gguf.py
+```
+
 ## Routing Rule
 
 The router is accuracy-first:
@@ -112,3 +118,9 @@ The router is accuracy-first:
 - `lemonade-recipe`: Lemonade recipe/config/cache state.
 
 These volumes are development caches. They are not part of a Docker image and must not be assumed present for scoring. The CPU defaults file is mounted explicitly to `/root/.cache/lemonade/config.json` so the recipe volume does not hide the required CPU configuration.
+
+## Ollama Model Reuse
+
+Lemonade can import raw GGUF files through `extra_models_dir`, and this machine's Ollama cache contains GGUF blobs. The Ollama cache layout itself is not treated as a Lemonade model store. Use `docs/OLLAMA_GGUF_IMPORT.md` and `scripts/audit-ollama-gguf.py` to record evidence before any manual staging experiment.
+
+The original prompt-supplied model IDs are seed candidates, not required IDs. Audited Ollama GGUF models may be added to exploratory local benchmarks under their own identities and size tiers. Promotion still follows the project rule: validation accuracy first, then token use, latency, and cost.

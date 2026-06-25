@@ -28,6 +28,9 @@ case "$stage" in
   candidate-model-acquisition)
     scripts/pull-candidate-models.sh
     ;;
+  ollama-gguf-import-audit)
+    python3 scripts/audit-ollama-gguf.py
+    ;;
   profile-benchmark-evidence)
     PROVIDER_OVERRIDE="${PROVIDER_OVERRIDE:-local}" scripts/benchmark-profiles.sh
     ;;

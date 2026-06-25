@@ -4,7 +4,7 @@ Development and submission packaging are separate concerns.
 
 ## Development
 
-`compose.dev.yml` uses named volumes so candidate models and Lemonade backend state are not repeatedly downloaded:
+`compose.dev.yml` uses named volumes so local model downloads and Lemonade backend state are not repeatedly downloaded:
 
 - `lemonade-cache`
 - `lemonade-llama`

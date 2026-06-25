@@ -10,11 +10,20 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CANDIDATES = [
+SEED_MODELS = [
     "Qwen3-4B-Instruct-2507-GGUF",
     "Phi-4-mini-instruct-GGUF",
     "LFM2.5-1.2B-Instruct-GGUF",
 ]
+KNOWN_BENCHMARK_STATUS = {
+    "Qwen3-4B-Instruct-2507-GGUF": {
+        "benchmark_status": "downloaded_unloadable",
+        "note": "Lemonade lists the model as downloaded, but benchmark logs showed llama.cpp received the model directory instead of a GGUF file and failed to read magic.",
+    },
+    "Phi-4-mini-instruct-GGUF": {
+        "benchmark_status": "benchmarkable",
+    },
+}
 
 
 def run(args: list[str], timeout: int | None = None) -> subprocess.CompletedProcess[str]:
@@ -57,37 +66,43 @@ def pull_model(model_id: str) -> dict[str, str | int]:
     }
 
 
+def annotate(model_id: str, row: dict[str, object]) -> dict[str, object]:
+    annotated = dict(row)
+    annotated.update(KNOWN_BENCHMARK_STATUS.get(model_id, {"benchmark_status": "not_benchmarked"}))
+    return annotated
+
+
 def main() -> int:
     before = list_models()
     statuses: list[dict[str, object]] = []
 
-    for model_id in CANDIDATES:
+    for model_id in SEED_MODELS:
         current = before.get(model_id)
         if current == "downloaded":
-            statuses.append({"model_id": model_id, "status": "downloaded", "action": "skipped"})
+            statuses.append(annotate(model_id, {"model_id": model_id, "status": "downloaded", "action": "skipped"}))
             continue
         if current is None:
-            statuses.append({
+            statuses.append(annotate(model_id, {
                 "model_id": model_id,
                 "status": "registry_mismatch",
                 "action": "not_pulled",
-                "note": "Exact ID not present in Lemonade registry output; no substitution performed.",
-            })
+                "note": "Seed ID not present in Lemonade registry output; no substituted model was reported under this ID.",
+            }))
             continue
 
         pull = pull_model(model_id)
         after_pull = list_models().get(model_id)
-        statuses.append({
+        statuses.append(annotate(model_id, {
             "model_id": model_id,
             "status": after_pull or "unknown_after_pull",
             "action": "pull_attempted",
             "pull": pull,
-        })
+        }))
 
     status = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
-        "candidates": statuses,
-        "complete_for_available_exact_ids": all(
+        "seed_models": statuses,
+        "complete_for_available_seed_ids": all(
             row["status"] in {"downloaded", "registry_mismatch"} for row in statuses
         ),
     }

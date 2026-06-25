@@ -1,27 +1,26 @@
 {
-  "candidates": [
+  "complete_for_available_seed_ids": true,
+  "seed_models": [
     {
       "action": "skipped",
+      "benchmark_status": "downloaded_unloadable",
       "model_id": "Qwen3-4B-Instruct-2507-GGUF",
-      "status": "downloaded_unloadable",
-      "note": "Lemonade lists the model as downloaded, but benchmark logs show llama.cpp received the model directory instead of a GGUF file and failed to read magic."
+      "note": "Lemonade lists the model as downloaded, but benchmark logs showed llama.cpp received the model directory instead of a GGUF file and failed to read magic.",
+      "status": "downloaded"
     },
     {
-      "action": "pull_attempted",
+      "action": "skipped",
+      "benchmark_status": "benchmarkable",
       "model_id": "Phi-4-mini-instruct-GGUF",
-      "pull": {
-        "output_tail": "  Progress: 86% (2043.7/2376.4 MB)\n  Progress: 87% (2067.5/2376.4 MB)\n  Progress: 88% (2091.3/2376.4 MB)\n  Progress: 89% (2115.0/2376.4 MB)\n  Progress: 90% (2138.8/2376.4 MB)\n  Progress: 91% (2162.7/2376.4 MB)\n  Progress: 92% (2186.3/2376.4 MB)\n  Progress: 93% (2210.1/2376.4 MB)\n  Progress: 94% (2233.9/2376.4 MB)\n  Progress: 95% (2257.6/2376.4 MB)\n  Progress: 96% (2281.4/2376.4 MB)\n  Progress: 97% (2305.1/2376.4 MB)\n  Progress: 98% (2328.9/2376.4 MB)\n  Progress: 99% (2352.7/2376.4 MB)\n  Progress: 100% (2376.4/2376.4 MB)\n[2/2] config.json (0.0 MB)\n\n  Progress: 0% (0.0/0.0 MB)\n  Progress: 100% (0.0/0.0 MB)\nModel pulled successfully: Phi-4-mini-instruct-GGUF",
-        "returncode": 0
-      },
       "status": "downloaded"
     },
     {
       "action": "not_pulled",
+      "benchmark_status": "not_benchmarked",
       "model_id": "LFM2.5-1.2B-Instruct-GGUF",
-      "note": "Exact ID not present in Lemonade registry output; no substitution performed.",
+      "note": "Seed ID not present in Lemonade registry output; no substituted model was reported under this ID.",
       "status": "registry_mismatch"
     }
   ],
-  "complete_for_available_exact_ids": false,
-  "updated_at": "2026-06-25T19:11:36.319103+00:00"
+  "updated_at": "2026-06-25T19:45:19.916068+00:00"
 }

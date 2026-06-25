@@ -43,8 +43,15 @@
       "id": "candidate-model-acquisition",
       "status": "complete_for_benchmarkable_exact_ids",
       "command": "scripts/pull-candidate-models.sh",
-      "evidence": "Phi-4-mini-instruct-GGUF is downloaded and benchmarkable. Qwen3-4B-Instruct-2507-GGUF is listed as downloaded but failed GGUF loading. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be silently substituted.",
-      "next_action": "Benchmark with Phi while carrying Qwen cache integrity and LFM2.5 exact-ID mismatch as model-source verification items."
+      "evidence": "Original prompt seed models were checked. Phi-4-mini-instruct-GGUF is downloaded and benchmarkable. Qwen3-4B-Instruct-2507-GGUF is listed as downloaded but failed GGUF loading. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be reported under a substituted ID.",
+      "next_action": "Benchmark with Phi and audited local GGUF models while carrying Qwen cache integrity and LFM2.5 seed-ID mismatch as model-source verification items."
+    },
+    {
+      "id": "ollama-gguf-import-audit",
+      "status": "complete_discovery_tiered_local_candidates",
+      "command": "python3 scripts/audit-ollama-gguf.py",
+      "evidence": "audit/ollama-gguf-import-status.json found 10 GGUF model blobs in the Ollama cache, classified into small, mid, and large local-model tiers. None matched the original seed IDs.",
+      "next_action": "Stage selected Ollama GGUF blobs through Lemonade extra_models_dir and benchmark them under their own model identities and tiers."
     },
     {
       "id": "profile-benchmark-evidence",

@@ -1,0 +1,178 @@
+{
+  "doctrine": {
+    "allowed_use": "GGUF blobs may be staged for Lemonade extra_models_dir with explicit evidence, tier classification, and benchmark records.",
+    "direct_ollama_tree_import": "not_assumed",
+    "promotion_rule": "Promote local models by validation accuracy first, then token use, latency, and cost within comparable task families.",
+    "seed_model_rule": "The original prompt models are seed candidates, not required IDs. Audited local GGUF models may enter exploratory benchmarks when documented as such."
+  },
+  "models": [
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-415f8f959d807bd4d4da891f01225d7b330416947fb011a8473080ae4fd07885",
+      "blob_exists": true,
+      "digest": "sha256:415f8f959d807bd4d4da891f01225d7b330416947fb011a8473080ae4fd07885",
+      "is_gguf": true,
+      "local_model_tier": "small_under_4b",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/functiongemma/270m",
+      "ollama_model": "functiongemma:270m",
+      "parameter_estimate_billions": 0.27,
+      "seed_model_id_match": false,
+      "size_bytes": 300796576
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-4c27e0f5b5adf02ac956c7322bd2ee7636fe3f45a8512c9aba5385242cb6e09a",
+      "blob_exists": true,
+      "digest": "sha256:4c27e0f5b5adf02ac956c7322bd2ee7636fe3f45a8512c9aba5385242cb6e09a",
+      "is_gguf": true,
+      "local_model_tier": "mid_4b_to_under_7b",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/gemma4/e4b",
+      "ollama_model": "gemma4:e4b",
+      "parameter_estimate_billions": 4.0,
+      "seed_model_id_match": false,
+      "size_bytes": 9608338848
+    },
+    {
+      "benchmark_status": "not_benchmarkable_blob_missing_or_non_gguf",
+      "blob": "/home/user/.ollama/models/blobs/sha256-placeholder",
+      "blob_exists": false,
+      "digest": "sha256:placeholder",
+      "is_gguf": false,
+      "local_model_tier": "large_7b_plus",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/gpt-oss/20b-cloud",
+      "ollama_model": "gpt-oss:20b-cloud",
+      "parameter_estimate_billions": 20.0,
+      "seed_model_id_match": false,
+      "size_bytes": 1
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-6c02683809a8dc4eb05c78d44bc63bcd707703b078998fa58829c858ab337bb0",
+      "blob_exists": true,
+      "digest": "sha256:6c02683809a8dc4eb05c78d44bc63bcd707703b078998fa58829c858ab337bb0",
+      "is_gguf": true,
+      "local_model_tier": "small_under_4b",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/granite4/3b",
+      "ollama_model": "granite4:3b",
+      "parameter_estimate_billions": 3.0,
+      "seed_model_id_match": false,
+      "size_bytes": 2099502528
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-3ea32f882c990baebcfe6ab5cda2e3167d54ab16d7937c0b9aa3db11aba01574",
+      "blob_exists": true,
+      "digest": "sha256:3ea32f882c990baebcfe6ab5cda2e3167d54ab16d7937c0b9aa3db11aba01574",
+      "is_gguf": true,
+      "local_model_tier": "large_7b_plus",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/ministral-3/8b",
+      "ollama_model": "ministral-3:8b",
+      "parameter_estimate_billions": 8.0,
+      "seed_model_id_match": false,
+      "size_bytes": 6022221312
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970",
+      "blob_exists": true,
+      "digest": "sha256:527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970",
+      "is_gguf": true,
+      "local_model_tier": "mid_4b_to_under_7b",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/nemotron-3-nano/4b",
+      "ollama_model": "nemotron-3-nano:4b",
+      "parameter_estimate_billions": 4.0,
+      "seed_model_id_match": false,
+      "size_bytes": 2837586496
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-f4dd2368e6c32725dc1c5c5548ae9ee2724d6a79052952eb50b65e26288022c4",
+      "blob_exists": true,
+      "digest": "sha256:f4dd2368e6c32725dc1c5c5548ae9ee2724d6a79052952eb50b65e26288022c4",
+      "is_gguf": true,
+      "local_model_tier": "small_under_4b",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/phi4-mini-reasoning/3.8b",
+      "ollama_model": "phi4-mini-reasoning:3.8b",
+      "parameter_estimate_billions": 3.8,
+      "seed_model_id_match": false,
+      "size_bytes": 3152477440
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-4a188102020e9c9530b687fd6400f775c45e90a0d7baafe65bd0a36963fbb7ba",
+      "blob_exists": true,
+      "digest": "sha256:4a188102020e9c9530b687fd6400f775c45e90a0d7baafe65bd0a36963fbb7ba",
+      "is_gguf": true,
+      "local_model_tier": "small_under_4b",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/qwen2.5-coder/3b",
+      "ollama_model": "qwen2.5-coder:3b",
+      "parameter_estimate_billions": 3.0,
+      "seed_model_id_match": false,
+      "size_bytes": 1929903072
+    },
+    {
+      "benchmark_status": "not_benchmarkable_blob_missing_or_non_gguf",
+      "blob": "/home/user/.ollama/models/blobs/sha256-placeholder",
+      "blob_exists": false,
+      "digest": "sha256:placeholder",
+      "is_gguf": false,
+      "local_model_tier": "small_under_4b_size_inferred",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/qwen3-coder-next/cloud",
+      "ollama_model": "qwen3-coder-next:cloud",
+      "parameter_estimate_billions": null,
+      "seed_model_id_match": false,
+      "size_bytes": 1
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "blob_exists": true,
+      "digest": "sha256:81fb60c7daa80fc1123380b98970b320ae233409f0f71a72ed7b9b0d62f40490",
+      "is_gguf": true,
+      "local_model_tier": "mid_4b_to_under_7b",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/qwen3.5/4b",
+      "ollama_model": "qwen3.5:4b",
+      "parameter_estimate_billions": 4.0,
+      "seed_model_id_match": false,
+      "size_bytes": 3389971840
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c",
+      "blob_exists": true,
+      "digest": "sha256:dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c",
+      "is_gguf": true,
+      "local_model_tier": "large_7b_plus",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/qwen3.5/9b",
+      "ollama_model": "qwen3.5:9b",
+      "parameter_estimate_billions": 9.0,
+      "seed_model_id_match": false,
+      "size_bytes": 6594462816
+    },
+    {
+      "benchmark_status": "available_for_exploratory_local_benchmark",
+      "blob": "/home/user/.ollama/models/blobs/sha256-e0785291058ca42a1338fa800e73fa4ec07d8d3176510616dae9af9e83ddc372",
+      "blob_exists": true,
+      "digest": "sha256:e0785291058ca42a1338fa800e73fa4ec07d8d3176510616dae9af9e83ddc372",
+      "is_gguf": true,
+      "local_model_tier": "large_7b_plus",
+      "manifest": "/home/user/.ollama/models/manifests/registry.ollama.ai/library/rnj-1/8b",
+      "ollama_model": "rnj-1:8b",
+      "parameter_estimate_billions": 8.0,
+      "seed_model_id_match": false,
+      "size_bytes": 5114427328
+    }
+  ],
+  "ollama_models_dir": "/home/user/.ollama/models",
+  "summary": {
+    "gguf_model_blobs": 10,
+    "local_model_tiers": {
+      "large_7b_plus": 3,
+      "mid_4b_to_under_7b": 3,
+      "small_under_4b": 4
+    },
+    "manifest_model_layers": 12,
+    "seed_model_id_matches": 0
+  },
+  "updated_at": "2026-06-25T19:45:19.532800+00:00"
+}
