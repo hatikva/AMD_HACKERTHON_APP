@@ -40,6 +40,20 @@
       "next_action": "Verify Fireworks provider once credentials are available through environment variables."
     },
     {
+      "id": "ollama-cloud-provider-verify",
+      "status": "complete",
+      "command": "python3 -m amd_hackathon_app.cli run-scenario --scenario classification-basic --profile ollama-cloud-balanced --provider ollama_cloud --model nemotron-3-ultra:cloud",
+      "evidence": "Ollama Cloud returned docs for classification-basic with nemotron-3-ultra:cloud and qwen3-coder:480b-cloud, validation passed, and both runs were recorded in SQLite.",
+      "next_action": "Run benchmark matrices with nemotron-3-ultra:cloud and qwen3-coder:480b-cloud as temporary remote models while Fireworks remains unavailable."
+    },
+    {
+      "id": "local-operator-ui",
+      "status": "complete_initial",
+      "command": "python3 -m amd_hackathon_app.cli ui",
+      "evidence": "Local UI serves / and /api/state on 127.0.0.1:8765, lists scenarios/profiles/runs, supports profile editing, task execution, and benchmark matrix runs.",
+      "next_action": "Use the UI to compare local, Ollama Cloud, and later Fireworks profiles across benchmark suites."
+    },
+    {
       "id": "candidate-model-acquisition",
       "status": "complete_for_benchmarkable_exact_ids",
       "command": "scripts/pull-candidate-models.sh",

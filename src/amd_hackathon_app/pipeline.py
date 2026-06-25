@@ -9,8 +9,11 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from .env import load_dotenv
+from .store import save_run
 
 ROOT = Path(__file__).resolve().parents[2]
+load_dotenv()
 
 
 @dataclass(frozen=True)
@@ -60,6 +63,20 @@ def load_scenarios(path: Path = ROOT / "benchmarks/scenarios.json") -> dict[str,
 
 def load_profile(profile_id: str) -> dict[str, Any]:
     return load_json(ROOT / f"configs/profiles/{profile_id}.json")
+
+
+def list_profile_ids() -> list[str]:
+    return sorted(path.stem for path in (ROOT / "configs" / "profiles").glob("*.json"))
+
+
+def save_profile(profile_id: str, profile: dict[str, Any]) -> Path:
+    if not profile_id.replace("-", "").replace("_", "").isalnum():
+        raise ValueError("profile_id may contain only letters, numbers, hyphen, and underscore")
+    profile = dict(profile)
+    profile["profile_id"] = profile_id
+    destination = ROOT / "configs" / "profiles" / f"{profile_id}.json"
+    destination.write_text(json.dumps(profile, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return destination
 
 
 def classify(scenario: Scenario) -> str:
@@ -116,12 +133,13 @@ def route(profile: dict[str, Any], scenario: Scenario, difficulty: Difficulty) -
     thresholds = profile["task_thresholds"].get(scenario.task_family, {})
     max_local = int(thresholds.get("max_local_difficulty", 1))
     min_confidence = float(thresholds.get("min_router_confidence", 0.8))
-    api_model = os.environ.get(profile.get("api_model_env", "FIREWORKS_MODEL"), "configured-fireworks-model")
+    api_model = os.environ.get(profile.get("api_model_env", "FIREWORKS_MODEL"), "configured-remote-model")
+    api_provider = profile.get("api_provider", "fireworks")
 
     if difficulty.estimate > max_local:
-        return RouteDecision("fireworks", api_model, "difficulty_above_local_threshold", True)
+        return RouteDecision(api_provider, api_model, "difficulty_above_local_threshold", True)
     if difficulty.confidence < min_confidence:
-        return RouteDecision("fireworks", api_model, "router_confidence_below_threshold", True)
+        return RouteDecision(api_provider, api_model, "router_confidence_below_threshold", True)
     return RouteDecision("local", profile["local_model"], "within_local_threshold", False)
 
 
@@ -189,6 +207,52 @@ class OpenAICompatibleProvider:
         )
 
 
+class OllamaCloudProvider:
+    def __init__(self, base_url: str, api_key: str | None) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.api_key = api_key
+
+    def complete(self, prompt: str, model: str) -> ProviderResult:
+        if not self.api_key:
+            raise RuntimeError("OLLAMA_API_KEY is required for Ollama Cloud execution")
+        start = time.perf_counter()
+        body = json.dumps(
+            {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "stream": False,
+            }
+        ).encode("utf-8")
+        request = urllib.request.Request(
+            f"{self.base_url}/api/chat",
+            data=body,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=180) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except urllib.error.URLError as exc:
+            raise RuntimeError(f"provider request failed for {self.base_url}: {exc}") from exc
+
+        text = payload.get("message", {}).get("content", "")
+        prompt_tokens = estimate_tokens(prompt)
+        completion_tokens = estimate_tokens(text)
+        return ProviderResult(
+            text=text,
+            token_usage={
+                "prompt_tokens": int(payload.get("prompt_eval_count", prompt_tokens) or prompt_tokens),
+                "completion_tokens": int(payload.get("eval_count", completion_tokens) or completion_tokens),
+                "total_tokens": int(payload.get("prompt_eval_count", prompt_tokens) or prompt_tokens)
+                + int(payload.get("eval_count", completion_tokens) or completion_tokens),
+            },
+            latency_ms=int((time.perf_counter() - start) * 1000),
+        )
+
+
 def provider_for(name: str) -> Any:
     if name == "mock":
         return MockProvider()
@@ -199,6 +263,11 @@ def provider_for(name: str) -> Any:
         if not api_key:
             raise RuntimeError("FIREWORKS_API_KEY is required for Fireworks execution")
         return OpenAICompatibleProvider(os.environ.get("FIREWORKS_BASE_URL", "https://api.fireworks.ai/inference/v1"), api_key)
+    if name == "ollama_cloud":
+        return OllamaCloudProvider(
+            os.environ.get("OLLAMA_CLOUD_BASE_URL", "https://ollama.com"),
+            os.environ.get("OLLAMA_API_KEY"),
+        )
     raise ValueError(f"unknown provider override: {name}")
 
 
@@ -217,7 +286,10 @@ def run_scenario(
     scenario_id: str,
     profile_id: str = "balanced-local-first",
     provider_override: str | None = None,
+    model_override: str | None = None,
     run_dir: Path | None = None,
+    suite_id: str | None = None,
+    persist: bool = True,
 ) -> dict[str, Any]:
     scenario = load_scenarios()[scenario_id]
     profile = load_profile(profile_id)
@@ -227,12 +299,16 @@ def run_scenario(
 
     provider_name = provider_override or decision.provider
     provider = provider_for(provider_name)
-    if provider_name == "mock":
+    if model_override:
+        model = model_override
+    elif provider_name == "mock":
         model = "mock-model"
     elif provider_override == "local":
         model = profile["local_model"]
     elif provider_override == "fireworks":
         model = os.environ.get(profile.get("api_model_env", "FIREWORKS_MODEL"), decision.model)
+    elif provider_override == "ollama_cloud":
+        model = os.environ.get(profile.get("api_model_env", "OLLAMA_CLOUD_MODEL"), decision.model)
     else:
         model = decision.model
     result = provider.complete(packet["compiled_prompt"], model)
@@ -254,7 +330,48 @@ def run_scenario(
     out_path = destination / f"{scenario.id}-{int(time.time())}.json"
     out_path.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     record["record_path"] = str(out_path)
+    if persist:
+        record["db_run_id"] = save_run(record, suite_id=suite_id)
     return record
+
+
+def run_benchmark_matrix(
+    scenario_ids: list[str],
+    profile_ids: list[str],
+    providers: list[str],
+    models: list[str],
+) -> dict[str, Any]:
+    suite_id = f"suite-{int(time.time())}"
+    records: list[dict[str, Any]] = []
+    failures: list[dict[str, str]] = []
+    for scenario_id in scenario_ids:
+        for profile_id in profile_ids:
+            for provider_name in providers:
+                model_choices = models or [""]
+                for model in model_choices:
+                    try:
+                        records.append(
+                            run_scenario(
+                                scenario_id,
+                                profile_id=profile_id,
+                                provider_override=provider_name,
+                                model_override=model or None,
+                                suite_id=suite_id,
+                            )
+                        )
+                    except Exception as exc:
+                        failures.append({
+                            "scenario_id": scenario_id,
+                            "profile_id": profile_id,
+                            "provider": provider_name,
+                            "model": model,
+                            "error": str(exc),
+                        })
+    return {
+        "suite_id": suite_id,
+        "records": records,
+        "failures": failures,
+    }
 
 
 def preflight() -> dict[str, Any]:
@@ -262,6 +379,7 @@ def preflight() -> dict[str, Any]:
         "repo_root": str(ROOT),
         "lemonade_base_url": os.environ.get("LEMONADE_BASE_URL", "http://127.0.0.1:13305/api/v1"),
         "fireworks_configured": bool(os.environ.get("FIREWORKS_API_KEY")),
+        "ollama_cloud_configured": bool(os.environ.get("OLLAMA_API_KEY")),
         "routing_profile": os.environ.get("ROUTING_PROFILE", "balanced-local-first"),
     }
 

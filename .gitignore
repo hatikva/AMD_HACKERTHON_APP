@@ -10,6 +10,7 @@ benchmarks/results/*
 runs/*
 !runs/.gitkeep
 .local/
+data/
 *.gguf
 models/
 .DS_Store

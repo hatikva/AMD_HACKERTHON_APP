@@ -1,0 +1,23 @@
+{
+  "profile_id": "ollama-cloud-balanced",
+  "local_model": "Phi-4-mini-instruct-GGUF",
+  "api_provider": "ollama_cloud",
+  "api_model_env": "OLLAMA_CLOUD_MODEL",
+  "task_thresholds": {
+    "classification": { "max_local_difficulty": 2, "min_router_confidence": 0.7 },
+    "json_extraction": { "max_local_difficulty": 0, "min_router_confidence": 0.75 },
+    "summarisation": { "max_local_difficulty": 2, "min_router_confidence": 0.7 },
+    "reasoning": { "max_local_difficulty": 1, "min_router_confidence": 0.8 },
+    "code_transform": { "max_local_difficulty": 1, "min_router_confidence": 0.85 },
+    "context_answer": { "max_local_difficulty": 1, "min_router_confidence": 0.8 }
+  },
+  "mdr_budget": {
+    "max_refs": 8,
+    "max_input_tokens": 4096
+  },
+  "validation_policy": {
+    "escalate_on_format_failure": true,
+    "escalate_on_low_confidence": true,
+    "max_local_attempts": 1
+  }
+}

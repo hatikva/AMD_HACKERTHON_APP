@@ -47,6 +47,14 @@ Run the offline vertical slice:
 python -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider mock
 ```
 
+Start the local operator UI:
+
+```bash
+python -m amd_hackathon_app.cli ui
+```
+
+The UI runs on `http://127.0.0.1:8765` by default. It supports scenario execution, profile editing, SQLite-backed run history, and benchmark matrix runs across selected profiles, providers, and models.
+
 Run unit tests:
 
 ```bash
@@ -108,6 +116,19 @@ The router is accuracy-first:
 - route to Fireworks when decisive context cannot fit in the local MDR budget;
 - escalate when local validation fails;
 - optimize token and cost only after a model tier is accurate enough.
+
+## Remote Provider During Fireworks Gap
+
+Until Fireworks credentials are available, the app can use Ollama Cloud as the remote provider:
+
+```text
+OLLAMA_API_KEY=...
+OLLAMA_CLOUD_BASE_URL=https://ollama.com
+OLLAMA_CLOUD_MODEL=nemotron-3-ultra:cloud
+OLLAMA_CLOUD_ALT_MODEL=qwen3-coder:480b-cloud
+```
+
+Keep these values in `.env` or the process environment. Do not commit secrets.
 
 ## Development Volumes
 

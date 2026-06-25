@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AMD Hackathon Router</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>AMD Hackathon Router</h1>
+        <p id="status">Loading local state...</p>
+      </div>
+      <button id="refresh" type="button">Refresh</button>
+    </header>
+
+    <main>
+      <section class="band controls">
+        <div>
+          <label for="scenario">Task</label>
+          <select id="scenario"></select>
+        </div>
+        <div>
+          <label for="profile">Profile</label>
+          <select id="profile"></select>
+        </div>
+        <div>
+          <label for="provider">Provider</label>
+          <select id="provider">
+            <option value="">Profile route</option>
+            <option value="mock">Mock</option>
+            <option value="local">Local Lemonade</option>
+            <option value="ollama_cloud">Ollama Cloud</option>
+            <option value="fireworks">Fireworks</option>
+          </select>
+        </div>
+        <div>
+          <label for="model">Model override</label>
+          <select id="model">
+            <option value="">Provider default</option>
+            <option value="nemotron-3-ultra:cloud">nemotron-3-ultra:cloud</option>
+            <option value="qwen3-coder:480b-cloud">qwen3-coder:480b-cloud</option>
+            <option value="Phi-4-mini-instruct-GGUF">Phi-4-mini-instruct-GGUF</option>
+          </select>
+        </div>
+        <button id="run" type="button">Run Task</button>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Result</h2>
+          </div>
+          <pre id="result"></pre>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Profile Editor</h2>
+            <button id="save-profile" type="button">Save</button>
+          </div>
+          <textarea id="profile-json" spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <section class="band benchmark">
+        <div>
+          <h2>Benchmark Matrix</h2>
+          <p>Select combinations. Every run is recorded in SQLite.</p>
+        </div>
+        <div class="checks" id="bench-scenarios"></div>
+        <div class="checks" id="bench-profiles"></div>
+        <div class="checks">
+          <label><input type="checkbox" name="bench-provider" value="mock"> Mock</label>
+          <label><input type="checkbox" name="bench-provider" value="local"> Local</label>
+          <label><input type="checkbox" name="bench-provider" value="ollama_cloud" checked> Ollama Cloud</label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" name="bench-model" value="nemotron-3-ultra:cloud" checked> nemotron</label>
+          <label><input type="checkbox" name="bench-model" value="qwen3-coder:480b-cloud"> qwen coder</label>
+          <label><input type="checkbox" name="bench-model" value="Phi-4-mini-instruct-GGUF"> Phi local</label>
+        </div>
+        <button id="run-benchmark" type="button">Run Matrix</button>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Run History</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Suite</th>
+                <th>Task</th>
+                <th>Profile</th>
+                <th>Provider</th>
+                <th>Model</th>
+                <th>Valid</th>
+                <th>Tokens</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody id="runs"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

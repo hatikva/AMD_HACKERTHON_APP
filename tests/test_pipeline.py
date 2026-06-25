@@ -11,7 +11,7 @@ from amd_hackathon_app.pipeline import run_scenario
 class PipelineTests(unittest.TestCase):
     def test_mock_classification_vertical_slice_records_required_fields(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            record = run_scenario("classification-basic", provider_override="mock", run_dir=Path(tmp))
+            record = run_scenario("classification-basic", provider_override="mock", run_dir=Path(tmp), persist=False)
 
         for field in [
             "task_id",
@@ -41,7 +41,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_json_validation_scenario(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            record = run_scenario("json-extraction-basic", provider_override="mock", run_dir=Path(tmp))
+            record = run_scenario("json-extraction-basic", provider_override="mock", run_dir=Path(tmp), persist=False)
         self.assertTrue(record["validation_result"]["passed"])
         self.assertEqual(json.loads(record["output"])["track"], "AMD Hackathon Track 1")
 
