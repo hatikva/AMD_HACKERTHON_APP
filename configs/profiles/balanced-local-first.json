@@ -1,6 +1,10 @@
 {
   "profile_id": "balanced-local-first",
+  "display_name": "Phi local + Fireworks default",
+  "local_provider": "local",
   "local_model": "Phi-4-mini-instruct-GGUF",
+  "remote_provider": "fireworks",
+  "remote_model": "accounts/fireworks/models/llama-v3p3-70b-instruct",
   "api_model_env": "FIREWORKS_MODEL",
   "task_thresholds": {
     "classification": { "max_local_difficulty": 2, "min_router_confidence": 0.7 },

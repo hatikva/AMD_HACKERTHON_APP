@@ -53,7 +53,7 @@ Start the local operator UI:
 python -m amd_hackathon_app.cli ui
 ```
 
-The UI runs on `http://127.0.0.1:8765` by default. It supports scenario execution, profile editing, SQLite-backed run history, and benchmark matrix runs across selected profiles, providers, and models.
+The UI runs on `http://127.0.0.1:8765` by default. It separates Demo, Smoke Tests, Profiles, and Results views. Demo and benchmark flows evaluate profile pairs directly; smoke tests preserve provider/model overrides for diagnostics.
 
 Run unit tests:
 
@@ -117,18 +117,23 @@ The router is accuracy-first:
 - escalate when local validation fails;
 - optimize token and cost only after a model tier is accurate enough.
 
-## Remote Provider During Fireworks Gap
+## Remote Providers
 
-Until Fireworks credentials are available, the app can use Ollama Cloud as the remote provider:
+The app supports Ollama Cloud and Fireworks as remote providers:
 
 ```text
 OLLAMA_API_KEY=...
 OLLAMA_CLOUD_BASE_URL=https://ollama.com
 OLLAMA_CLOUD_MODEL=nemotron-3-ultra:cloud
 OLLAMA_CLOUD_ALT_MODEL=qwen3-coder:480b-cloud
+FIREWORKS_API_KEY=...
+FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
+FIREWORKS_MODEL=accounts/fireworks/models/llama-v3p3-70b-instruct
 ```
 
 Keep these values in `.env` or the process environment. Do not commit secrets.
+
+Seeded profile pairs include `phi-nemotron-balanced`, `phi-qwen-coder-balanced`, and `phi-fireworks-balanced`.
 
 ## Development Volumes
 

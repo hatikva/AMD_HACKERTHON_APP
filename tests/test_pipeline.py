@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from amd_hackathon_app.pipeline import run_scenario
+from amd_hackathon_app.pipeline import load_profile, route, run_scenario, estimate_difficulty, load_scenarios
 
 
 class PipelineTests(unittest.TestCase):
@@ -44,6 +44,27 @@ class PipelineTests(unittest.TestCase):
             record = run_scenario("json-extraction-basic", provider_override="mock", run_dir=Path(tmp), persist=False)
         self.assertTrue(record["validation_result"]["passed"])
         self.assertEqual(json.loads(record["output"])["track"], "AMD Hackathon Track 1")
+
+    def test_profile_pair_routes_reasoning_to_fireworks_remote(self) -> None:
+        scenario = load_scenarios()["reasoning-escalation-boundary"]
+        profile = load_profile("phi-fireworks-balanced")
+        decision = route(profile, scenario, estimate_difficulty(scenario))
+        self.assertEqual(decision.provider, "fireworks")
+        self.assertEqual(decision.route_side, "remote")
+        self.assertEqual(decision.reason, "difficulty_above_local_threshold")
+
+    def test_smoke_override_records_debug_run_type(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            record = run_scenario(
+                "classification-basic",
+                profile_id="phi-nemotron-balanced",
+                provider_override="mock",
+                run_dir=Path(tmp),
+                persist=False,
+            )
+        self.assertEqual(record["run_type"], "smoke_test")
+        self.assertEqual(record["selected_route_side"], "override")
+        self.assertEqual(record["remote_provider"], "ollama_cloud")
 
 
 if __name__ == "__main__":

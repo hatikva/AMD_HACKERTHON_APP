@@ -1,12 +1,10 @@
 {
-  "profile_id": "ollama-cloud-balanced",
+  "profile_id": "phi-nemotron-balanced",
   "display_name": "Phi local + Nemotron remote",
   "local_provider": "local",
   "local_model": "Phi-4-mini-instruct-GGUF",
   "remote_provider": "ollama_cloud",
   "remote_model": "nemotron-3-ultra:cloud",
-  "api_provider": "ollama_cloud",
-  "api_model_env": "OLLAMA_CLOUD_MODEL",
   "task_thresholds": {
     "classification": { "max_local_difficulty": 2, "min_router_confidence": 0.7 },
     "json_extraction": { "max_local_difficulty": 0, "min_router_confidence": 0.75 },

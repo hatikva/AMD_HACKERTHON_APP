@@ -7,6 +7,8 @@
   --line: #d9dee3;
   --accent: #127c66;
   --accent-dark: #0d5f4d;
+  --pass: #e7f5ee;
+  --fail: #fff1f0;
 }
 
 * {
@@ -20,17 +22,30 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.topbar, .tabs, main {
+  padding-left: 28px;
+  padding-right: 28px;
+}
+
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 20px 28px;
+  padding-top: 18px;
+  padding-bottom: 18px;
   background: #172026;
   color: white;
 }
 
-h1, h2, p {
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  padding-bottom: 0;
+}
+
+h1, h2, h3, p {
   margin: 0;
 }
 
@@ -43,14 +58,28 @@ h2 {
   font-size: 16px;
 }
 
-p, label, th, td {
+h3 {
+  font-size: 13px;
+  margin: 12px 0 8px;
+}
+
+p, label, th, td, input, select, button {
   font-size: 13px;
 }
 
 main {
+  display: block;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
   display: grid;
   gap: 16px;
-  padding: 18px;
 }
 
 .band, .panel {
@@ -60,20 +89,24 @@ main {
   padding: 14px;
 }
 
-.controls {
+.demo-controls, .smoke-controls {
   display: grid;
-  grid-template-columns: repeat(4, minmax(160px, 1fr)) auto;
+  grid-template-columns: minmax(240px, 1fr) minmax(220px, 0.8fr) auto;
   gap: 12px;
   align-items: end;
 }
 
-.grid {
+.smoke-controls {
+  grid-template-columns: repeat(4, minmax(160px, 1fr)) auto;
+}
+
+.split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  grid-template-columns: minmax(300px, 0.7fr) minmax(0, 1.3fr);
   gap: 16px;
 }
 
-.panel-head {
+.panel-head, .filters {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -88,14 +121,14 @@ label {
   font-weight: 600;
 }
 
-select, textarea, button {
+input, select, textarea, button {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 6px;
   font: inherit;
 }
 
-select, button {
+input, select, button {
   min-height: 36px;
   padding: 0 10px;
 }
@@ -106,21 +139,30 @@ button {
   border-color: var(--accent);
   cursor: pointer;
   font-weight: 700;
+  white-space: nowrap;
 }
 
-button:hover {
+button:hover, .tab.active {
   background: var(--accent-dark);
 }
 
+.tab {
+  width: auto;
+  min-width: 108px;
+  background: #48616d;
+}
+
 textarea {
-  min-height: 360px;
+  width: 100%;
+  min-height: 480px;
+  margin-top: 10px;
   padding: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
 }
 
 pre {
-  min-height: 360px;
+  min-height: 220px;
   max-height: 520px;
   margin: 0;
   overflow: auto;
@@ -128,21 +170,14 @@ pre {
   font-size: 12px;
 }
 
-.benchmark {
-  display: grid;
-  grid-template-columns: 1.2fr repeat(3, 1fr) auto;
-  gap: 12px;
-  align-items: start;
-}
-
 .checks {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .checks label {
   grid-template-columns: 18px 1fr;
-  align-items: center;
+  align-items: start;
   color: var(--ink);
   font-weight: 500;
 }
@@ -150,6 +185,45 @@ pre {
 input[type="checkbox"] {
   width: 16px;
   height: 16px;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.result-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--panel);
+}
+
+.result-card.pass {
+  background: var(--pass);
+}
+
+.result-card.fail {
+  background: var(--fail);
+}
+
+dl {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 5px 8px;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .table-wrap {
@@ -166,6 +240,7 @@ th, td {
   padding: 8px;
   text-align: left;
   vertical-align: top;
+  white-space: nowrap;
 }
 
 th {
@@ -173,7 +248,17 @@ th {
 }
 
 @media (max-width: 1000px) {
-  .controls, .grid, .benchmark {
+  .topbar, .tabs, main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .topbar, .tabs, .demo-controls, .smoke-controls, .split, .panel-head, .filters {
+    display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .tab {
+    width: 100%;
   }
 }

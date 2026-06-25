@@ -38,6 +38,7 @@ class RouteDecision:
     model: str
     reason: str
     escalate: bool
+    route_side: str
 
 
 @dataclass(frozen=True)
@@ -74,9 +75,41 @@ def save_profile(profile_id: str, profile: dict[str, Any]) -> Path:
         raise ValueError("profile_id may contain only letters, numbers, hyphen, and underscore")
     profile = dict(profile)
     profile["profile_id"] = profile_id
+    validate_profile(profile)
     destination = ROOT / "configs" / "profiles" / f"{profile_id}.json"
     destination.write_text(json.dumps(profile, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return destination
+
+
+def profile_pair(profile: dict[str, Any]) -> dict[str, str]:
+    remote_provider = profile.get("remote_provider") or profile.get("api_provider") or "fireworks"
+    remote_model = profile.get("remote_model")
+    if not remote_model:
+        model_env = profile.get("api_model_env", "FIREWORKS_MODEL")
+        remote_model = os.environ.get(model_env, "configured-remote-model")
+    return {
+        "local_provider": str(profile.get("local_provider", "local")),
+        "local_model": str(profile["local_model"]),
+        "remote_provider": str(remote_provider),
+        "remote_model": str(remote_model),
+    }
+
+
+def validate_profile(profile: dict[str, Any]) -> None:
+    required = [
+        "profile_id",
+        "local_model",
+        "task_thresholds",
+        "mdr_budget",
+        "validation_policy",
+    ]
+    missing = [field for field in required if field not in profile]
+    if not profile.get("remote_provider") and not profile.get("api_provider"):
+        missing.append("remote_provider")
+    if not profile.get("remote_model") and not profile.get("api_model_env"):
+        missing.append("remote_model")
+    if missing:
+        raise ValueError(f"profile missing required fields: {', '.join(sorted(set(missing)))}")
 
 
 def classify(scenario: Scenario) -> str:
@@ -133,14 +166,13 @@ def route(profile: dict[str, Any], scenario: Scenario, difficulty: Difficulty) -
     thresholds = profile["task_thresholds"].get(scenario.task_family, {})
     max_local = int(thresholds.get("max_local_difficulty", 1))
     min_confidence = float(thresholds.get("min_router_confidence", 0.8))
-    api_model = os.environ.get(profile.get("api_model_env", "FIREWORKS_MODEL"), "configured-remote-model")
-    api_provider = profile.get("api_provider", "fireworks")
+    pair = profile_pair(profile)
 
     if difficulty.estimate > max_local:
-        return RouteDecision(api_provider, api_model, "difficulty_above_local_threshold", True)
+        return RouteDecision(pair["remote_provider"], pair["remote_model"], "difficulty_above_local_threshold", True, "remote")
     if difficulty.confidence < min_confidence:
-        return RouteDecision(api_provider, api_model, "router_confidence_below_threshold", True)
-    return RouteDecision("local", profile["local_model"], "within_local_threshold", False)
+        return RouteDecision(pair["remote_provider"], pair["remote_model"], "router_confidence_below_threshold", True, "remote")
+    return RouteDecision(pair["local_provider"], pair["local_model"], "within_local_threshold", False, "local")
 
 
 class MockProvider:
@@ -191,6 +223,11 @@ class OpenAICompatibleProvider:
         try:
             with urllib.request.urlopen(request, timeout=120) as response:
                 payload = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")[:500]
+            raise RuntimeError(
+                f"provider request failed for {self.base_url}: HTTP {exc.code} {exc.reason}: {body}"
+            ) from exc
         except urllib.error.URLError as exc:
             raise RuntimeError(f"provider request failed for {self.base_url}: {exc}") from exc
 
@@ -290,12 +327,14 @@ def run_scenario(
     run_dir: Path | None = None,
     suite_id: str | None = None,
     persist: bool = True,
+    run_type: str | None = None,
 ) -> dict[str, Any]:
     scenario = load_scenarios()[scenario_id]
     profile = load_profile(profile_id)
     difficulty = estimate_difficulty(scenario)
     packet = compile_context_packet(scenario, profile, difficulty)
     decision = route(profile, scenario, difficulty)
+    pair = profile_pair(profile)
 
     provider_name = provider_override or decision.provider
     provider = provider_for(provider_name)
@@ -311,13 +350,20 @@ def run_scenario(
         model = os.environ.get(profile.get("api_model_env", "OLLAMA_CLOUD_MODEL"), decision.model)
     else:
         model = decision.model
+    effective_run_type = run_type or ("smoke_test" if provider_override or model_override else "profile_benchmark")
     result = provider.complete(packet["compiled_prompt"], model)
     validation = validate_output(scenario.expected_format, result.text)
 
     record = {
         **packet,
+        "run_type": effective_run_type,
+        "local_provider": pair["local_provider"],
+        "local_model": pair["local_model"],
+        "remote_provider": pair["remote_provider"],
+        "remote_model": pair["remote_model"],
         "selected_provider": provider_name,
         "selected_model": model,
+        "selected_route_side": decision.route_side if not provider_override else "override",
         "fallback_or_escalation_reason": decision.reason,
         "validation_result": validation,
         "token_usage": result.token_usage,
@@ -333,6 +379,39 @@ def run_scenario(
     if persist:
         record["db_run_id"] = save_run(record, suite_id=suite_id)
     return record
+
+
+def run_profile_benchmark(
+    scenario_ids: list[str],
+    profile_ids: list[str],
+    run_type: str = "profile_benchmark",
+) -> dict[str, Any]:
+    suite_id = f"suite-{int(time.time())}"
+    records: list[dict[str, Any]] = []
+    failures: list[dict[str, str]] = []
+    for scenario_id in scenario_ids:
+        for profile_id in profile_ids:
+            try:
+                records.append(
+                    run_scenario(
+                        scenario_id,
+                        profile_id=profile_id,
+                        suite_id=suite_id,
+                        run_type=run_type,
+                    )
+                )
+            except Exception as exc:
+                failures.append({
+                    "scenario_id": scenario_id,
+                    "profile_id": profile_id,
+                    "error": str(exc),
+                })
+    return {
+        "suite_id": suite_id,
+        "run_type": run_type,
+        "records": records,
+        "failures": failures,
+    }
 
 
 def run_benchmark_matrix(
@@ -357,6 +436,7 @@ def run_benchmark_matrix(
                                 provider_override=provider_name,
                                 model_override=model or None,
                                 suite_id=suite_id,
+                                run_type="smoke_test",
                             )
                         )
                     except Exception as exc:
@@ -380,6 +460,9 @@ def preflight() -> dict[str, Any]:
         "lemonade_base_url": os.environ.get("LEMONADE_BASE_URL", "http://127.0.0.1:13305/api/v1"),
         "fireworks_configured": bool(os.environ.get("FIREWORKS_API_KEY")),
         "ollama_cloud_configured": bool(os.environ.get("OLLAMA_API_KEY")),
+        "fireworks_model": os.environ.get("FIREWORKS_MODEL", "accounts/fireworks/models/llama-v3p3-70b-instruct"),
+        "ollama_cloud_model": os.environ.get("OLLAMA_CLOUD_MODEL", "nemotron-3-ultra:cloud"),
+        "ollama_cloud_alt_model": os.environ.get("OLLAMA_CLOUD_ALT_MODEL", "qwen3-coder:480b-cloud"),
         "routing_profile": os.environ.get("ROUTING_PROFILE", "balanced-local-first"),
     }
 

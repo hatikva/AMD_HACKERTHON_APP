@@ -37,8 +37,25 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
         )
         """
     )
+    migrate_runs(conn)
     conn.commit()
     return conn
+
+
+def migrate_runs(conn: sqlite3.Connection) -> None:
+    existing = {row["name"] for row in conn.execute("pragma table_info(runs)").fetchall()}
+    columns = {
+        "run_type": "text",
+        "local_provider": "text",
+        "local_model": "text",
+        "remote_provider": "text",
+        "remote_model": "text",
+        "route_side": "text",
+        "routing_reason": "text",
+    }
+    for column, definition in columns.items():
+        if column not in existing:
+            conn.execute(f"alter table runs add column {column} {definition}")
 
 
 def save_run(record: dict[str, Any], suite_id: str | None = None, path: Path | None = None) -> int:
@@ -48,8 +65,10 @@ def save_run(record: dict[str, Any], suite_id: str | None = None, path: Path | N
             """
             insert into runs (
               created_at, suite_id, scenario_id, profile_id, provider, model,
-              validation_passed, total_tokens, latency_ms, record_json
-            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              validation_passed, total_tokens, latency_ms, record_json,
+              run_type, local_provider, local_model, remote_provider, remote_model,
+              route_side, routing_reason
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 int(time.time()),
@@ -62,6 +81,13 @@ def save_run(record: dict[str, Any], suite_id: str | None = None, path: Path | N
                 int(record.get("token_usage", {}).get("total_tokens", 0)),
                 int(record.get("latency", {}).get("milliseconds", 0)),
                 json.dumps(record, sort_keys=True),
+                str(record.get("run_type", "")),
+                str(record.get("local_provider", "")),
+                str(record.get("local_model", "")),
+                str(record.get("remote_provider", "")),
+                str(record.get("remote_model", "")),
+                str(record.get("selected_route_side", "")),
+                str(record.get("fallback_or_escalation_reason", "")),
             ),
         )
         return int(cursor.lastrowid)
@@ -72,7 +98,9 @@ def list_runs(limit: int = 100, path: Path | None = None) -> list[dict[str, Any]
     rows = conn.execute(
         """
         select id, created_at, suite_id, scenario_id, profile_id, provider, model,
-               validation_passed, total_tokens, latency_ms
+               validation_passed, total_tokens, latency_ms, run_type,
+               local_provider, local_model, remote_provider, remote_model,
+               route_side, routing_reason
         from runs
         order by id desc
         limit ?

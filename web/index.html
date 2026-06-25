@@ -15,96 +15,130 @@
       <button id="refresh" type="button">Refresh</button>
     </header>
 
+    <nav class="tabs" aria-label="Local sections">
+      <button class="tab active" type="button" data-view="demo">Demo</button>
+      <button class="tab" type="button" data-view="smoke">Smoke Tests</button>
+      <button class="tab" type="button" data-view="profiles">Profiles</button>
+      <button class="tab" type="button" data-view="results">Results</button>
+    </nav>
+
     <main>
-      <section class="band controls">
-        <div>
-          <label for="scenario">Task</label>
-          <select id="scenario"></select>
-        </div>
-        <div>
-          <label for="profile">Profile</label>
-          <select id="profile"></select>
-        </div>
-        <div>
-          <label for="provider">Provider</label>
-          <select id="provider">
-            <option value="">Profile route</option>
-            <option value="mock">Mock</option>
-            <option value="local">Local Lemonade</option>
-            <option value="ollama_cloud">Ollama Cloud</option>
-            <option value="fireworks">Fireworks</option>
-          </select>
-        </div>
-        <div>
-          <label for="model">Model override</label>
-          <select id="model">
-            <option value="">Provider default</option>
-            <option value="nemotron-3-ultra:cloud">nemotron-3-ultra:cloud</option>
-            <option value="qwen3-coder:480b-cloud">qwen3-coder:480b-cloud</option>
-            <option value="Phi-4-mini-instruct-GGUF">Phi-4-mini-instruct-GGUF</option>
-          </select>
-        </div>
-        <button id="run" type="button">Run Task</button>
-      </section>
-
-      <section class="grid">
-        <div class="panel">
-          <div class="panel-head">
-            <h2>Result</h2>
+      <section id="view-demo" class="view active">
+        <div class="band demo-controls">
+          <div>
+            <h2>Profile-Pair Demo</h2>
+            <p>Routes each task through selected local/remote profiles. Validation comes first; tokens and latency are secondary.</p>
           </div>
-          <pre id="result"></pre>
+          <label for="demo-scenario">Task
+            <select id="demo-scenario"></select>
+          </label>
+          <button id="run-demo" type="button">Run Demo</button>
         </div>
-        <div class="panel">
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Profile Pairs</h2>
+            </div>
+            <div class="checks" id="demo-profiles"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Comparison</h2>
+            </div>
+            <div id="demo-result" class="result-grid"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="view-smoke" class="view">
+        <div class="band smoke-controls">
+          <label for="smoke-scenario">Task
+            <select id="smoke-scenario"></select>
+          </label>
+          <label for="smoke-profile">Profile
+            <select id="smoke-profile"></select>
+          </label>
+          <label for="smoke-provider">Provider
+            <select id="smoke-provider">
+              <option value="mock">Mock</option>
+              <option value="local">Local Lemonade</option>
+              <option value="ollama_cloud">Ollama Cloud</option>
+              <option value="fireworks">Fireworks</option>
+            </select>
+          </label>
+          <label for="smoke-model">Model override
+            <select id="smoke-model"></select>
+          </label>
+          <button id="run-smoke" type="button">Run Smoke Test</button>
+        </div>
+        <section class="panel">
           <div class="panel-head">
-            <h2>Profile Editor</h2>
-            <button id="save-profile" type="button">Save</button>
+            <h2>Smoke Result</h2>
           </div>
-          <textarea id="profile-json" spellcheck="false"></textarea>
+          <pre id="smoke-result"></pre>
+        </section>
+      </section>
+
+      <section id="view-profiles" class="view">
+        <div class="split">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Profile Editor</h2>
+              <button id="save-profile" type="button">Save</button>
+            </div>
+            <label for="profile">Profile
+              <select id="profile"></select>
+            </label>
+            <textarea id="profile-json" spellcheck="false"></textarea>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Profile Benchmark</h2>
+              <button id="run-benchmark" type="button">Run Selected</button>
+            </div>
+            <h3>Tasks</h3>
+            <div class="checks" id="bench-scenarios"></div>
+            <h3>Profile Pairs</h3>
+            <div class="checks" id="bench-profiles"></div>
+            <pre id="benchmark-result"></pre>
+          </section>
         </div>
       </section>
 
-      <section class="band benchmark">
-        <div>
-          <h2>Benchmark Matrix</h2>
-          <p>Select combinations. Every run is recorded in SQLite.</p>
-        </div>
-        <div class="checks" id="bench-scenarios"></div>
-        <div class="checks" id="bench-profiles"></div>
-        <div class="checks">
-          <label><input type="checkbox" name="bench-provider" value="mock"> Mock</label>
-          <label><input type="checkbox" name="bench-provider" value="local"> Local</label>
-          <label><input type="checkbox" name="bench-provider" value="ollama_cloud" checked> Ollama Cloud</label>
-        </div>
-        <div class="checks">
-          <label><input type="checkbox" name="bench-model" value="nemotron-3-ultra:cloud" checked> nemotron</label>
-          <label><input type="checkbox" name="bench-model" value="qwen3-coder:480b-cloud"> qwen coder</label>
-          <label><input type="checkbox" name="bench-model" value="Phi-4-mini-instruct-GGUF"> Phi local</label>
-        </div>
-        <button id="run-benchmark" type="button">Run Matrix</button>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Run History</h2>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Suite</th>
-                <th>Task</th>
-                <th>Profile</th>
-                <th>Provider</th>
-                <th>Model</th>
-                <th>Valid</th>
-                <th>Tokens</th>
-                <th>Latency</th>
-              </tr>
-            </thead>
-            <tbody id="runs"></tbody>
-          </table>
-        </div>
+      <section id="view-results" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Run History</h2>
+          </div>
+          <div class="filters">
+            <input id="filter-text" type="search" placeholder="Filter runs">
+            <select id="filter-pass">
+              <option value="">Any validation</option>
+              <option value="1">Valid</option>
+              <option value="0">Invalid</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Suite</th>
+                  <th>Task</th>
+                  <th>Profile</th>
+                  <th>Route</th>
+                  <th>Provider</th>
+                  <th>Model</th>
+                  <th>Valid</th>
+                  <th>Tokens</th>
+                  <th>Latency</th>
+                </tr>
+              </thead>
+              <tbody id="runs"></tbody>
+            </table>
+          </div>
+        </section>
       </section>
     </main>
 

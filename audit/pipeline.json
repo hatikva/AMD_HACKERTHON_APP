@@ -35,9 +35,10 @@
     },
     {
       "id": "fireworks-provider-verify",
-      "status": "queued",
+      "status": "integrated_verification_blocked_by_provider_access",
       "command": "FIREWORKS_API_KEY=<secret> python3 -m amd_hackathon_app.cli run-scenario --scenario reasoning-escalation-boundary --provider fireworks",
-      "next_action": "Verify Fireworks provider once credentials are available through environment variables."
+      "evidence": "Fireworks is wired as a first-class remote provider through OpenAI-compatible chat completions and the phi-fireworks-balanced profile pair. Local preflight detects FIREWORKS_API_KEY when present. Real chat verification returned HTTP 404 with model not found/inaccessible/not deployed for the configured Fireworks model. Model-list verification returned HTTP 401 for the provided credential value.",
+      "next_action": "Provide a valid Fireworks API key and an accessible serverless model ID, then rerun the Fireworks smoke/profile route."
     },
     {
       "id": "ollama-cloud-provider-verify",
@@ -48,10 +49,10 @@
     },
     {
       "id": "local-operator-ui",
-      "status": "complete_initial",
+      "status": "complete_profile_pair_refined",
       "command": "python3 -m amd_hackathon_app.cli ui",
-      "evidence": "Local UI serves / and /api/state on 127.0.0.1:8765, lists scenarios/profiles/runs, supports profile editing, task execution, and benchmark matrix runs.",
-      "next_action": "Use the UI to compare local, Ollama Cloud, and later Fireworks profiles across benchmark suites."
+      "evidence": "Local UI serves / and /api/state on 127.0.0.1:8765, splits Demo, Smoke Tests, Profiles, and Results, supports profile-pair demo/benchmark runs, preserves provider/model smoke tests, and includes Ollama Cloud plus Fireworks profile pairs.",
+      "next_action": "Use the UI to compare local, Ollama Cloud, and Fireworks profiles across benchmark suites."
     },
     {
       "id": "candidate-model-acquisition",

@@ -14,6 +14,7 @@ from .pipeline import (
     load_scenarios,
     preflight,
     run_benchmark_matrix,
+    run_profile_benchmark,
     run_scenario,
     save_profile,
 )
@@ -88,15 +89,33 @@ class AppHandler(BaseHTTPRequestHandler):
                     profile_id=str(payload.get("profile_id", "balanced-local-first")),
                     provider_override=str(payload["provider"]) if payload.get("provider") else None,
                     model_override=str(payload["model"]) if payload.get("model") else None,
+                    run_type=str(payload.get("run_type", "smoke_test")),
                 )
                 json_response(self, record)
                 return
+            if self.path == "/api/demo":
+                result = run_profile_benchmark(
+                    [str(payload.get("scenario_id", "classification-basic"))],
+                    [str(value) for value in payload.get("profile_ids", [])],
+                    run_type="demo_run",
+                )
+                json_response(self, result)
+                return
             if self.path == "/api/benchmark":
+                providers = [str(value) for value in payload.get("providers", [])]
+                models = [str(value) for value in payload.get("models", [])]
+                if not providers and not models:
+                    result = run_profile_benchmark(
+                        [str(value) for value in payload.get("scenario_ids", [])],
+                        [str(value) for value in payload.get("profile_ids", [])],
+                    )
+                    json_response(self, result)
+                    return
                 result = run_benchmark_matrix(
                     [str(value) for value in payload.get("scenario_ids", [])],
                     [str(value) for value in payload.get("profile_ids", [])],
-                    [str(value) for value in payload.get("providers", [])],
-                    [str(value) for value in payload.get("models", [])],
+                    providers,
+                    models,
                 )
                 json_response(self, result)
                 return

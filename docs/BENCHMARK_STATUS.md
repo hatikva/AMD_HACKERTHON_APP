@@ -22,6 +22,20 @@ local_model: Phi-4-mini-instruct-GGUF
 
 ## Next Pipeline Actions
 
-- Verify Fireworks provider with environment-provided credentials.
-- Run routed benchmarks without `PROVIDER_OVERRIDE=local` after Fireworks is available.
+- Verify Fireworks provider success with environment-provided credentials.
+- Run routed profile-pair benchmarks across `phi-nemotron-balanced`, `phi-qwen-coder-balanced`, and `phi-fireworks-balanced`.
 - Add local output-repair experiments only if they improve strict JSON accuracy without excessive retry tokens.
+
+## Fireworks Verification
+
+Fireworks is integrated as a remote provider, but real inference is not yet verified. On 2026-06-25, the configured Fireworks profile route reached the API and returned HTTP 404 indicating the model was not found, inaccessible, or not deployed for the account. A model-list request returned HTTP 401 for the provided credential value. The app now surfaces those provider errors clearly without logging API keys.
+
+## Profile-Pair Update
+
+The benchmark/UI path now treats a profile as a local/remote model pair plus routing policy. Seed pairs are:
+
+| Profile | Local | Remote |
+| --- | --- | --- |
+| `phi-nemotron-balanced` | `Phi-4-mini-instruct-GGUF` | `ollama_cloud` / `nemotron-3-ultra:cloud` |
+| `phi-qwen-coder-balanced` | `Phi-4-mini-instruct-GGUF` | `ollama_cloud` / `qwen3-coder:480b-cloud` |
+| `phi-fireworks-balanced` | `Phi-4-mini-instruct-GGUF` | `fireworks` / `accounts/fireworks/models/llama-v3p3-70b-instruct` |
