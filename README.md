@@ -81,6 +81,14 @@ Start Lemonade development service:
 scripts/setup-lemonade.sh
 ```
 
+Restart an already-configured Lemonade pod quickly:
+
+```bash
+podman pod start pod_amd_hackerthon_app
+```
+
+`pod_amd_hackerthon_app` contains the `amd-hackathon-lemonade` container. Stopping that pod stops the Lemonade server, and starting that pod starts the existing Lemonade container again. Prefer `scripts/advance-pipeline.sh lemonade-runtime-start` for normal project work because it stops Ollama first, runs Compose, rebuilds if needed, starts Lemonade, and waits for `127.0.0.1:13305` to respond. Use `podman pod start pod_amd_hackerthon_app` only when the container is already configured and a quick restart is enough.
+
 Verify Lemonade:
 
 ```bash
