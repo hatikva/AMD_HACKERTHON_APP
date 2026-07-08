@@ -36,6 +36,7 @@ python3 -m amd_hackathon_app.cli run-tasks \
   --provider mock >"$tmp_root/batch.json"
 
 python3 -m py_compile scripts/model-acquisition.py scripts/show-pipeline.py
+python3 -m py_compile src/amd_hackathon_app/ui.py
 bash -n scripts/benchmark-version-candidates.sh
 
 grep -q 'Most Innovative Routing System' README.md
@@ -53,6 +54,9 @@ grep -q 'FIREWORKS_BASE_URL' src/amd_hackathon_app/pipeline.py
 grep -q 'ALLOWED_MODELS is required for Fireworks execution' src/amd_hackathon_app/pipeline.py
 grep -q 'DEMO_LOCAL_MODEL_EXECUTION' src/amd_hackathon_app/pipeline.py
 grep -q 'LlamaCppProvider' src/amd_hackathon_app/pipeline.py
+grep -q 'ThreadingHTTPServer' src/amd_hackathon_app/ui.py
+grep -q 'version3' web/app.js
+grep -q 'analytics-grid' web/styles.css
 
 grep -q 'no bundled model weights' docs/concept.json
 grep -q 'Work Jurisdiction Routing' docs/algorithm.json
@@ -61,6 +65,9 @@ grep -q 'ALLOWED_MODELS' docs/allowed-models.json
 grep -q '/input/tasks.json' docs/repo-structure.json
 
 grep -q 'python:3.12-slim' Dockerfile.submission
+grep -q 'python:3.12-slim' Dockerfile.ui
+grep -q 'amd-router' Dockerfile.ui
+grep -q 'network_mode: host' compose.ui.yml
 grep -q 'amd-router' Dockerfile.submission
 grep -q 'llama.cpp local-first candidate' Dockerfile.version5
 if grep -q 'lemonade-server' Dockerfile.submission; then

@@ -110,6 +110,26 @@ Run the optional Ollama demo path:
 python3 -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider ollama-demo
 ```
 
+Run the Version 3 UI:
+
+```bash
+python3 -m amd_hackathon_app.cli ui --host 127.0.0.1 --port 18083
+```
+
+Open `http://127.0.0.1:18083`. The UI accepts `/input/tasks.json`-style task payloads, shows outputs, token counts, validation state, latency, selected provider/model, and lightweight analytics for Version 3, Version 4, and Version 5 comparison. Version 3 uses the Ollama demo path. Version 4 requires Fireworks environment variables. Version 5 remains blocked until the selected GGUF artifact and certification evidence exist.
+
+Run the same UI as a separate container:
+
+```bash
+podman build -f Dockerfile.ui -t amd-hackathon-ui:version3 .
+podman run --rm --network host \
+  -e UI_HOST=127.0.0.1 \
+  -e UI_PORT=18083 \
+  -e OLLAMA_BASE_URL=http://127.0.0.1:11434/v1 \
+  -e MODEL_NAME=qwen2.5-coder:3b \
+  amd-hackathon-ui:version3
+```
+
 Run the Version 5 candidate path:
 
 ```bash

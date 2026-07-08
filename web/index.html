@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Most Innovative Routing System</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Most Innovative Routing System</h1>
+        <p>AMD Developer Hackathon Track 1</p>
+      </div>
+      <div class="status-strip" id="statusStrip">
+        <span>Preflight pending</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="input-pane" aria-label="Task input">
+        <div class="pane-head">
+          <h2>Tasks</h2>
+          <div class="version-toggle" aria-label="Version selection">
+            <label><input type="checkbox" value="version3" checked> V3</label>
+            <label><input type="checkbox" value="version4"> V4</label>
+            <label><input type="checkbox" value="version5"> V5</label>
+          </div>
+        </div>
+        <textarea id="taskInput" spellcheck="false">{
+  "tasks": [
+    {
+      "id": "classification-basic",
+      "prompt": "Classify this request as one of: bugfix, feature, docs. Request: Add a troubleshooting section to the README.",
+      "task_family": "factual_qa",
+      "expected_format": "text",
+      "evidence_refs": ["memory/project-doctrine.md"]
+    }
+  ]
+}</textarea>
+        <div class="actions">
+          <button id="runButton" type="button">Run</button>
+          <button id="formatButton" type="button">Format</button>
+        </div>
+      </section>
+
+      <section class="output-pane" aria-label="Task output">
+        <div class="pane-head">
+          <h2>Results</h2>
+          <span id="runState" class="muted">Idle</span>
+        </div>
+        <div class="analytics-grid" id="analyticsGrid"></div>
+        <div class="results-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Task</th>
+                <th>Provider</th>
+                <th>Model</th>
+                <th>Tokens</th>
+                <th>Latency</th>
+                <th>Validation</th>
+                <th>Output</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr>
+                <td colspan="8" class="empty">No run data</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

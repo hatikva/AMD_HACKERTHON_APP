@@ -13,6 +13,7 @@ from amd_hackathon_app.pipeline import (
     run_scenario,
     run_tasks_file,
 )
+from amd_hackathon_app.ui import summarize_records
 
 
 class PipelineTests(unittest.TestCase):
@@ -95,6 +96,31 @@ class PipelineTests(unittest.TestCase):
         provider.binary = "/tmp/amd-hackathon-missing-llama-cli"
         with self.assertRaisesRegex(RuntimeError, "llama.cpp binary not found"):
             provider.complete("Return yes.", "/tmp/amd-hackathon-missing-model.gguf")
+
+    def test_ui_summary_separates_judged_fireworks_tokens(self) -> None:
+        summary = summarize_records(
+            [
+                {
+                    "status": "completed",
+                    "selected_provider": "fireworks",
+                    "selected_model": "allowed-model-a",
+                    "token_usage": {"prompt_tokens": 10, "completion_tokens": 3, "total_tokens": 13},
+                    "latency": {"milliseconds": 50},
+                    "validation_result": {"passed": True},
+                },
+                {
+                    "status": "completed",
+                    "selected_provider": "ollama-demo",
+                    "selected_model": "qwen2.5-coder:3b",
+                    "token_usage": {"prompt_tokens": 7, "completion_tokens": 2, "total_tokens": 9},
+                    "latency": {"milliseconds": 25},
+                    "validation_result": {"passed": True},
+                },
+            ]
+        )
+        self.assertEqual(summary["total_tokens"], 22)
+        self.assertEqual(summary["judged_fireworks_tokens"], 13)
+        self.assertEqual(summary["local_or_demo_tokens"], 9)
 
 
 if __name__ == "__main__":

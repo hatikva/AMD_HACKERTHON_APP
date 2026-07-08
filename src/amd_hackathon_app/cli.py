@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 
 from .pipeline import preflight, record_to_json, run_scenario, run_tasks_file
+from .ui import run as run_ui
 
 
 def cmd_preflight(_: argparse.Namespace) -> int:
@@ -41,6 +42,11 @@ def cmd_run_tasks(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ui(args: argparse.Namespace) -> int:
+    run_ui(host=args.host, port=args.port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="amd-router")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -60,6 +66,11 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_parser.add_argument("--output", default="/output/results.json")
     tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
     tasks_parser.set_defaults(func=cmd_run_tasks)
+
+    ui_parser = subcommands.add_parser("ui")
+    ui_parser.add_argument("--host", default=os.environ.get("UI_HOST", "127.0.0.1"))
+    ui_parser.add_argument("--port", type=int, default=int(os.environ.get("UI_PORT", "18083")))
+    ui_parser.set_defaults(func=cmd_ui)
     return parser
 
 
