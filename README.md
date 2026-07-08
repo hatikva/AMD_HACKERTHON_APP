@@ -22,6 +22,20 @@ Version 3 is not the final Fireworks-only scoring architecture. Version 4 final 
 
 The local demo model is demo/development-only. Local demo inference uses Ollama, not Lemonade. The legacy `pod_amd_hackerthon_app` Podman pod and old Lemonade files are preserved as historical evidence and are not the active Version 3 runtime.
 
+## Version 5 Candidate
+
+Version 5 is represented as a llama.cpp local-first submission candidate. It preserves Version 3 and adds a conservative candidate mode:
+
+- local inference runtime: `llama.cpp`;
+- default binary path: `/app/bin/llama-cli`;
+- default model path: `/app/models/model.gguf`;
+- default context length: `2048`;
+- default thread count: `2`;
+- Fireworks fallback: `FIREWORKS_BASE_URL` with model IDs from `ALLOWED_MODELS`;
+- local certification status: blocked until an exact GGUF artifact and benchmark evidence exist.
+
+No Work Jurisdiction is marked `LOCAL_CERTIFIED` yet. Until a selected GGUF model, license, size, memory profile, and benchmark results are recorded, Version 5 routes through the Fireworks fallback path.
+
 ## Environment
 
 Required for Fireworks execution:
@@ -40,6 +54,19 @@ export MODEL_NAME=qwen2.5-coder:3b
 export OLLAMA_NUM_PARALLEL=1
 export OLLAMA_MAX_LOADED_MODELS=1
 export OLLAMA_CONTEXT_LENGTH=2048
+```
+
+Optional Version 5 llama.cpp settings:
+
+```bash
+export LLAMA_CPP_BINARY=/app/bin/llama-cli
+export LLAMA_MODEL_PATH=/app/models/model.gguf
+export LLAMA_MODEL_NAME=selected-gguf-model
+export LLAMA_CONTEXT_LENGTH=2048
+export LLAMA_THREADS=2
+export LLAMA_MAX_TOKENS=128
+export LLAMA_TIMEOUT_SECONDS=60
+export LOCAL_GENERATION_CONCURRENCY=1
 ```
 
 ## Input And Output
@@ -80,6 +107,17 @@ Run the optional Ollama demo path:
 ```bash
 python3 -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider ollama-demo
 ```
+
+Run the Version 5 candidate path:
+
+```bash
+python3 -m amd_hackathon_app.cli run-tasks \
+  --input /input/tasks.json \
+  --output /output/results.json \
+  --provider version5
+```
+
+This currently requires Fireworks configuration because the local GGUF artifact is not finalized and local jurisdictions are not certified.
 
 ## Development
 
@@ -125,3 +163,4 @@ These files describe operation and compliance without exposing private benchmark
 - The benchmark-derived model eligibility matrix is represented by the current deterministic selector and must be populated with measured evidence before Version 4 final scoring.
 - Fireworks execution requires credentials and an `ALLOWED_MODELS` value from the runtime environment.
 - Ollama execution is demo-only and is excluded from the final scoring path.
+- Version 5 local-first execution is blocked until the exact GGUF model artifact, license, expected memory use, image path, and jurisdiction certification matrix are finalized.

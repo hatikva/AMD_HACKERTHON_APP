@@ -11,6 +11,10 @@
     "version_4_final_target": {
       "purpose": "Final scoring-oriented execution.",
       "inference_policy": "All semantic inference goes through FIREWORKS_BASE_URL with models sourced from ALLOWED_MODELS."
+    },
+    "version_5_candidate": {
+      "purpose": "Evaluate llama.cpp local-first execution with Fireworks-compliant fallback.",
+      "inference_policy": "Use local inference only for certified Work Jurisdictions. Until a GGUF model artifact and benchmark evidence exist, route through Fireworks fallback."
     }
   },
   "final_constraints": [

@@ -5,7 +5,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from amd_hackathon_app.pipeline import parse_allowed_models, run_scenario, run_tasks_file
+from amd_hackathon_app.pipeline import (
+    LlamaCppProvider,
+    local_certification_for,
+    parse_allowed_models,
+    route_task,
+    run_scenario,
+    run_tasks_file,
+)
 
 
 class PipelineTests(unittest.TestCase):
@@ -64,6 +71,30 @@ class PipelineTests(unittest.TestCase):
 
         self.assertEqual(payload["schema"], "amd_hackathon.results.v3")
         self.assertEqual(payload["results"][0]["selected_provider"], "mock")
+
+    def test_version5_certification_is_conservative_until_model_artifact_exists(self) -> None:
+        certification = local_certification_for("SENTIMENT_CLASSIFICATION")
+        self.assertEqual(certification["local_status"], "LOCAL_DENIED")
+        self.assertEqual(certification["fireworks_policy"], "ALLOWED_MODELS_ONLY")
+        self.assertEqual(certification["benchmark_status"], "blocked_until_model_artifact_and_tests_exist")
+
+    def test_version5_routes_to_fireworks_when_local_is_not_certified(self) -> None:
+        decision = route_task(
+            task_family="sentiment",
+            jurisdiction="SENTIMENT_CLASSIFICATION",
+            provider_override="version5",
+            allowed_models=["allowed-model-a"],
+        )
+        self.assertEqual(decision.candidate_version, "version_5")
+        self.assertEqual(decision.provider, "fireworks")
+        self.assertEqual(decision.selected_path, "fireworks")
+        self.assertEqual(decision.model, "allowed-model-a")
+
+    def test_llama_cpp_provider_reports_missing_binary(self) -> None:
+        provider = LlamaCppProvider()
+        provider.binary = "/tmp/amd-hackathon-missing-llama-cli"
+        with self.assertRaisesRegex(RuntimeError, "llama.cpp binary not found"):
+            provider.complete("Return yes.", "/tmp/amd-hackathon-missing-model.gguf")
 
 
 if __name__ == "__main__":

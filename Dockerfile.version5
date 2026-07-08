@@ -1,0 +1,28 @@
+FROM python:3.12-slim AS app
+
+LABEL org.opencontainers.image.title="AMD Hackathon Track 1 Version 5 Candidate"
+LABEL org.opencontainers.image.description="llama.cpp local-first candidate with Fireworks fallback. Model artifact is supplied only when explicitly available."
+
+ENV PYTHONUNBUFFERED=1
+ENV APP_RUN_DIR=/output/runs
+ENV LLAMA_CPP_BINARY=/app/bin/llama-cli
+ENV LLAMA_MODEL_PATH=/app/models/model.gguf
+ENV LLAMA_CONTEXT_LENGTH=2048
+ENV LLAMA_THREADS=2
+ENV LLAMA_MAX_TOKENS=128
+ENV LLAMA_TIMEOUT_SECONDS=60
+ENV LOCAL_GENERATION_CONCURRENCY=1
+
+WORKDIR /app
+
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY docs ./docs
+
+RUN python -m pip install --no-cache-dir .
+RUN mkdir -p /input /output /app/bin /app/models
+
+# Version 5 requires a pinned llama.cpp binary and a selected GGUF model before
+# local jurisdictions can be certified. This Dockerfile keeps those paths stable
+# without pretending that a model artifact has been selected.
+CMD ["amd-router", "run-tasks", "--input", "/input/tasks.json", "--output", "/output/results.json", "--provider", "version5"]

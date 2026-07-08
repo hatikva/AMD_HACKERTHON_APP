@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import time
 import urllib.error
 import urllib.request
@@ -30,6 +31,76 @@ WORK_JURISDICTIONS = [
     "FIREWORKS_PROXY_COMPLIANCE",
     "DEMO_LOCAL_MODEL_EXECUTION",
 ]
+
+VERSION_5_WORK_JURISDICTIONS = [
+    "TASK_FAMILY_CLASSIFICATION",
+    "PROMPT_OPTIMIZATION",
+    "TASK_CONTRACT_EXTRACTION",
+    "SHORT_FACTUAL_ANSWERING",
+    "SENTIMENT_CLASSIFICATION",
+    "NAMED_ENTITY_RECOGNITION",
+    "SIMPLE_SUMMARIZATION",
+    "MATH_LIGHT",
+    "LOGICAL_DEDUCTION_LIGHT",
+    "CODE_DEBUGGING_SMALL",
+    "CODE_GENERATION_SMALL",
+    "ANSWER_SCHEMA_SELECTION",
+    "DETERMINISTIC_VALIDATION",
+    "STRUCTURAL_REPAIR",
+    "SEMANTIC_REPAIR",
+    "FIREWORKS_FALLBACK",
+    "TOKEN_BUDGETING",
+]
+
+LOCAL_STATUS_VALUES = {"LOCAL_CERTIFIED", "LOCAL_DENIED", "LOCAL_CONDITIONAL", "FIREWORKS_ONLY"}
+
+VERSION_5_LOCAL_CERTIFICATION = {
+    "TASK_FAMILY_CLASSIFICATION": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "FIREWORKS_ONLY_UNTIL_MODEL_ARTIFACT_AND_TESTS_EXIST",
+        "validator_coverage": "medium",
+    },
+    "SHORT_FACTUAL_ANSWERING": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "low",
+    },
+    "SENTIMENT_CLASSIFICATION": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "FIREWORKS_ONLY_UNTIL_MODEL_ARTIFACT_AND_TESTS_EXIST",
+        "validator_coverage": "high",
+    },
+    "NAMED_ENTITY_RECOGNITION": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "FIREWORKS_ONLY_UNTIL_MODEL_ARTIFACT_AND_TESTS_EXIST",
+        "validator_coverage": "medium",
+    },
+    "SIMPLE_SUMMARIZATION": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "low",
+    },
+    "MATH_LIGHT": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "medium",
+    },
+    "LOGICAL_DEDUCTION_LIGHT": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "low",
+    },
+    "CODE_DEBUGGING_SMALL": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "low",
+    },
+    "CODE_GENERATION_SMALL": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "low",
+    },
+}
 
 TASK_FAMILIES = {
     "factual_qa",
@@ -69,6 +140,9 @@ class RouteDecision:
     jurisdiction: str
     reason: str
     final_mode_compliant: bool
+    candidate_version: str = "version_3"
+    selected_path: str = "fireworks"
+    local_certification: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -181,6 +255,8 @@ def normalize_task_family(value: str | None, prompt: str) -> str:
 def jurisdiction_for(task_family: str, provider_override: str | None = None) -> str:
     if provider_override == "ollama-demo":
         return "DEMO_LOCAL_MODEL_EXECUTION"
+    if provider_override == "version5":
+        return version5_jurisdiction_for(task_family)
     if task_family in {"sentiment", "named_entity_recognition"}:
         return "ANSWER_SCHEMA_SELECTION"
     if task_family in {"summarization", "factual_qa"}:
@@ -190,6 +266,44 @@ def jurisdiction_for(task_family: str, provider_override: str | None = None) -> 
     if task_family in {"math_reasoning", "logic_puzzles"}:
         return "TASK_CONTRACT_EXTRACTION"
     return "TASK_FAMILY_CLASSIFICATION"
+
+
+def version5_jurisdiction_for(task_family: str) -> str:
+    mapping = {
+        "factual_qa": "SHORT_FACTUAL_ANSWERING",
+        "math_reasoning": "MATH_LIGHT",
+        "sentiment": "SENTIMENT_CLASSIFICATION",
+        "summarization": "SIMPLE_SUMMARIZATION",
+        "named_entity_recognition": "NAMED_ENTITY_RECOGNITION",
+        "code_debugging": "CODE_DEBUGGING_SMALL",
+        "logic_puzzles": "LOGICAL_DEDUCTION_LIGHT",
+        "code_generation": "CODE_GENERATION_SMALL",
+    }
+    return mapping.get(task_family, "TASK_FAMILY_CLASSIFICATION")
+
+
+def local_certification_for(jurisdiction: str) -> dict[str, Any]:
+    row = VERSION_5_LOCAL_CERTIFICATION.get(
+        jurisdiction,
+        {
+            "local_status": "FIREWORKS_ONLY",
+            "fallback": "FIREWORKS_REQUIRED",
+            "validator_coverage": "unknown",
+        },
+    )
+    status = str(row["local_status"])
+    if status not in LOCAL_STATUS_VALUES:
+        raise ValueError(f"invalid local certification status for {jurisdiction}: {status}")
+    return {
+        "jurisdiction_id": jurisdiction,
+        "local_status": status,
+        "local_model": os.environ.get("LLAMA_MODEL_NAME", "missing-selected-gguf-model"),
+        "local_threshold": None,
+        "validator_coverage": row["validator_coverage"],
+        "fallback": row["fallback"],
+        "fireworks_policy": "ALLOWED_MODELS_ONLY",
+        "benchmark_status": "blocked_until_model_artifact_and_tests_exist",
+    }
 
 
 def select_answer_schema(task_family: str, expected_format: str) -> dict[str, Any]:
@@ -251,6 +365,8 @@ def select_model(allowed_models: list[str], provider_name: str) -> str:
         return "mock-model"
     if provider_name == "ollama-demo":
         return os.environ.get("MODEL_NAME", "qwen2.5-coder:3b")
+    if provider_name == "llama-cpp":
+        return os.environ.get("LLAMA_MODEL_PATH", "/app/models/model.gguf")
     if not allowed_models:
         raise RuntimeError("ALLOWED_MODELS is required for Fireworks execution")
     return allowed_models[0]
@@ -264,17 +380,37 @@ def route_task(
 ) -> RouteDecision:
     provider_name = provider_override or "fireworks"
     allowed = allowed_models if allowed_models is not None else parse_allowed_models()
-    if provider_name not in {"mock", "fireworks", "ollama-demo"}:
+    if provider_name not in {"mock", "fireworks", "ollama-demo", "version5"}:
         raise ValueError(f"unknown provider override: {provider_name}")
+    local_certification = None
+    candidate_version = "version_3"
+    selected_path = provider_name
+    if provider_name == "version5":
+        candidate_version = "version_5"
+        local_certification = local_certification_for(jurisdiction)
+        if local_certification["local_status"] == "LOCAL_CERTIFIED":
+            provider_name = "llama-cpp"
+            selected_path = "local"
+        else:
+            provider_name = "fireworks"
+            selected_path = "fireworks"
     model = select_model(allowed, provider_name)
-    final_mode_compliant = provider_name in {"fireworks", "mock"}
-    reason = "demo_local_model_execution" if provider_name == "ollama-demo" else "jurisdiction_threshold_model_selection"
+    final_mode_compliant = provider_name in {"fireworks", "mock", "llama-cpp"}
+    if provider_name == "ollama-demo":
+        reason = "demo_local_model_execution"
+    elif candidate_version == "version_5":
+        reason = "version_5_local_certification_lookup"
+    else:
+        reason = "jurisdiction_threshold_model_selection"
     return RouteDecision(
         provider=provider_name,
         model=model,
         jurisdiction=jurisdiction,
         reason=reason,
         final_mode_compliant=final_mode_compliant,
+        candidate_version=candidate_version,
+        selected_path=selected_path,
+        local_certification=local_certification,
     )
 
 
@@ -345,6 +481,63 @@ class OpenAICompatibleProvider:
         )
 
 
+class LlamaCppProvider:
+    name = "llama-cpp"
+
+    def __init__(self) -> None:
+        self.binary = os.environ.get("LLAMA_CPP_BINARY", "/app/bin/llama-cli")
+        self.context_length = int(os.environ.get("LLAMA_CONTEXT_LENGTH", "2048"))
+        self.threads = int(os.environ.get("LLAMA_THREADS", "2"))
+        self.max_tokens = int(os.environ.get("LLAMA_MAX_TOKENS", "128"))
+        self.timeout_seconds = int(os.environ.get("LLAMA_TIMEOUT_SECONDS", "60"))
+
+    def complete(self, prompt: str, model: str) -> ProviderResult:
+        start = time.perf_counter()
+        if not Path(self.binary).exists():
+            raise RuntimeError(f"llama.cpp binary not found: {self.binary}")
+        if not Path(model).exists():
+            raise RuntimeError(f"GGUF model not found: {model}")
+        command = [
+            self.binary,
+            "-m",
+            model,
+            "-p",
+            prompt,
+            "-n",
+            str(self.max_tokens),
+            "-c",
+            str(self.context_length),
+            "-t",
+            str(self.threads),
+        ]
+        try:
+            completed = subprocess.run(
+                command,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=self.timeout_seconds,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(f"llama.cpp timed out after {self.timeout_seconds}s") from exc
+        if completed.returncode != 0:
+            stderr = completed.stderr.strip()[:500]
+            raise RuntimeError(f"llama.cpp exited with {completed.returncode}: {stderr}")
+        text = completed.stdout.strip()
+        return ProviderResult(
+            text=text,
+            token_usage={
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "local_prompt_estimate": estimate_tokens(prompt),
+                "local_completion_estimate": estimate_tokens(text),
+            },
+            latency_ms=int((time.perf_counter() - start) * 1000),
+        )
+
+
 def provider_for(name: str) -> Any:
     if name == "mock":
         return MockProvider()
@@ -358,6 +551,8 @@ def provider_for(name: str) -> Any:
         if not base_url:
             raise RuntimeError("FIREWORKS_BASE_URL is required for Fireworks execution")
         return OpenAICompatibleProvider(base_url, api_key)
+    if name == "llama-cpp":
+        return LlamaCppProvider()
     raise ValueError(f"unknown provider override: {name}")
 
 
@@ -397,15 +592,39 @@ def run_task(
     packet = compile_execution_packet(task, task_family, jurisdiction)
     decision = route_task(task_family, jurisdiction, provider_override, allowed_models)
     provider = provider_for(decision.provider)
-    result = provider.complete(packet["compiled_prompt"], decision.model)
+    fallback_reason = None
+    try:
+        result = provider.complete(packet["compiled_prompt"], decision.model)
+    except RuntimeError as exc:
+        if decision.candidate_version != "version_5" or decision.provider != "llama-cpp":
+            raise
+        fallback_reason = f"local_runtime_failure: {exc}"
+        decision = route_task(task_family, jurisdiction, "fireworks", allowed_models)
+        provider = provider_for(decision.provider)
+        result = provider.complete(packet["compiled_prompt"], decision.model)
     output, repair = structural_repair(packet["answer_schema"]["format"], result.text)
     validation = validate_output(packet["answer_schema"]["format"], output)
+    if (
+        decision.candidate_version == "version_5"
+        and decision.provider == "llama-cpp"
+        and not validation["passed"]
+    ):
+        fallback_reason = f"local_validation_failure: {validation['reason']}"
+        decision = route_task(task_family, jurisdiction, "fireworks", allowed_models)
+        provider = provider_for(decision.provider)
+        result = provider.complete(packet["compiled_prompt"], decision.model)
+        output, repair = structural_repair(packet["answer_schema"]["format"], result.text)
+        validation = validate_output(packet["answer_schema"]["format"], output)
 
     record = {
         **packet,
+        "candidate_version": decision.candidate_version,
         "selected_provider": decision.provider,
+        "selected_path": "local_then_fireworks_fallback" if fallback_reason else decision.selected_path,
         "selected_model": decision.model,
         "allowed_models_source": "ALLOWED_MODELS" if decision.provider == "fireworks" else "not_required_for_provider",
+        "local_certification": decision.local_certification,
+        "fallback_reason": fallback_reason,
         "routing_reason": decision.reason,
         "final_mode_compliant": decision.final_mode_compliant,
         "validation_result": validation,
@@ -447,7 +666,13 @@ def run_tasks_file(
     ]
     payload = {
         "schema": "amd_hackathon.results.v3",
-        "mode": "version_3_demo" if provider_override == "ollama-demo" else "fireworks_final_compatible",
+        "mode": (
+            "version_3_demo"
+            if provider_override == "ollama-demo"
+            else "version_5_candidate"
+            if provider_override == "version5"
+            else "fireworks_final_compatible"
+        ),
         "results": records,
     }
     write_json(output_path, payload)
@@ -459,6 +684,12 @@ def preflight() -> dict[str, Any]:
     return {
         "repo_root": str(ROOT),
         "doctrine": "version-3-most-innovative-routing-system",
+        "version_5_candidate_available": True,
+        "version_5_local_model_status": "blocked_until_selected_gguf_artifact_is_available",
+        "llama_cpp_binary": os.environ.get("LLAMA_CPP_BINARY", "/app/bin/llama-cli"),
+        "llama_model_path": os.environ.get("LLAMA_MODEL_PATH", "/app/models/model.gguf"),
+        "llama_context_length": int(os.environ.get("LLAMA_CONTEXT_LENGTH", "2048")),
+        "llama_threads": int(os.environ.get("LLAMA_THREADS", "2")),
         "fireworks_base_url_configured": bool(os.environ.get("FIREWORKS_BASE_URL")),
         "fireworks_api_key_configured": bool(os.environ.get("FIREWORKS_API_KEY")),
         "allowed_models_count": len(allowed_models),

@@ -36,27 +36,33 @@ python3 -m amd_hackathon_app.cli run-tasks \
   --provider mock >"$tmp_root/batch.json"
 
 python3 -m py_compile scripts/model-acquisition.py scripts/show-pipeline.py
+bash -n scripts/benchmark-version-candidates.sh
 
 grep -q 'Most Innovative Routing System' README.md
 grep -q 'Work Jurisdiction' README.md
 grep -q 'FIREWORKS_BASE_URL' README.md
 grep -q 'ALLOWED_MODELS' README.md
 grep -q 'Local demo inference uses Ollama, not Lemonade' README.md
+grep -q 'Version 5 local-first execution is blocked' README.md
 grep -q 'docs/algorithm.json' README.md
 
 grep -q 'ALLOWED_MODELS' .env.example
 grep -q 'qwen2.5-coder:3b' .env.example
+grep -q 'LLAMA_MODEL_PATH' .env.example
 grep -q 'FIREWORKS_BASE_URL' src/amd_hackathon_app/pipeline.py
 grep -q 'ALLOWED_MODELS is required for Fireworks execution' src/amd_hackathon_app/pipeline.py
 grep -q 'DEMO_LOCAL_MODEL_EXECUTION' src/amd_hackathon_app/pipeline.py
+grep -q 'LlamaCppProvider' src/amd_hackathon_app/pipeline.py
 
 grep -q 'no bundled model weights' docs/concept.json
 grep -q 'Work Jurisdiction Routing' docs/algorithm.json
+grep -q 'llama.cpp' docs/version5-local-first-candidate.json
 grep -q 'ALLOWED_MODELS' docs/allowed-models.json
 grep -q '/input/tasks.json' docs/repo-structure.json
 
 grep -q 'python:3.12-slim' Dockerfile.submission
 grep -q 'amd-router' Dockerfile.submission
+grep -q 'llama.cpp local-first candidate' Dockerfile.version5
 if grep -q 'lemonade-server' Dockerfile.submission; then
   echo "submission Dockerfile must not depend on Lemonade" >&2
   exit 1

@@ -51,14 +51,14 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = subcommands.add_parser("run-scenario")
     run_parser.add_argument("--scenario", default="classification-basic")
     run_parser.add_argument("--profile", default=os.environ.get("ROUTING_PROFILE", "version-3-work-jurisdiction"))
-    run_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo"], default=None)
+    run_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
     run_parser.add_argument("--run-dir", default=None)
     run_parser.set_defaults(func=cmd_run_scenario)
 
     tasks_parser = subcommands.add_parser("run-tasks")
     tasks_parser.add_argument("--input", default="/input/tasks.json")
     tasks_parser.add_argument("--output", default="/output/results.json")
-    tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo"], default=None)
+    tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
     tasks_parser.set_defaults(func=cmd_run_tasks)
     return parser
 

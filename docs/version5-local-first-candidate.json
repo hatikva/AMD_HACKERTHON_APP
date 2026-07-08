@@ -1,0 +1,41 @@
+{
+  "schema": "amd_hackathon.version5_candidate.v1",
+  "name": "Version 5 local-first candidate",
+  "status": "provider_and_routing_scaffold_ready_model_artifact_blocked",
+  "runtime": {
+    "engine": "llama.cpp",
+    "binary_path": "/app/bin/llama-cli",
+    "model_path": "/app/models/model.gguf",
+    "context_length": 2048,
+    "threads": 2,
+    "max_tokens": 128,
+    "timeout_seconds": 60,
+    "generation_concurrency": 1
+  },
+  "local_model_artifact": {
+    "model_name": null,
+    "source_url": null,
+    "license": null,
+    "file_format": "GGUF",
+    "quantization": null,
+    "compressed_size": null,
+    "uncompressed_size": null,
+    "expected_image_path": "/app/models/model.gguf",
+    "expected_ram_use": null,
+    "benchmark_status": "blocked_until_artifact_is_selected"
+  },
+  "fallback_policy": {
+    "provider": "Fireworks",
+    "base_url": "FIREWORKS_BASE_URL",
+    "models": "ALLOWED_MODELS",
+    "hardcoded_final_model_ids": false
+  },
+  "local_status_values": [
+    "LOCAL_CERTIFIED",
+    "LOCAL_DENIED",
+    "LOCAL_CONDITIONAL",
+    "FIREWORKS_ONLY"
+  ],
+  "certification_policy": "Start conservative. Do not mark a jurisdiction LOCAL_CERTIFIED without model artifact evidence, deterministic validator coverage, and benchmark results.",
+  "candidate_selection_policy": "Version 5 is not the final submission until it is benchmarked against Version 4 on the same suite, passes the accuracy gate, and shows lower judged Fireworks token usage with acceptable operational risk."
+}
