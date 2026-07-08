@@ -14,5 +14,13 @@
     "gemma-4-26b-a4b-it",
     "gemma-4-31b-it-nvfp4"
   ],
+  "observed_fireworks_resource_names": {
+    "minimax-m3": "accounts/fireworks/models/minimax-m3",
+    "kimi-k2p7-code": "accounts/fireworks/models/kimi-k2p7-code",
+    "gemma-4-31b-it": "accounts/fireworks/models/gemma-4-31b-it",
+    "gemma-4-26b-a4b-it": "accounts/fireworks/models/gemma-4-26b-a4b-it",
+    "gemma-4-31b-it-nvfp4": "accounts/fireworks/models/gemma-4-31b-it-nvfp4"
+  },
+  "resource_name_boundary": "Resource names are documentation for the observed planning seed list. Runtime execution uses the exact ALLOWED_MODELS value supplied by the environment.",
   "seed_boundary": "Examples are planning and benchmark context only. The application still reads ALLOWED_MODELS at runtime."
 }

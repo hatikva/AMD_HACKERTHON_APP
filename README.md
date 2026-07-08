@@ -46,6 +46,8 @@ export FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
 export ALLOWED_MODELS=model-a,model-b
 ```
 
+Observed Fireworks resource names for the current Track 1 planning seed list are documented in `docs/FIREWORKS_MODEL_RESOURCES.md` and `docs/allowed-models.json`. The app does not hardcode that list for final scoring.
+
 Optional demo-local Ollama settings:
 
 ```bash
@@ -154,6 +156,7 @@ Public JSON docs live under `docs/`:
 - `docs/concept.json`
 - `docs/algorithm.json`
 - `docs/allowed-models.json`
+- `docs/FIREWORKS_MODEL_RESOURCES.md`
 - `docs/repo-structure.json`
 
 These files describe operation and compliance without exposing private benchmark thresholds, private planning critique, or internal planning terminology.
