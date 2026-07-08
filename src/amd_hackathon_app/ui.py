@@ -10,10 +10,12 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from .env import load_dotenv
 from .pipeline import Task, parse_allowed_models, preflight, run_task, task_from_mapping
 
 
 ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(ROOT / ".env")
 STATIC_ROOT = ROOT / "web"
 UI_RUN_DIR = Path(os.environ.get("UI_RUN_DIR", "/tmp/amd-hackathon-ui-runs"))
 GENERATION_LOCK = threading.Lock()

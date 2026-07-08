@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 
+from amd_hackathon_app.env import load_dotenv
 from amd_hackathon_app.pipeline import (
     LlamaCppProvider,
     local_certification_for,
@@ -17,6 +19,45 @@ from amd_hackathon_app.ui import summarize_records
 
 
 class PipelineTests(unittest.TestCase):
+    def test_load_dotenv_sets_missing_values_without_overriding_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            env_path = Path(tmp) / ".env"
+            env_path.write_text(
+                "\n".join(
+                    [
+                        "ALLOWED_MODELS=accounts/fireworks/models/minimax-m3",
+                        "FIREWORKS_BASE_URL=https://example.invalid/v1",
+                        "EXPLICIT_VALUE=from-file",
+                        "QUOTED_VALUE='quoted content'",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            env_keys = [
+                "ALLOWED_MODELS",
+                "FIREWORKS_BASE_URL",
+                "EXPLICIT_VALUE",
+                "QUOTED_VALUE",
+            ]
+            old_values = {key: os.environ.get(key) for key in env_keys}
+            try:
+                for key in old_values:
+                    os.environ.pop(key, None)
+                os.environ["EXPLICIT_VALUE"] = "from-environment"
+
+                load_dotenv(env_path)
+
+                self.assertEqual(os.environ["ALLOWED_MODELS"], "accounts/fireworks/models/minimax-m3")
+                self.assertEqual(os.environ["FIREWORKS_BASE_URL"], "https://example.invalid/v1")
+                self.assertEqual(os.environ["EXPLICIT_VALUE"], "from-environment")
+                self.assertEqual(os.environ["QUOTED_VALUE"], "quoted content")
+            finally:
+                for key, value in old_values.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
+
     def test_mock_classification_vertical_slice_records_required_fields(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             record = run_scenario("classification-basic", provider_override="mock", run_dir=Path(tmp))

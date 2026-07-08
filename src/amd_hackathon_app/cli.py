@@ -6,6 +6,10 @@ import os
 import subprocess
 from pathlib import Path
 
+from .env import load_dotenv
+
+load_dotenv()
+
 from .pipeline import preflight, record_to_json, run_scenario, run_tasks_file
 from .ui import run as run_ui
 
