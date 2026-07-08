@@ -1,56 +1,100 @@
 # AMD Hackathon App
 
-Track 1 hybrid token-efficient routing agent for local Lemonade inference plus Fireworks API inference.
+Most Innovative Routing System for AMD Developer Hackathon Track 1.
 
-The implementation follows the planning repo `hatikva/AMD_HACKERTHON_IMPLEMENTATION_PLAN`. Run the planning audit gate before changing direction:
+This repository is the application/runtime repository for `hatikva/AMD_HACKERTHON_APP`. The planning source of truth is `hatikva/AMD_HACKERTHON_IMPLEMENTATION_PLAN`.
+
+## Current Mode
+
+The active implementation is a Version 3 demo architecture:
+
+- deterministic local control plane;
+- Work Jurisdiction routing;
+- task-family aware prompt shaping;
+- context selection and evidence packing;
+- answer schema selection;
+- deterministic validation;
+- structural repair where safe;
+- Fireworks provider path through `FIREWORKS_BASE_URL`;
+- optional Ollama demo path for `qwen2.5-coder:3b`.
+
+Version 3 is not the final Fireworks-only scoring architecture. Version 4 final mode must use Fireworks-only inference, must source model IDs from `ALLOWED_MODELS`, must not hardcode final model IDs, and must not bundle model weights.
+
+The local demo model is demo/development-only. Local demo inference uses Ollama, not Lemonade. The legacy `pod_amd_hackerthon_app` Podman pod and old Lemonade files are preserved as historical evidence and are not the active Version 3 runtime.
+
+## Environment
+
+Required for Fireworks execution:
 
 ```bash
-cd ../AMD_HACKERTHON_IMPLEMENTATION_PLAN
-python3 tools/validate-planning-repo.py
+export FIREWORKS_API_KEY=...
+export FIREWORKS_BASE_URL=https://api.fireworks.ai/inference/v1
+export ALLOWED_MODELS=model-a,model-b
 ```
 
-## Current Standing
+Optional demo-local Ollama settings:
 
-This repository contains the first vertical-slice scaffold:
+```bash
+export OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
+export MODEL_NAME=qwen2.5-coder:3b
+export OLLAMA_NUM_PARALLEL=1
+export OLLAMA_MAX_LOADED_MODELS=1
+export OLLAMA_CONTEXT_LENGTH=2048
+```
 
-- CPU-only Lemonade Compose service pinned to `ghcr.io/lemonade-sdk/lemonade-server:v9.1.3`
-- provider-neutral routing pipeline
-- MDR context packet generation
-- profile-based accuracy-first routing
-- local Lemonade and Fireworks provider boundaries
-- mock provider for offline pipeline verification
-- compact benchmark scenarios
-- audit/result records under ignored `runs/` and `benchmarks/results/`
+## Input And Output
 
-Unfinished runtime work is tracked in `audit/pipeline.json`. Items that cannot be completed in the current environment remain queued with a command and next action; they are not treated as unmanaged blockers.
+Final-compatible batch execution reads `/input/tasks.json` and writes `/output/results.json`.
 
-Audit receipt:
+Example input:
 
-- `audit/receipts/2026-06-25-first-vertical-slice.receipt.json`
-- `audit/receipts/2026-06-25-lemonade-runtime-verified.receipt.json`
-- `audit/receipts/2026-06-25-candidate-model-acquisition.receipt.json`
-- `audit/receipts/2026-06-25-profile-benchmark-evidence.receipt.json`
+```json
+{
+  "tasks": [
+    {
+      "id": "task-1",
+      "prompt": "Summarize the supplied paragraph in one sentence.",
+      "task_family": "summarization",
+      "expected_format": "text"
+    }
+  ]
+}
+```
 
-## Daily Commands
+Run with Fireworks:
+
+```bash
+python3 -m amd_hackathon_app.cli run-tasks \
+  --input /input/tasks.json \
+  --output /output/results.json
+```
+
+Run the offline mock verification path:
+
+```bash
+python3 -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider mock
+```
+
+Run the optional Ollama demo path:
+
+```bash
+python3 -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider ollama-demo
+```
+
+## Development
 
 Create a local environment:
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install -e .
+python3 -m pip install -e .
 ```
 
-Run the offline vertical slice:
+Run tests:
 
 ```bash
-python -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider mock
-```
-
-Run unit tests:
-
-```bash
-python -m unittest discover -s tests
+python3 -m unittest discover -s tests
 ```
 
 Run the app audit gate:
@@ -59,64 +103,25 @@ Run the app audit gate:
 scripts/validate-app.sh
 ```
 
-Show or advance the implementation pipeline:
-
-```bash
-scripts/advance-pipeline.sh show
-scripts/advance-pipeline.sh ollama-port-handoff
-scripts/advance-pipeline.sh lemonade-runtime-start
-scripts/advance-pipeline.sh lemonade-runtime-verify
-scripts/advance-pipeline.sh candidate-model-acquisition
-```
-
 Inspect environment:
 
 ```bash
-python -m amd_hackathon_app.cli preflight
+python3 -m amd_hackathon_app.cli preflight
 ```
 
-Start Lemonade development service:
+## Public Docs
 
-```bash
-scripts/setup-lemonade.sh
-```
+Public JSON docs live under `docs/`:
 
-Restart an already-configured Lemonade pod quickly:
+- `docs/concept.json`
+- `docs/algorithm.json`
+- `docs/allowed-models.json`
+- `docs/repo-structure.json`
 
-```bash
-podman pod start pod_amd_hackerthon_app
-```
+These files describe operation and compliance without exposing private benchmark thresholds, private planning critique, or internal planning terminology.
 
-`pod_amd_hackerthon_app` contains the `amd-hackathon-lemonade` container. Stopping that pod stops the Lemonade server, and starting that pod starts the existing Lemonade container again. Prefer `scripts/advance-pipeline.sh lemonade-runtime-start` for normal project work because it stops Ollama first, runs Compose, rebuilds if needed, starts Lemonade, and waits for `127.0.0.1:13305` to respond. Use `podman pod start pod_amd_hackerthon_app` only when the container is already configured and a quick restart is enough.
+## Known Limitations
 
-Verify Lemonade:
-
-```bash
-scripts/verify-lemonade.sh
-```
-
-Benchmark routing profiles:
-
-```bash
-scripts/benchmark-profiles.sh
-```
-
-## Routing Rule
-
-The router is accuracy-first:
-
-- route to Fireworks when task difficulty exceeds the active local threshold;
-- route to Fireworks when router confidence is below the active profile minimum;
-- route to Fireworks when decisive context cannot fit in the local MDR budget;
-- escalate when local validation fails;
-- optimize token and cost only after a model tier is accurate enough.
-
-## Development Volumes
-
-`compose.dev.yml` defines named volumes:
-
-- `lemonade-cache`: Hugging Face/model cache for development downloads.
-- `lemonade-llama`: Lemonade llama.cpp backend binaries.
-- `lemonade-recipe`: Lemonade recipe/config/cache state.
-
-These volumes are development caches. They are not part of a Docker image and must not be assumed present for scoring. The CPU defaults file is mounted explicitly to `/root/.cache/lemonade/config.json` so the recipe volume does not hide the required CPU configuration.
+- The benchmark-derived model eligibility matrix is represented by the current deterministic selector and must be populated with measured evidence before Version 4 final scoring.
+- Fireworks execution requires credentials and an `ALLOWED_MODELS` value from the runtime environment.
+- Ollama execution is demo-only and is excluded from the final scoring path.

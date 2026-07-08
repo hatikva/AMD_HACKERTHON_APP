@@ -1,5 +1,9 @@
 # Routing Policy
 
-Use accuracy-first difficulty routing. Smaller local models are selected only when the task falls within their measured reliable threshold.
+Use Work Jurisdiction routing.
 
-Escalate to Fireworks when task difficulty exceeds the local threshold, router confidence is too low, decisive context is omitted, or local validation fails.
+The runtime control plane should classify task family, choose a jurisdiction, select a compact prompt and answer schema, pack available evidence, validate deterministically, and repair structurally when safe.
+
+Final-compatible semantic inference goes through Fireworks using `FIREWORKS_BASE_URL` and models sourced from `ALLOWED_MODELS`.
+
+The optional `ollama-demo` provider is only for Version 3 demonstration with `qwen2.5-coder:3b`; it is not a final-mode route.

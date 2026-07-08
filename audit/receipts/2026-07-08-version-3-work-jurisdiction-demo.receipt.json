@@ -1,0 +1,31 @@
+{
+  "schema": "amd_hackathon.execution_receipt.v1",
+  "created_at": "2026-07-08",
+  "source_prompt": "../AMD_HACKERTHON_IMPLEMENTATION_PLAN/external-prompts/active/build-v3-demo-most-innovative-routing-system.prompt.md",
+  "implementation_mode": "version_3_demo",
+  "summary": "Implemented the Version 3 Most Innovative Routing System demo slice with deterministic Work Jurisdiction routing, batch input/output, Fireworks-compatible provider enforcement, demo-only Ollama provider boundary, public JSON docs, and updated validation.",
+  "commands_run": [
+    "cd ../AMD_HACKERTHON_IMPLEMENTATION_PLAN && python3 tools/validate-planning-repo.py",
+    "podman pod exists pod_amd_hackerthon_app",
+    "podman pod ps --format '{{.Name}} {{.Status}}'",
+    "scripts/validate-app.sh",
+    "PYTHONPATH=src python3 -m amd_hackathon_app.cli preflight",
+    "PYTHONPATH=src python3 -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider mock --run-dir /tmp/amd-hackathon-v3-runs"
+  ],
+  "validation_results": {
+    "planning_repository": "planning repository audit validation passed",
+    "application_repository": "app validation passed",
+    "unit_tests": "4 tests passed"
+  },
+  "environment_observations": {
+    "legacy_pod": "pod_amd_hackerthon_app exists and was Exited during inspection",
+    "legacy_pod_policy": "preserved; not deleted, reset, pruned, started, or reused",
+    "fireworks_credentials": "not present during local verification",
+    "allowed_models": "not present during local verification"
+  },
+  "unresolved_items": [
+    "Verify Fireworks execution when FIREWORKS_API_KEY, FIREWORKS_BASE_URL, and ALLOWED_MODELS are available.",
+    "Populate benchmark-derived eligibility data before Version 4 final scoring.",
+    "Use Ollama local demo path only if the operator deliberately starts qwen2.5-coder:3b for demo/development."
+  ]
+}

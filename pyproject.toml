@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "amd-hackathon-app"
 version = "0.1.0"
-description = "AMD Hackathon Track 1 hybrid token-efficient routing agent"
+description = "AMD Hackathon Track 1 Most Innovative Routing System"
 requires-python = ">=3.11"
 dependencies = []
 

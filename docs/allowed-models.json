@@ -1,0 +1,18 @@
+{
+  "schema": "amd_hackathon.allowed_models.v1",
+  "source": "ALLOWED_MODELS",
+  "policy": "Runtime model IDs are read from the ALLOWED_MODELS environment variable. Final model IDs are not hardcoded.",
+  "accepted_formats": [
+    "comma-separated string",
+    "JSON array string"
+  ],
+  "selection_rule": "Choose an eligible allowed model for the selected Work Jurisdiction, with accuracy as the first gate and expected judged token count as the optimization target.",
+  "planning_seed_examples": [
+    "minimax-m3",
+    "kimi-k2p7-code",
+    "gemma-4-31b-it",
+    "gemma-4-26b-a4b-it",
+    "gemma-4-31b-it-nvfp4"
+  ],
+  "seed_boundary": "Examples are planning and benchmark context only. The application still reads ALLOWED_MODELS at runtime."
+}

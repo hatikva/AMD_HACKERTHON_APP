@@ -1,0 +1,23 @@
+{
+  "schema": "amd_hackathon.repo_structure.v1",
+  "active_runtime": {
+    "package": "src/amd_hackathon_app",
+    "cli": "src/amd_hackathon_app/cli.py",
+    "pipeline": "src/amd_hackathon_app/pipeline.py",
+    "tests": "tests/test_pipeline.py",
+    "validation": "scripts/validate-app.sh"
+  },
+  "io_contract": {
+    "input": "/input/tasks.json",
+    "output": "/output/results.json"
+  },
+  "historical_surfaces": [
+    "containers/lemonade",
+    "compose.dev.yml",
+    "audit/receipts"
+  ],
+  "notes": [
+    "Historical Lemonade artifacts are preserved but are not the active Version 3 inference runtime.",
+    "Version 4 final mode excludes local LLM runtime dependencies."
+  ]
+}

@@ -6,7 +6,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from .pipeline import preflight, record_to_json, run_scenario
+from .pipeline import preflight, record_to_json, run_scenario, run_tasks_file
 
 
 def cmd_preflight(_: argparse.Namespace) -> int:
@@ -31,6 +31,16 @@ def cmd_run_scenario(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_tasks(args: argparse.Namespace) -> int:
+    record = run_tasks_file(
+        input_path=Path(args.input),
+        output_path=Path(args.output),
+        provider_override=args.provider,
+    )
+    print(record_to_json(record))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="amd-router")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -40,10 +50,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     run_parser = subcommands.add_parser("run-scenario")
     run_parser.add_argument("--scenario", default="classification-basic")
-    run_parser.add_argument("--profile", default=os.environ.get("ROUTING_PROFILE", "balanced-local-first"))
-    run_parser.add_argument("--provider", choices=["mock", "local", "fireworks"], default=None)
+    run_parser.add_argument("--profile", default=os.environ.get("ROUTING_PROFILE", "version-3-work-jurisdiction"))
+    run_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo"], default=None)
     run_parser.add_argument("--run-dir", default=None)
     run_parser.set_defaults(func=cmd_run_scenario)
+
+    tasks_parser = subcommands.add_parser("run-tasks")
+    tasks_parser.add_argument("--input", default="/input/tasks.json")
+    tasks_parser.add_argument("--output", default="/output/results.json")
+    tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo"], default=None)
+    tasks_parser.set_defaults(func=cmd_run_tasks)
     return parser
 
 

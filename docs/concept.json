@@ -1,0 +1,22 @@
+{
+  "schema": "amd_hackathon.public_concept.v1",
+  "name": "Most Innovative Routing System",
+  "track": "AMD Developer Hackathon Track 1",
+  "summary": "A token-efficient routing agent that uses deterministic task analysis, compact prompt construction, validation, repair, and Fireworks-compatible model selection.",
+  "modes": {
+    "version_3_demo": {
+      "purpose": "Demonstrate routing behavior, validation, and provider boundaries.",
+      "local_model_policy": "Ollama local inference may be used only as demo/development behavior."
+    },
+    "version_4_final_target": {
+      "purpose": "Final scoring-oriented execution.",
+      "inference_policy": "All semantic inference goes through FIREWORKS_BASE_URL with models sourced from ALLOWED_MODELS."
+    }
+  },
+  "final_constraints": [
+    "no hardcoded final model IDs",
+    "no bundled model weights",
+    "no local LLM inference in final mode",
+    "no Lemonade or Ollama dependency in final mode"
+  ]
+}

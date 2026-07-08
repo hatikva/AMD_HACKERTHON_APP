@@ -1,7 +1,7 @@
 {
-  "schema": "amd_hackathon.pipeline.v1",
-  "updated_at": "2026-06-25",
-  "principle": "Unfinished work remains in the implementation pipeline with an executable next action; it is not reported as an unmanaged blocker.",
+  "schema": "amd_hackathon.pipeline.v2",
+  "updated_at": "2026-07-08",
+  "principle": "Active work follows Version 3 Most Innovative Routing System doctrine. Historical Lemonade artifacts remain preserved but are not the active runtime path.",
   "stages": [
     {
       "id": "planning-audit-gate",
@@ -10,54 +10,41 @@
       "evidence": "Planning repository audit validation passed before app execution."
     },
     {
-      "id": "offline-router-vertical-slice",
+      "id": "version-3-work-jurisdiction-slice",
       "status": "complete",
       "command": "scripts/validate-app.sh",
-      "evidence": "Mock provider route produces MDR packet, routing decision, validation result, token accounting, and execution record."
+      "evidence": "Mock provider route produces Work Jurisdiction selection, prompt shaping, validation, structural repair metadata, token accounting, and execution records."
     },
     {
-      "id": "ollama-port-handoff",
+      "id": "batch-input-output-contract",
       "status": "complete",
-      "command": "scripts/stop-ollama.sh",
-      "evidence": "scripts/advance-pipeline.sh ollama-port-handoff reported that Ollama is not listening on 11434."
-    },
-    {
-      "id": "lemonade-runtime-start",
-      "status": "complete",
-      "command": "scripts/setup-lemonade.sh",
-      "evidence": "LEMONADE_BUILD_TIMEOUT_SECONDS=240 scripts/advance-pipeline.sh lemonade-runtime-start started the pinned CPU-only Lemonade service on 127.0.0.1:13305."
-    },
-    {
-      "id": "lemonade-runtime-verify",
-      "status": "complete",
-      "command": "scripts/verify-lemonade.sh",
-      "evidence": "scripts/advance-pipeline.sh lemonade-runtime-verify passed against /api/v1/models and loopback-only Compose configuration."
+      "command": "python3 -m amd_hackathon_app.cli run-tasks --input /input/tasks.json --output /output/results.json",
+      "evidence": "CLI supports the expected input and output paths; validation covers the mock batch path."
     },
     {
       "id": "fireworks-provider-verify",
       "status": "queued",
-      "command": "FIREWORKS_API_KEY=<secret> python3 -m amd_hackathon_app.cli run-scenario --scenario reasoning-escalation-boundary --provider fireworks",
-      "next_action": "Verify Fireworks provider once credentials are available through environment variables."
+      "command": "FIREWORKS_API_KEY=<secret> FIREWORKS_BASE_URL=<url> ALLOWED_MODELS=<models> python3 -m amd_hackathon_app.cli run-scenario --scenario reasoning-escalation-boundary",
+      "next_action": "Verify Fireworks provider once credentials and allowed model IDs are available through environment variables."
     },
     {
-      "id": "candidate-model-acquisition",
-      "status": "complete_for_benchmarkable_exact_ids",
-      "command": "scripts/pull-candidate-models.sh",
-      "evidence": "Phi-4-mini-instruct-GGUF is downloaded and benchmarkable. Qwen3-4B-Instruct-2507-GGUF is listed as downloaded but failed GGUF loading. LFM2.5-1.2B-Instruct-GGUF is a registry_mismatch and must not be silently substituted.",
-      "next_action": "Benchmark with Phi while carrying Qwen cache integrity and LFM2.5 exact-ID mismatch as model-source verification items."
+      "id": "ollama-demo-local-path",
+      "status": "optional",
+      "command": "MODEL_NAME=qwen2.5-coder:3b python3 -m amd_hackathon_app.cli run-scenario --scenario classification-basic --provider ollama-demo",
+      "next_action": "Use only for demo/development if the operator deliberately starts Ollama. Do not use Lemonade for Version 3 local inference."
     },
     {
-      "id": "profile-benchmark-evidence",
-      "status": "complete_initial_local",
-      "command": "PROVIDER_OVERRIDE=local scripts/benchmark-profiles.sh",
-      "evidence": "Initial local benchmark with Phi passed classification, failed strict JSON validation, and confirmed reasoning boundary should normally escalate.",
-      "next_action": "Verify Fireworks provider, then run routed benchmarks without forcing local."
-    },
-    {
-      "id": "submission-packaging",
+      "id": "version-4-final-readiness",
       "status": "queued",
-      "command": "docker build -f Dockerfile.submission --build-arg SELECTED_MODEL=<model> .",
-      "next_action": "Advance only after benchmark evidence selects exactly one local model and organiser packaging constraints are known."
+      "command": "Populate benchmark-derived eligibility data and verify Fireworks-only scoring mode.",
+      "next_action": "Mature the Version 4 final design after Fireworks credentials, ALLOWED_MODELS behavior, and benchmark evidence are available."
     }
+  ],
+  "historical_preserved_stages": [
+    "ollama-port-handoff",
+    "lemonade-runtime-start",
+    "lemonade-runtime-verify",
+    "candidate-model-acquisition",
+    "profile-benchmark-evidence"
   ]
 }

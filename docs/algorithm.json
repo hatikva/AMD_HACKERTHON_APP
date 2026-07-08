@@ -1,0 +1,34 @@
+{
+  "schema": "amd_hackathon.public_algorithm.v1",
+  "name": "Work Jurisdiction Routing",
+  "steps": [
+    "Load tasks from /input/tasks.json.",
+    "Normalize task family with deterministic rules.",
+    "Assign a Work Jurisdiction for the task scope.",
+    "Select an answer schema and compact prompt template.",
+    "Pack available evidence within the token budget.",
+    "Select an allowed model from ALLOWED_MODELS for Fireworks execution.",
+    "Call the configured provider through the approved base URL.",
+    "Validate output deterministically.",
+    "Apply structural repair when safe.",
+    "Write records to /output/results.json."
+  ],
+  "public_jurisdictions": [
+    "TASK_FAMILY_CLASSIFICATION",
+    "PROMPT_OPTIMIZATION",
+    "TASK_CONTRACT_EXTRACTION",
+    "CONTEXT_SELECTION",
+    "EVIDENCE_PACKING",
+    "ANSWER_SCHEMA_SELECTION",
+    "DETERMINISTIC_VALIDATION",
+    "REPAIR_CLASSIFICATION",
+    "MODEL_SELECTION",
+    "TOKEN_BUDGETING",
+    "FIREWORKS_PROXY_COMPLIANCE"
+  ],
+  "private_details_omitted": [
+    "benchmark thresholds",
+    "full certification strategy",
+    "planning critique"
+  ]
+}
