@@ -51,11 +51,14 @@ grep -q 'docs/algorithm.json' README.md
 
 grep -q 'ALLOWED_MODELS' .env.example
 grep -q 'qwen2.5-coder:3b' .env.example
+grep -q 'OLLAMA_MODEL_NAME' .env.example
 grep -q 'LLAMA_MODEL_PATH' .env.example
 grep -q 'FIREWORKS_BASE_URL' src/amd_hackathon_app/pipeline.py
 grep -q 'ALLOWED_MODELS is required for Fireworks execution' src/amd_hackathon_app/pipeline.py
 grep -q 'DEMO_LOCAL_MODEL_EXECUTION' src/amd_hackathon_app/pipeline.py
 grep -q 'LlamaCppProvider' src/amd_hackathon_app/pipeline.py
+grep -q 'OllamaLocalProvider' src/amd_hackathon_app/pipeline.py
+grep -q 'version5-ollama' src/amd_hackathon_app/pipeline.py
 grep -q 'ThreadingHTTPServer' src/amd_hackathon_app/ui.py
 grep -q 'version3' web/app.js
 grep -q 'analytics-grid' web/styles.css
@@ -75,6 +78,8 @@ grep -q 'amd-router' Dockerfile.ui
 grep -q 'network_mode: host' compose.ui.yml
 grep -q 'amd-router' Dockerfile.submission
 grep -q 'llama.cpp local-first candidate' Dockerfile.version5
+grep -q 'Version 5 Ollama Final Runtime' Dockerfile.version5-ollama
+grep -q 'version5-ollama' Dockerfile.version5-ollama
 if grep -q 'lemonade-server' Dockerfile.submission; then
   echo "submission Dockerfile must not depend on Lemonade" >&2
   exit 1

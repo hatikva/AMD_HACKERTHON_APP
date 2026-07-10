@@ -21,8 +21,10 @@ from amd_hackathon_app.benchmarks import (
 )
 from amd_hackathon_app.pipeline import (
     LlamaCppProvider,
+    OllamaLocalProvider,
     ProviderResult,
     Task,
+    VERSION_5_LOCAL_PROVIDER,
     local_certification_for,
     parse_allowed_models,
     route_task,
@@ -140,6 +142,8 @@ class PipelineTests(unittest.TestCase):
             certification["local_model_sha256"],
             "527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970",
         )
+        self.assertEqual(certification["runtime_certification"], "OLLAMA_CERTIFIED")
+        self.assertEqual(certification["local_runtime_provider"], VERSION_5_LOCAL_PROVIDER)
         self.assertEqual(certification["fireworks_policy"], "ALLOWED_MODELS_ONLY")
         self.assertEqual(certification["benchmark_status"], "selected_model_pending_real_benchmark_promotion")
 
@@ -171,7 +175,21 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertEqual(decision.candidate_version, "version_5")
         self.assertEqual(decision.provider, "llama-cpp")
-        self.assertEqual(decision.selected_path, "local_uncertified_benchmark")
+        self.assertEqual(decision.selected_path, "local_rejected_runtime_evidence")
+        self.assertEqual(decision.local_certification["local_status"], "LOCAL_DENIED")
+
+    def test_direct_version5_ollama_route_is_final_candidate_benchmarking(self) -> None:
+        decision = route_task(
+            task_family="sentiment",
+            jurisdiction="SENTIMENT_CLASSIFICATION",
+            provider_override=VERSION_5_LOCAL_PROVIDER,
+            allowed_models=[],
+        )
+        self.assertEqual(decision.candidate_version, "version_5")
+        self.assertEqual(decision.provider, VERSION_5_LOCAL_PROVIDER)
+        self.assertEqual(decision.model, "nemotron-3-nano:4b")
+        self.assertEqual(decision.selected_path, "local_final_candidate_benchmark")
+        self.assertTrue(decision.final_mode_compliant)
         self.assertEqual(decision.local_certification["local_status"], "LOCAL_DENIED")
 
     def test_llama_cpp_provider_reports_missing_binary(self) -> None:
@@ -211,6 +229,24 @@ class PipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "llama.cpp timed out"):
                 provider.complete("Return yes.", str(model))
 
+    def test_ollama_local_provider_records_local_estimates_not_fireworks_tokens(self) -> None:
+        provider = OllamaLocalProvider()
+        with mock.patch.object(
+            pipeline_module.OpenAICompatibleProvider,
+            "complete",
+            return_value=ProviderResult(
+                text="4",
+                token_usage={"prompt_tokens": 5, "completion_tokens": 1, "total_tokens": 6},
+                latency_ms=12,
+            ),
+        ):
+            result = provider.complete("Return 4.", "nemotron-3-nano:4b")
+
+        self.assertEqual(result.text, "4")
+        self.assertEqual(result.token_usage["total_tokens"], 0)
+        self.assertGreater(result.token_usage["local_prompt_estimate"], 0)
+        self.assertGreater(result.token_usage["local_completion_estimate"], 0)
+
     def test_version5_local_validation_failure_falls_back_without_losing_candidate_identity(self) -> None:
         original = dict(pipeline_module.VERSION_5_LOCAL_CERTIFICATION["SENTIMENT_CLASSIFICATION"])
 
@@ -227,7 +263,7 @@ class PipelineTests(unittest.TestCase):
                 )
 
         def fake_provider_for(name: str) -> object:
-            if name == "llama-cpp":
+            if name == VERSION_5_LOCAL_PROVIDER:
                 return FakeLocalProvider()
             if name == "fireworks":
                 return FakeFireworksProvider()

@@ -16,7 +16,7 @@ These volumes are not part of the image. A container that depends on them is not
 
 The final submission must not depend on host bind mounts or pre-existing model volumes. Do not commit model weights to Git.
 
-Only one selected local model should be embedded in the Version 5 image. The selected artifact is `nemotron-3-nano:4b`, staged as `models/version5/nemotron-3-nano-4b.gguf` and copied to `/app/models/nemotron-3-nano-4b.gguf`. Runtime downloads are not part of the final Version 5 path.
+Only one selected local model should be embedded in the Version 5 image. The final Version 5 runtime path is CPU-only Ollama with `nemotron-3-nano:4b`, staged under `models/version5-ollama/` with its manifest and required blobs. Runtime downloads are not part of the final Version 5 path.
 
 ## Offline Test Requirement
 
@@ -29,22 +29,20 @@ Before claiming a submission image is self-contained:
 
 Compose YAML alone does not prove scoring accepts multiple containers or that weights are self-contained.
 
-Use:
+The older direct llama.cpp image is retained as runtime evidence only:
 
 ```bash
 scripts/stage-version5-model.sh
 scripts/verify-version5-image.sh amd-hackathon-version5:local
 ```
 
-The verification script builds `Dockerfile.version5`, checks the gzip-compressed saved image is below 10 GB, and runs `amd-router preflight` with `--memory=4g --cpus=2`.
+That verification builds `Dockerfile.version5`, checks the gzip-compressed saved image is below 10 GB, and runs `amd-router preflight` with `--memory=4g --cpus=2`. Direct llama.cpp inference with the selected Nemotron artifact was OOM-killed under the target envelope, so it is not the final Version 5 local runtime path.
 
-## Ollama Runtime Experiment
-
-An experimental CPU-only Ollama image can be built from the host Ollama installation and existing local model cache without pulling `ollama/ollama:latest`:
+Use this for the promoted Version 5 Ollama runtime path:
 
 ```bash
 scripts/stage-version5-ollama-runtime.sh
-docker build -f Dockerfile.version5-ollama -t amd-hackathon-version5:ollama .
+scripts/verify-version5-ollama-image.sh amd-hackathon-version5:ollama
 ```
 
 The staging script copies only:
@@ -59,13 +57,13 @@ Observed on 2026-07-10:
 
 ```text
 llama.cpp compressed image: 2,860,434,793 bytes
-CPU-only Ollama compressed image: 2,866,465,223 bytes
+CPU-only Ollama compressed image after final provider promotion: 2,866,482,218 bytes
 delta: +6,030,430 bytes for Ollama
 Ollama constrained smoke: passed under --memory=4g --cpus=2
 llama.cpp constrained direct inference: OOM-killed under --memory=4g --cpus=2
 ```
 
-The Ollama image is still experimental. It uses the `ollama-demo` provider path and is not final-mode compliant until routing, certification, startup behavior, and benchmark promotion policy are deliberately updated.
+The Ollama image now uses the final provider identity `version5-ollama`. This certifies the local runtime path only. Jurisdiction-level local routing remains blocked until benchmark results through `version5-ollama` meet reviewed thresholds and are promoted into authorization records.
 
 ## Version 5 Qualification Benchmark Packaging
 

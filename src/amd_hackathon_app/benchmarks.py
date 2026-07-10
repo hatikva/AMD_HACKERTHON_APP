@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .pipeline import ROOT, VERSION_5_LOCAL_MODEL, parse_allowed_models, run_tasks_file, write_json
+from .pipeline import ROOT, VERSION_5_LOCAL_MODEL, VERSION_5_LOCAL_PROVIDER, parse_allowed_models, run_tasks_file, write_json
 
 
 BENCHMARK_SUITE_ID = "version5-category-benchmark-v2"
@@ -279,9 +279,21 @@ def candidate_metadata(provider: str, model: str | None) -> dict[str, Any]:
     if provider == "version5":
         return {
             "provider": "version5",
-            "model": model or os.environ.get("LLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
+            "model": model or os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
             "model_sha256": VERSION_5_LOCAL_MODEL["sha256"],
             "policy_version": "version_5_local_certification_lookup",
+            "local_runtime_provider": VERSION_5_LOCAL_PROVIDER,
+            "runtime_certification": "OLLAMA_CERTIFIED",
+        }
+    if provider == VERSION_5_LOCAL_PROVIDER:
+        return {
+            "provider": VERSION_5_LOCAL_PROVIDER,
+            "model": model or os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
+            "model_sha256": VERSION_5_LOCAL_MODEL["sha256"],
+            "base_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
+            "final_mode_compliant": True,
+            "runtime_certification": "OLLAMA_CERTIFIED",
+            "jurisdiction_authorization": "benchmark_evidence_only_not_registry_promotion",
         }
     if provider == "ollama-demo":
         return {
@@ -323,9 +335,12 @@ def run_category_benchmark(
 
     previous_run_dir = os.environ.get("APP_RUN_DIR")
     previous_model_name = os.environ.get("MODEL_NAME")
+    previous_ollama_model_name = os.environ.get("OLLAMA_MODEL_NAME")
     os.environ["APP_RUN_DIR"] = str(task_run_dir)
     if provider == "ollama-demo" and model:
         os.environ["MODEL_NAME"] = model
+    if provider == VERSION_5_LOCAL_PROVIDER and model:
+        os.environ["OLLAMA_MODEL_NAME"] = model
     try:
         run_payload = run_tasks_file(input_path=input_path, output_path=output_results_path, provider_override=provider_override)
     finally:
@@ -337,6 +352,10 @@ def run_category_benchmark(
             os.environ.pop("MODEL_NAME", None)
         else:
             os.environ["MODEL_NAME"] = previous_model_name
+        if previous_ollama_model_name is None:
+            os.environ.pop("OLLAMA_MODEL_NAME", None)
+        else:
+            os.environ["OLLAMA_MODEL_NAME"] = previous_ollama_model_name
 
     submission_results = index_submission_results(
         run_payload["results"],

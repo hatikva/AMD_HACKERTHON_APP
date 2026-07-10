@@ -1,16 +1,32 @@
 {
   "schema": "amd_hackathon.version5_candidate.v1",
   "name": "Version 5 local-first candidate",
-  "status": "provider_and_routing_scaffold_ready_selected_model_pending_benchmarks",
+  "status": "ollama_runtime_certified_jurisdiction_authorization_pending_benchmarks",
   "runtime": {
-    "engine": "llama.cpp",
-    "binary_path": "/app/bin/llama-cli",
-    "model_path": "/app/models/nemotron-3-nano-4b.gguf",
-    "context_length": 2048,
+    "engine": "Ollama CPU-only",
+    "provider": "version5-ollama",
+    "base_url": "http://127.0.0.1:11434/v1",
+    "model": "nemotron-3-nano:4b",
+    "context_length": 128,
     "threads": 2,
     "max_tokens": 128,
-    "timeout_seconds": 60,
-    "generation_concurrency": 1
+    "timeout_seconds": 300,
+    "generation_concurrency": 1,
+    "max_loaded_models": 1
+  },
+  "runtime_certification": {
+    "version_5_local_runtime": "OLLAMA_CERTIFIED",
+    "local_runtime_model": "nemotron-3-nano:4b",
+    "local_runtime_image_status": "SELF_CONTAINED_UNDER_10GB",
+    "local_runtime_memory_status": "PASSED_4GB_2VCPU_SMOKE",
+    "compressed_image_bytes": 2866482218,
+    "constrained_smoke": {
+      "memory": "4g",
+      "cpus": 2,
+      "answer": "4",
+      "oom_killed": false,
+      "elapsed_seconds": 19.98
+    }
   },
   "local_model_artifact": {
     "model_name": "nemotron-3-nano:4b",
@@ -24,6 +40,11 @@
     "expected_image_path": "/app/models/nemotron-3-nano-4b.gguf",
     "expected_ram_use": null,
     "benchmark_status": "selected_pending_real_benchmark_passes"
+  },
+  "rejected_runtime_evidence": {
+    "engine": "llama.cpp",
+    "compressed_image_bytes": 2860434793,
+    "finding": "direct local inference with nemotron-3-nano:4b was OOM-killed under 4 GB RAM / 2 vCPU even at context 128 and one output token"
   },
   "canonical_qualification_benchmark": {
     "suite_id": "version5-category-benchmark-v2",
@@ -175,6 +196,6 @@
       "validator_coverage": "high"
     }
   ],
-  "certification_policy": "Start conservative. No jurisdiction is LOCAL_CERTIFIED. Do not promote a jurisdiction without deterministic validator coverage, real benchmark results, memory evidence, latency evidence, and reviewed authorization records.",
+  "certification_policy": "The Version 5 Ollama runtime is OLLAMA_CERTIFIED, but no jurisdiction is LOCAL_CERTIFIED. Do not promote a jurisdiction without deterministic validator coverage, real benchmark results through provider version5-ollama, memory evidence, latency evidence, and reviewed authorization records.",
   "candidate_selection_policy": "Version 5 is not the final submission until it is benchmarked against Version 4 on the same suite, passes the accuracy gate, and shows lower judged Fireworks token usage with acceptable operational risk."
 }

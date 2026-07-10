@@ -24,22 +24,23 @@ The local demo model is demo/development-only. Local demo inference uses Ollama,
 
 ## Version 5 Candidate
 
-Version 5 is represented as a llama.cpp local-first submission candidate. It preserves Version 3 and adds a conservative candidate mode:
+Version 5 is represented as an Ollama local-runtime submission candidate. It preserves Version 3 and adds a conservative candidate mode:
 
-- local inference runtime: `llama.cpp`;
-- default binary path: `/app/bin/llama-cli`;
+- local inference runtime: CPU-only Ollama;
+- final local provider identity: `version5-ollama`;
 - selected local model: `nemotron-3-nano:4b`;
-- default model path: `/app/models/nemotron-3-nano-4b.gguf`;
+- bundled model store: `/app/ollama-models`;
 - selected GGUF SHA-256: `527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970`;
 - selected GGUF size: `2,837,586,496` bytes;
-- default context length: `2048`;
-- default thread count: `2`;
+- default context length: `128`;
+- loaded models / parallel generations: `1`;
 - Fireworks fallback: `FIREWORKS_BASE_URL` with model IDs from `ALLOWED_MODELS`;
-- local certification status: selected model is staged, but no Work Jurisdiction is `LOCAL_CERTIFIED` until real benchmark evidence is reviewed and promoted.
+- runtime certification status: `OLLAMA_CERTIFIED`;
+- jurisdiction certification status: no Work Jurisdiction is `LOCAL_CERTIFIED` until real benchmark evidence is reviewed and promoted.
 
 No Work Jurisdiction is marked `LOCAL_CERTIFIED` yet. Until memory, latency, accuracy, validator coverage, and promotion thresholds are recorded, Version 5 routes through the Fireworks fallback path.
 
-An experimental CPU-only Ollama image also exists for comparison after `nemotron-3-nano:4b` failed direct llama.cpp inference under the 4 GB / 2 vCPU envelope. The Ollama experiment completed a constrained one-task smoke and is only about 6 MB larger compressed than the llama.cpp image, but it still uses the `ollama-demo` path and is not final-mode compliant.
+Direct llama.cpp packaging is retained as evidence after `nemotron-3-nano:4b` failed direct llama.cpp inference under the 4 GB / 2 vCPU envelope. The CPU-only Ollama image completed a constrained one-task smoke and is only about 6 MB larger compressed than the llama.cpp image, so `version5-ollama` is the promoted Version 5 local runtime path.
 
 ## Version 5 Qualification Benchmark
 
@@ -111,7 +112,18 @@ export OLLAMA_MAX_LOADED_MODELS=1
 export OLLAMA_CONTEXT_LENGTH=2048
 ```
 
-Optional Version 5 llama.cpp settings:
+Optional Version 5 final Ollama runtime settings:
+
+```bash
+export OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
+export OLLAMA_MODEL_NAME=nemotron-3-nano:4b
+export OLLAMA_CONTEXT_LENGTH=128
+export OLLAMA_NUM_PARALLEL=1
+export OLLAMA_MAX_LOADED_MODELS=1
+export OLLAMA_TIMEOUT_SECONDS=300
+```
+
+Retained Version 5 llama.cpp evidence settings:
 
 ```bash
 export LLAMA_CPP_BINARY=/app/bin/llama-cli
@@ -178,7 +190,7 @@ Run the Version 3 UI:
 python3 -m amd_hackathon_app.cli ui --host 127.0.0.1 --port 18083
 ```
 
-Open `http://127.0.0.1:18083`. The UI accepts `/input/tasks.json`-style task payloads, shows outputs, token counts, validation state, latency, selected provider/model, and lightweight analytics for Version 3, Version 4, and Version 5 comparison. Version 3 uses the Ollama demo path. Version 4 requires Fireworks environment variables. Version 5 remains Fireworks-fallback-only until certification evidence exists.
+Open `http://127.0.0.1:18083`. The UI accepts `/input/tasks.json`-style task payloads, shows outputs, token counts, validation state, latency, selected provider/model, and lightweight analytics for Version 3, Version 4, and Version 5 comparison. Version 3 uses the Ollama demo path. Version 4 requires Fireworks environment variables. Version 5 uses an Ollama-certified runtime path only after jurisdiction-specific authorization evidence exists.
 
 Run the same UI as a separate container:
 
@@ -201,7 +213,16 @@ python3 -m amd_hackathon_app.cli run-submission \
   --provider version5
 ```
 
-This currently requires Fireworks configuration because local jurisdictions are not certified.
+This currently requires Fireworks configuration because no local jurisdictions are certified, even though the Version 5 Ollama runtime path is certified.
+
+Run the Version 5 Ollama final-candidate benchmark path directly:
+
+```bash
+python3 -m amd_hackathon_app.cli run-submission \
+  --input /input/tasks.json \
+  --output /output/results.json \
+  --provider version5-ollama
+```
 
 Stage the selected GGUF for a Version 5 container build:
 
@@ -217,17 +238,17 @@ scripts/verify-version5-image.sh amd-hackathon-version5:local
 
 That check builds `Dockerfile.version5`, verifies the compressed image stays below 10 GB, and runs `amd-router preflight` under a 4 GB RAM / 2 vCPU container limit.
 
-Build the experimental CPU-only Ollama comparison image:
+Build and verify the CPU-only Ollama final runtime image:
 
 ```bash
 scripts/stage-version5-ollama-runtime.sh
-docker build -f Dockerfile.version5-ollama -t amd-hackathon-version5:ollama .
+scripts/verify-version5-ollama-image.sh amd-hackathon-version5:ollama
 ```
 
 Observed comparison on 2026-07-10:
 
 - llama.cpp image: `2,860,434,793` compressed bytes;
-- CPU-only Ollama image: `2,866,465,223` compressed bytes;
+- CPU-only Ollama image: `2,866,482,218` compressed bytes after final provider promotion;
 - Ollama constrained smoke: passed under `--memory=4g --cpus=2`, answer `4`, elapsed `19.98s`;
 - llama.cpp constrained direct inference: OOM-killed for `nemotron-3-nano:4b`.
 
@@ -281,5 +302,5 @@ These files describe operation and compliance without exposing private benchmark
 
 - The benchmark-derived model eligibility matrix is represented by the current deterministic selector and must be populated with measured evidence before Version 4 final scoring.
 - Fireworks execution requires credentials and an `ALLOWED_MODELS` value from the runtime environment.
-- Ollama execution is demo/experiment-only and is excluded from the final scoring path until explicitly promoted.
-- Version 5 local-first execution is blocked until the selected `nemotron-3-nano:4b` artifact has real accuracy, memory, latency, image-size, and jurisdiction-promotion evidence.
+- Version 3 Ollama execution remains demo-only under `ollama-demo`; Version 5 uses the separate `version5-ollama` provider identity.
+- Version 5 local-first execution is blocked until the selected `nemotron-3-nano:4b` artifact has real accuracy, latency, fallback, and jurisdiction-promotion evidence through `version5-ollama`.

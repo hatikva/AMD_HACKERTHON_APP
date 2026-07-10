@@ -56,6 +56,8 @@ VERSION_5_WORK_JURISDICTIONS = [
 ]
 
 LOCAL_STATUS_VALUES = {"LOCAL_CERTIFIED", "LOCAL_DENIED", "LOCAL_CONDITIONAL", "FIREWORKS_ONLY"}
+VERSION_5_LOCAL_PROVIDER = "version5-ollama"
+VERSION_5_LOCAL_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, "llama-cpp"}
 
 VERSION_5_LOCAL_MODEL = {
     "model_name": "nemotron-3-nano:4b",
@@ -68,6 +70,23 @@ VERSION_5_LOCAL_MODEL = {
     "format": "GGUF",
     "quantization": "observed_ollama_model_blob",
     "license": "from bundled Ollama license layer; review before final submission",
+}
+
+VERSION_5_RUNTIME_CERTIFICATION = {
+    "version_5_local_runtime": "OLLAMA_CERTIFIED",
+    "local_runtime_model": "nemotron-3-nano:4b",
+    "local_runtime_provider": VERSION_5_LOCAL_PROVIDER,
+    "local_runtime_image_status": "SELF_CONTAINED_UNDER_10GB",
+    "local_runtime_memory_status": "PASSED_4GB_2VCPU_SMOKE",
+    "compressed_image_bytes": 2866482218,
+    "constrained_smoke": {
+        "memory": "4g",
+        "cpus": 2,
+        "answer": "4",
+        "oom_killed": False,
+        "elapsed_seconds": 19.98,
+    },
+    "jurisdiction_authorization": "evidence_bound_by_VERSION_5_LOCAL_CERTIFICATION",
 }
 
 VERSION_5_LOCAL_CERTIFICATION = {
@@ -338,7 +357,7 @@ def normalize_task_family(value: str | None, prompt: str) -> str:
 def jurisdiction_for(task_family: str, provider_override: str | None = None) -> str:
     if provider_override == "ollama-demo":
         return "DEMO_LOCAL_MODEL_EXECUTION"
-    if provider_override == "version5":
+    if provider_override in {"version5", VERSION_5_LOCAL_PROVIDER, "llama-cpp"}:
         return version5_jurisdiction_for(task_family)
     if task_family in {"sentiment", "named_entity_recognition"}:
         return "ANSWER_SCHEMA_SELECTION"
@@ -380,8 +399,10 @@ def local_certification_for(jurisdiction: str) -> dict[str, Any]:
     return {
         "jurisdiction_id": jurisdiction,
         "local_status": status,
-        "local_model": os.environ.get("LLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
+        "local_model": os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
         "local_model_sha256": VERSION_5_LOCAL_MODEL["sha256"],
+        "runtime_certification": VERSION_5_RUNTIME_CERTIFICATION["version_5_local_runtime"],
+        "local_runtime_provider": VERSION_5_LOCAL_PROVIDER,
         "local_threshold": None,
         "validator_coverage": row["validator_coverage"],
         "fallback": row["fallback"],
@@ -449,6 +470,8 @@ def select_model(allowed_models: list[str], provider_name: str) -> str:
         return "mock-model"
     if provider_name == "ollama-demo":
         return os.environ.get("MODEL_NAME", "qwen2.5-coder:3b")
+    if provider_name == VERSION_5_LOCAL_PROVIDER:
+        return os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"])
     if provider_name == "llama-cpp":
         return os.environ.get("LLAMA_MODEL_PATH", VERSION_5_LOCAL_MODEL["image_path"])
     if not allowed_models:
@@ -464,7 +487,7 @@ def route_task(
 ) -> RouteDecision:
     provider_name = provider_override or "fireworks"
     allowed = allowed_models if allowed_models is not None else parse_allowed_models()
-    if provider_name not in {"mock", "fireworks", "ollama-demo", "version5", "llama-cpp"}:
+    if provider_name not in {"mock", "fireworks", "ollama-demo", "version5", VERSION_5_LOCAL_PROVIDER, "llama-cpp"}:
         raise ValueError(f"unknown provider override: {provider_name}")
     local_certification = None
     candidate_version = "version_3"
@@ -473,17 +496,21 @@ def route_task(
         candidate_version = "version_5"
         local_certification = local_certification_for(jurisdiction)
         if local_certification["local_status"] == "LOCAL_CERTIFIED":
-            provider_name = "llama-cpp"
+            provider_name = VERSION_5_LOCAL_PROVIDER
             selected_path = "local"
         else:
             provider_name = "fireworks"
             selected_path = "fireworks"
-    elif provider_name == "llama-cpp":
+    elif provider_name in VERSION_5_LOCAL_PROVIDERS:
         candidate_version = "version_5"
         local_certification = local_certification_for(jurisdiction)
-        selected_path = "local_uncertified_benchmark"
+        selected_path = (
+            "local_final_candidate_benchmark"
+            if provider_name == VERSION_5_LOCAL_PROVIDER
+            else "local_rejected_runtime_evidence"
+        )
     model = select_model(allowed, provider_name)
-    final_mode_compliant = provider_name in {"fireworks", "mock", "llama-cpp"}
+    final_mode_compliant = provider_name in {"fireworks", "mock", VERSION_5_LOCAL_PROVIDER}
     if provider_name == "ollama-demo":
         reason = "demo_local_model_execution"
     elif candidate_version == "version_5":
@@ -597,6 +624,31 @@ class OpenAICompatibleProvider:
         )
 
 
+class OllamaLocalProvider(OpenAICompatibleProvider):
+    name = VERSION_5_LOCAL_PROVIDER
+
+    def __init__(self) -> None:
+        super().__init__(
+            os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
+            api_key=os.environ.get("OLLAMA_API_KEY"),
+        )
+        self.timeout_seconds = int(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "300"))
+
+    def complete(self, prompt: str, model: str) -> ProviderResult:
+        result = super().complete(prompt, model)
+        return ProviderResult(
+            text=result.text,
+            token_usage={
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "local_prompt_estimate": estimate_tokens(prompt),
+                "local_completion_estimate": estimate_tokens(result.text),
+            },
+            latency_ms=result.latency_ms,
+        )
+
+
 class LlamaCppProvider:
     name = "llama-cpp"
 
@@ -661,6 +713,8 @@ def provider_for(name: str) -> Any:
         return MockProvider()
     if name == "ollama-demo":
         return OpenAICompatibleProvider(os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"))
+    if name == VERSION_5_LOCAL_PROVIDER:
+        return OllamaLocalProvider()
     if name == "fireworks":
         api_key = os.environ.get("FIREWORKS_API_KEY")
         if not api_key:
@@ -716,7 +770,11 @@ def run_task(
     try:
         result = provider.complete(packet["compiled_prompt"], decision.model)
     except RuntimeError as exc:
-        if not allow_version5_fallback or decision.candidate_version != "version_5" or decision.provider != "llama-cpp":
+        if (
+            not allow_version5_fallback
+            or decision.candidate_version != "version_5"
+            or decision.provider not in VERSION_5_LOCAL_PROVIDERS
+        ):
             raise
         fallback_reason = f"local_runtime_failure: {exc}"
         decision = route_task(task_family, jurisdiction, "fireworks", allowed_models)
@@ -726,7 +784,7 @@ def run_task(
     validation = validate_output(packet["answer_schema"]["format"], output)
     if (
         decision.candidate_version == "version_5"
-        and decision.provider == "llama-cpp"
+        and decision.provider in VERSION_5_LOCAL_PROVIDERS
         and not validation["passed"]
         and allow_version5_fallback
     ):
@@ -740,7 +798,7 @@ def run_task(
     candidate_version = initial_decision.candidate_version
     local_certification = initial_decision.local_certification
     selected_path = "local_then_fireworks_fallback" if fallback_reason else initial_decision.selected_path
-    local_attempted = candidate_version == "version_5" and initial_decision.provider == "llama-cpp"
+    local_attempted = candidate_version == "version_5" and initial_decision.provider in VERSION_5_LOCAL_PROVIDERS
     local_success = bool(local_attempted and not fallback_reason and validation["passed"])
     fireworks_used = decision.provider == "fireworks"
     retry_count = 1 if fallback_reason else 0
@@ -817,6 +875,8 @@ def run_tasks_file(
             if provider_override == "ollama-demo"
             else "version_5_candidate"
             if provider_override == "version5"
+            else "version_5_direct_ollama_benchmark"
+            if provider_override == VERSION_5_LOCAL_PROVIDER
             else "version_5_direct_llama_cpp_benchmark"
             if provider_override == "llama-cpp"
             else "fireworks_final_compatible"
@@ -834,8 +894,9 @@ def preflight() -> dict[str, Any]:
         "repo_root": str(ROOT),
         "doctrine": "version-3-most-innovative-routing-system",
         "version_5_candidate_available": True,
-        "version_5_local_model_status": "selected_pending_real_benchmarks_and_certification",
+        "version_5_local_model_status": "ollama_runtime_certified_jurisdictions_pending_benchmark_promotion",
         "version_5_local_model": VERSION_5_LOCAL_MODEL,
+        "version_5_runtime_certification": VERSION_5_RUNTIME_CERTIFICATION,
         "version_5_local_certified_count": sum(
             1 for row in VERSION_5_LOCAL_CERTIFICATION.values() if row["local_status"] == "LOCAL_CERTIFIED"
         ),
@@ -843,6 +904,12 @@ def preflight() -> dict[str, Any]:
         "llama_model_path": os.environ.get("LLAMA_MODEL_PATH", VERSION_5_LOCAL_MODEL["image_path"]),
         "llama_context_length": int(os.environ.get("LLAMA_CONTEXT_LENGTH", "2048")),
         "llama_threads": int(os.environ.get("LLAMA_THREADS", "2")),
+        "version5_ollama_provider": VERSION_5_LOCAL_PROVIDER,
+        "version5_ollama_model": os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
+        "version5_ollama_base_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
+        "version5_ollama_context_length": int(os.environ.get("OLLAMA_CONTEXT_LENGTH", "128")),
+        "version5_ollama_max_loaded_models": int(os.environ.get("OLLAMA_MAX_LOADED_MODELS", "1")),
+        "version5_ollama_num_parallel": int(os.environ.get("OLLAMA_NUM_PARALLEL", "1")),
         "fireworks_base_url_configured": bool(os.environ.get("FIREWORKS_BASE_URL")),
         "fireworks_api_key_configured": bool(os.environ.get("FIREWORKS_API_KEY")),
         "allowed_models_count": len(allowed_models),

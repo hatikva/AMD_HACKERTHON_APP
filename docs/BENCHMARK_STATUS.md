@@ -36,7 +36,7 @@ Observed size: `2,837,586,496` bytes.
 
 Observed SHA-256: `527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970`.
 
-No jurisdiction is currently `LOCAL_CERTIFIED`. Real Version 5 benchmark passes must run before local-first routing is enabled.
+The Version 5 local runtime is `OLLAMA_CERTIFIED` for the CPU-only Ollama path, but no jurisdiction is currently `LOCAL_CERTIFIED`. Real Version 5 benchmark passes through provider `version5-ollama` must run before local-first routing is enabled.
 
 ## Version 5 Runtime Experiments
 
@@ -59,7 +59,7 @@ Runtime evidence:
 - default context/generation timed out;
 - minimal one-token/context-128 smoke was OOM-killed with exit `137`.
 
-### Ollama CPU-only experiment
+### Ollama CPU-only final runtime path
 
 Host Ollama evidence:
 
@@ -75,14 +75,14 @@ Containerized CPU-only experiment:
 ```text
 image: amd-hackathon-version5:ollama
 uncompressed image size: 3,038,198,978 bytes
-compressed image size: 2,866,465,223 bytes
+compressed image size after final provider promotion: 2,866,482,218 bytes
 smoke under --memory=4g --cpus=2: passed
 smoke answer: 4
 smoke elapsed: 19.98s
 oom_killed: false
 ```
 
-The CPU-only Ollama image is about `6,030,430` bytes larger compressed than the llama.cpp image, but it completed the constrained smoke where direct llama.cpp did not. It remains an experiment because the current app route is `ollama-demo`, marked `final_mode_compliant=false`.
+The CPU-only Ollama image is about `6,030,430` bytes larger compressed than the llama.cpp image, but it completed the constrained smoke where direct llama.cpp did not. It is the final Version 5 local runtime path under provider `version5-ollama`; this does not promote any jurisdiction to `LOCAL_CERTIFIED`.
 
 Host Ollama full category pass:
 
@@ -98,6 +98,8 @@ validation_failures: 0
 judged_fireworks_tokens: 0
 elapsed_seconds: 362.17
 ```
+
+That host benchmark is retained as qualification evidence from the old demo path. Final-candidate evidence must be rerun through provider `version5-ollama`, with model-visible tasks projected to only `task_id` and `prompt` and evaluator metadata withheld.
 
 Promotion into authorization records requires:
 

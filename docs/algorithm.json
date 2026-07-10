@@ -10,7 +10,7 @@
     "Pack available evidence within the token budget.",
     "Select an allowed model from ALLOWED_MODELS for Fireworks execution.",
     "For Version 5, check the local certification table before Fireworks execution.",
-    "For Version 5, run llama.cpp only when the jurisdiction is LOCAL_CERTIFIED.",
+    "For Version 5, run provider version5-ollama only when the jurisdiction is LOCAL_CERTIFIED.",
     "For Version 5, fall back through FIREWORKS_BASE_URL when local execution is not certified, fails validation, or times out.",
     "Call the configured provider through the approved base URL.",
     "Validate output deterministically.",
