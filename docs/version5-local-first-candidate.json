@@ -67,6 +67,104 @@
     "evaluator_split_policy": "category labels, difficulty hints, expected answers, rubrics, accepted answers, and evaluator metadata are evaluator-only",
     "authorization_mutation": "benchmark_results_require_review_before_registry_promotion"
   },
+  "benchmark_evidence": [
+    {
+      "result_path": "qualification/results/version4-fireworks-real.json",
+      "candidate": "version_4_fireworks_only",
+      "provider": "fireworks",
+      "model": "accounts/fireworks/models/minimax-m3",
+      "passed": 21,
+      "tasks": 40,
+      "accuracy": 0.525,
+      "judged_fireworks_tokens": 37998,
+      "authorization_registry_mutated": false,
+      "passed_scopes": [
+        "MATHEMATICAL_REASONING",
+        "SENTIMENT_CLASSIFICATION",
+        "LOGICAL_DEDUCTIVE_REASONING"
+      ],
+      "partial_scopes": [
+        "FACTUAL_KNOWLEDGE",
+        "NAMED_ENTITY_RECOGNITION"
+      ],
+      "failed_scopes": [
+        "TEXT_SUMMARISATION",
+        "CODE_DEBUGGING",
+        "CODE_GENERATION"
+      ]
+    },
+    {
+      "result_path": "qualification/results/version5-fallback-real.json",
+      "candidate": "version_5_policy_fallback",
+      "provider": "version5",
+      "actual_route": "fireworks_for_all_tasks_because_no_local_jurisdiction_is_certified",
+      "model": "accounts/fireworks/models/minimax-m3",
+      "local_candidate_model": "nemotron-3-nano:4b",
+      "passed": 22,
+      "tasks": 40,
+      "accuracy": 0.55,
+      "judged_fireworks_tokens": 91612,
+      "authorization_registry_mutated": false,
+      "passed_scopes": [
+        "FACTUAL_KNOWLEDGE",
+        "MATHEMATICAL_REASONING",
+        "SENTIMENT_CLASSIFICATION",
+        "LOGICAL_DEDUCTIVE_REASONING"
+      ],
+      "partial_scopes": [
+        "NAMED_ENTITY_RECOGNITION"
+      ],
+      "failed_scopes": [
+        "TEXT_SUMMARISATION",
+        "CODE_DEBUGGING",
+        "CODE_GENERATION"
+      ]
+    },
+    {
+      "result_path": "qualification/results/version5-ollama-host-real.json",
+      "candidate": "version_5_local_model_host_baseline",
+      "provider": "ollama-demo",
+      "model": "nemotron-3-nano:4b",
+      "final_candidate_evidence": false,
+      "reason_not_final_candidate": "ran through ollama-demo host path, not version5-ollama final provider identity",
+      "passed": 16,
+      "tasks": 40,
+      "accuracy": 0.4,
+      "judged_fireworks_tokens": 0,
+      "authorization_registry_mutated": false,
+      "passed_scopes": [
+        "MATHEMATICAL_REASONING",
+        "LOGICAL_DEDUCTIVE_REASONING"
+      ],
+      "partial_scopes": [
+        "FACTUAL_KNOWLEDGE",
+        "NAMED_ENTITY_RECOGNITION"
+      ],
+      "failed_scopes": [
+        "SENTIMENT_CLASSIFICATION",
+        "TEXT_SUMMARISATION",
+        "CODE_DEBUGGING",
+        "CODE_GENERATION"
+      ]
+    }
+  ],
+  "latest_version5_local_runtime_test": {
+    "provider": "version5-ollama",
+    "test_type": "constrained_container_smoke",
+    "image": "amd-hackathon-version5:ollama",
+    "compressed_image_bytes": 2866482542,
+    "memory": "4g",
+    "cpus": 2,
+    "oom_killed": false,
+    "exit_code": 0,
+    "output": [
+      {
+        "task_id": "smoke_math",
+        "answer": "4"
+      }
+    ],
+    "full_40_task_final_candidate_benchmark": "not_yet_run_through_version5_ollama"
+  },
   "official_runtime_contract": {
     "input_path": "/input/tasks.json",
     "input_fields": [
