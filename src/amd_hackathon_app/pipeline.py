@@ -134,6 +134,7 @@ class Task:
     task_family: str | None = None
     expected_format: str = "text"
     evidence_refs: list[str] | None = None
+    source: str = "internal"
 
 
 @dataclass(frozen=True)
@@ -200,12 +201,38 @@ def task_from_mapping(row: dict[str, Any], fallback_id: str) -> Task:
     )
 
 
+def submission_task_from_mapping(row: dict[str, Any], fallback_id: str) -> Task:
+    if not isinstance(row, dict):
+        raise ValueError(f"task {fallback_id} must be an object")
+    task_id = row.get("task_id")
+    prompt = row.get("prompt")
+    if not isinstance(task_id, str) or not task_id.strip():
+        raise ValueError(f"task {fallback_id} is missing required string task_id")
+    if not isinstance(prompt, str) or not prompt.strip():
+        raise ValueError(f"task {task_id} is missing required string prompt")
+    return Task(
+        id=task_id,
+        prompt=prompt,
+        task_family=None,
+        expected_format="text",
+        evidence_refs=[],
+        source="submission_input",
+    )
+
+
 def load_tasks(path: Path) -> list[Task]:
     payload = load_json(path)
     rows = payload.get("tasks", payload) if isinstance(payload, dict) else payload
     if not isinstance(rows, list):
         raise ValueError("tasks input must be a list or an object with a tasks list")
     return [task_from_mapping(row, f"task-{index + 1}") for index, row in enumerate(rows)]
+
+
+def load_submission_tasks(path: Path) -> list[Task]:
+    payload = load_json(path)
+    if not isinstance(payload, list):
+        raise ValueError("official tasks input must be a top-level list")
+    return [submission_task_from_mapping(row, f"task-{index + 1}") for index, row in enumerate(payload)]
 
 
 def scenario_to_task(scenario: Scenario) -> Task:
@@ -692,10 +719,12 @@ def run_tasks_file(
     batch_run_dir = Path(os.environ.get("APP_RUN_DIR", str(output_path.parent / "runs")))
     records = [
         run_task(task, provider_override=provider_override, allowed_models=allowed_models, run_dir=batch_run_dir)
-        for task in load_tasks(input_path)
+        for task in load_submission_tasks(input_path)
     ]
-    payload = {
-        "schema": "amd_hackathon.results.v3",
+    official_results = [{"task_id": record["task_id"], "answer": record["output"]} for record in records]
+    write_json(output_path, official_results)
+    return {
+        "schema": "amd_hackathon.submission_run.v1",
         "mode": (
             "version_3_demo"
             if provider_override == "ollama-demo"
@@ -703,10 +732,11 @@ def run_tasks_file(
             if provider_override == "version5"
             else "fireworks_final_compatible"
         ),
-        "results": records,
+        "result_path": str(output_path),
+        "task_count": len(records),
+        "results": official_results,
+        "audit_records": records,
     }
-    write_json(output_path, payload)
-    return payload
 
 
 def preflight() -> dict[str, Any]:

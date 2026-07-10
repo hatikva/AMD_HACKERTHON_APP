@@ -24,6 +24,13 @@
     "status": "canonical_offline_primary_category_suite",
     "policy": "The suite is used before live task execution to produce reviewable qualification evidence. Live /input/tasks.json processing never executes this benchmark and never mutates model authorization."
   },
+  "official_runtime_contract": {
+    "input": "Top-level /input/tasks.json array with records containing only task_id and prompt.",
+    "output": "Top-level /output/results.json array with records containing only task_id and answer.",
+    "classification": "Task category is classified internally from the prompt.",
+    "grading": "Development-only and optional. Normal runtime execution does not require benchmark data.",
+    "final_image_exclusions": "Benchmark tasks, expected answers, evaluator metadata, and grading fixtures are excluded from the final submission image."
+  },
   "final_constraints": [
     "no hardcoded final model IDs",
     "no bundled model weights",

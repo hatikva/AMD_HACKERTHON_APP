@@ -25,4 +25,4 @@ RUN mkdir -p /input /output /app/bin /app/models
 # Version 5 requires a pinned llama.cpp binary and a selected GGUF model before
 # local jurisdictions can be certified. This Dockerfile keeps those paths stable
 # without pretending that a model artifact has been selected.
-CMD ["amd-router", "run-tasks", "--input", "/input/tasks.json", "--output", "/output/results.json", "--provider", "version5"]
+CMD ["amd-router", "run-submission", "--input", "/input/tasks.json", "--output", "/output/results.json", "--provider", "version5"]

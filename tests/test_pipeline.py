@@ -14,6 +14,7 @@ from amd_hackathon_app.benchmarks import (
     CANONICAL_BENCHMARK_PATH,
     CANONICAL_CATEGORIES,
     evaluate_output,
+    index_submission_results,
     load_category_benchmark,
     model_visible_task,
     run_category_benchmark,
@@ -119,14 +120,17 @@ class PipelineTests(unittest.TestCase):
             output_path = root / "output" / "results.json"
             input_path.parent.mkdir()
             input_path.write_text(
-                json.dumps({"tasks": [{"id": "one", "prompt": "Classify sentiment: fine", "expected_format": "json"}]}),
+                json.dumps([{"task_id": "one", "prompt": "Classify sentiment: fine"}]),
                 encoding="utf-8",
             )
             payload = run_tasks_file(input_path=input_path, output_path=output_path, provider_override="mock")
             self.assertTrue(output_path.exists())
+            public_results = json.loads(output_path.read_text(encoding="utf-8"))
 
-        self.assertEqual(payload["schema"], "amd_hackathon.results.v3")
-        self.assertEqual(payload["results"][0]["selected_provider"], "mock")
+        self.assertEqual(payload["schema"], "amd_hackathon.submission_run.v1")
+        self.assertEqual(public_results, [{"answer": '{"label":"neutral","confidence":0.74}', "task_id": "one"}])
+        self.assertEqual(set(public_results[0]), {"task_id", "answer"})
+        self.assertEqual(payload["audit_records"][0]["selected_provider"], "mock")
 
     def test_version5_certification_is_conservative_until_model_artifact_exists(self) -> None:
         certification = local_certification_for("SENTIMENT_CLASSIFICATION")
@@ -266,7 +270,11 @@ class PipelineTests(unittest.TestCase):
         visible = model_visible_task(task)
 
         self.assertIn("prompt", visible)
-        self.assertIn("task_category", visible)
+        self.assertIn("task_id", visible)
+        self.assertNotIn("task_category", visible)
+        self.assertNotIn("task_family", visible)
+        self.assertNotIn("difficulty_hint", visible)
+        self.assertNotIn("expected_format", visible)
         self.assertNotIn("evaluation", visible)
         self.assertNotIn("accepted_answers", json.dumps(visible).lower())
         self.assertNotIn("reference_solution", json.dumps(visible).lower())
@@ -277,10 +285,13 @@ class PipelineTests(unittest.TestCase):
             output_path = Path(tmp) / "qualification" / "mock-results.json"
             result = run_category_benchmark(provider="mock", output_path=output_path)
             self.assertTrue(output_path.exists())
+            self.assertTrue(Path(result["model_visible_tasks_path"]).exists())
+            self.assertTrue(Path(result["official_results_path"]).exists())
 
         self.assertEqual(result["benchmark_suite"], BENCHMARK_SUITE_ID)
         self.assertEqual(result["benchmark_hash"], load_category_benchmark().content_hash)
         self.assertEqual(result["candidate"], {"provider": "mock", "model": "mock-model"})
+        self.assertTrue(result["production_path_used"])
         self.assertEqual(result["qualification_status"], "PENDING_POLICY_REVIEW")
         self.assertFalse(result["authorization_registry_mutated"])
         self.assertEqual(pipeline_module.VERSION_5_LOCAL_CERTIFICATION, before)
@@ -323,14 +334,45 @@ class PipelineTests(unittest.TestCase):
             output_path = root / "output" / "results.json"
             input_path.parent.mkdir()
             input_path.write_text(
-                json.dumps({"tasks": [{"id": "one", "prompt": "Classify sentiment: fine", "expected_format": "json"}]}),
+                json.dumps([{"task_id": "one", "prompt": "Classify sentiment: fine"}]),
                 encoding="utf-8",
             )
             payload = run_tasks_file(input_path=input_path, output_path=output_path, provider_override="mock")
+            public_results = json.loads(output_path.read_text(encoding="utf-8"))
 
-        self.assertEqual(payload["schema"], "amd_hackathon.results.v3")
+        self.assertEqual(payload["schema"], "amd_hackathon.submission_run.v1")
         self.assertNotIn("benchmark_suite", payload)
+        self.assertEqual(set(public_results[0]), {"task_id", "answer"})
         self.assertEqual(pipeline_module.VERSION_5_LOCAL_CERTIFICATION, before)
+
+    def test_submission_input_rejects_rich_benchmark_object_shape(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input" / "tasks.json"
+            output_path = root / "output" / "results.json"
+            input_path.parent.mkdir()
+            input_path.write_text(
+                json.dumps({"tasks": [{"id": "one", "prompt": "Classify sentiment: fine"}]}),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "top-level list"):
+                run_tasks_file(input_path=input_path, output_path=output_path, provider_override="mock")
+
+    def test_grading_join_fails_duplicate_missing_and_unknown_results(self) -> None:
+        expected = {"one", "two"}
+        with self.assertRaisesRegex(ValueError, "duplicate result task_id"):
+            index_submission_results(
+                [{"task_id": "one", "answer": "a"}, {"task_id": "one", "answer": "b"}],
+                expected,
+            )
+        with self.assertRaisesRegex(ValueError, "missing results"):
+            index_submission_results([{"task_id": "one", "answer": "a"}], expected)
+        with self.assertRaisesRegex(ValueError, "unknown result task_id"):
+            index_submission_results(
+                [{"task_id": "one", "answer": "a"}, {"task_id": "other", "answer": "b"}],
+                expected,
+            )
 
     def test_canonical_benchmark_path_uses_version2_not_version1(self) -> None:
         self.assertEqual(CANONICAL_BENCHMARK_PATH.name, "version5_local_category_benchmarks_v2.json")

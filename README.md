@@ -123,25 +123,34 @@ export LOCAL_GENERATION_CONCURRENCY=1
 
 Final-compatible batch execution reads `/input/tasks.json` and writes `/output/results.json`.
 
+The Version 5 production runtime accepts the official minimal task array containing only `task_id` and `prompt`, classifies each task internally, and writes the official minimal results array containing only `task_id` and `answer`.
+
 Example input:
 
 ```json
-{
-  "tasks": [
-    {
-      "id": "task-1",
-      "prompt": "Summarize the supplied paragraph in one sentence.",
-      "task_family": "summarization",
-      "expected_format": "text"
-    }
-  ]
-}
+[
+  {
+    "task_id": "task-1",
+    "prompt": "Summarize the supplied paragraph in one sentence."
+  }
+]
+```
+
+Example output:
+
+```json
+[
+  {
+    "task_id": "task-1",
+    "answer": "..."
+  }
+]
 ```
 
 Run with Fireworks:
 
 ```bash
-python3 -m amd_hackathon_app.cli run-tasks \
+python3 -m amd_hackathon_app.cli run-submission \
   --input /input/tasks.json \
   --output /output/results.json
 ```
@@ -181,13 +190,19 @@ podman run --rm --network host \
 Run the Version 5 candidate path:
 
 ```bash
-python3 -m amd_hackathon_app.cli run-tasks \
+python3 -m amd_hackathon_app.cli run-submission \
   --input /input/tasks.json \
   --output /output/results.json \
   --provider version5
 ```
 
 This currently requires Fireworks configuration because the local GGUF artifact is not finalized and local jurisdictions are not certified.
+
+The repository-owned Version 5 benchmark format is intentionally richer. During offline qualification it is split into a model-visible official-format task file and evaluator-only grading data. The normal runtime receives only the official-format task file.
+
+Grading is optional and development-only. When no benchmark file is supplied, the application performs inference and writes results without attempting to grade them.
+
+The final submission image excludes benchmark tasks, expected answers, evaluator metadata, and grading fixtures.
 
 ## Development
 

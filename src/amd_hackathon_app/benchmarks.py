@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .pipeline import ROOT, Task, parse_allowed_models, run_task, write_json
+from .pipeline import ROOT, parse_allowed_models, run_tasks_file, write_json
 
 
 BENCHMARK_SUITE_ID = "version5-category-benchmark-v2"
@@ -27,15 +27,6 @@ CANONICAL_CATEGORIES = [
     "LOGICAL_DEDUCTIVE_REASONING",
     "CODE_GENERATION",
 ]
-MODEL_VISIBLE_FIELDS = {
-    "id",
-    "task_category",
-    "task_family",
-    "prompt",
-    "expected_format",
-    "difficulty_hint",
-    "evidence_refs",
-}
 CODE_EVALUATORS = {
     "python_unit_tests",
     "python_unit_tests_with_exceptions",
@@ -108,6 +99,10 @@ def validate_category_benchmark(payload: dict[str, Any]) -> None:
             errors.append(f"task {task_id} must include evaluation metadata")
         if "evaluation" in model_visible_task(task):
             errors.append(f"task {task_id} exposes evaluation in model-visible projection")
+        forbidden_visible = {"task_category", "task_family", "difficulty_hint", "expected_format", "evidence_refs"}
+        leaked = sorted(forbidden_visible.intersection(model_visible_task(task)))
+        if leaked:
+            errors.append(f"task {task_id} exposes benchmark metadata in model-visible projection: {leaked}")
 
     if len(task_ids) != len(set(task_ids)):
         errors.append("task IDs must be unique")
@@ -125,16 +120,47 @@ def validate_category_benchmark(payload: dict[str, Any]) -> None:
 
 
 def model_visible_task(task: dict[str, Any]) -> dict[str, Any]:
-    return {key: task.get(key) for key in MODEL_VISIBLE_FIELDS if key in task}
+    return {
+        "task_id": str(task["id"]),
+        "prompt": str(task["prompt"]),
+    }
 
 
 def evaluator_record(task: dict[str, Any]) -> dict[str, Any]:
     return {
-        "id": task["id"],
+        "task_id": task["id"],
         "task_category": task["task_category"],
+        "task_family": task.get("task_family"),
         "difficulty_hint": task["difficulty_hint"],
+        "expected_format": task.get("expected_format"),
         "evaluation": task["evaluation"],
     }
+
+
+def index_submission_results(results: list[dict[str, Any]], expected_ids: set[str]) -> dict[str, dict[str, Any]]:
+    indexed: dict[str, dict[str, Any]] = {}
+    errors: list[str] = []
+    for index, row in enumerate(results):
+        if not isinstance(row, dict):
+            errors.append(f"result at index {index} must be an object")
+            continue
+        task_id = row.get("task_id")
+        if not isinstance(task_id, str) or not task_id:
+            errors.append(f"result at index {index} is missing task_id")
+            continue
+        if task_id in indexed:
+            errors.append(f"duplicate result task_id: {task_id}")
+        if task_id not in expected_ids:
+            errors.append(f"unknown result task_id: {task_id}")
+        if "answer" not in row:
+            errors.append(f"result {task_id} is missing answer")
+        indexed[task_id] = row
+    missing = sorted(expected_ids.difference(indexed))
+    if missing:
+        errors.append(f"missing results for task_id: {', '.join(missing)}")
+    if errors:
+        raise ValueError("; ".join(errors))
+    return indexed
 
 
 def normalize_text(value: Any) -> str:
@@ -276,23 +302,42 @@ def run_category_benchmark(
     candidate = candidate_metadata(provider, model)
     run_id = f"{BENCHMARK_SUITE_ID}-{provider}-{int(time.time())}"
     destination = output_path or ROOT / "qualification/results" / f"{run_id}.json"
-    task_run_dir = destination.parent / f"{run_id}-tasks"
+    run_dir = destination.parent / f"{run_id}-run"
+    input_dir = run_dir / "input"
+    output_dir = run_dir / "output"
+    task_run_dir = run_dir / "audit"
+    input_path = input_dir / "tasks.json"
+    output_results_path = output_dir / "results.json"
     records: list[dict[str, Any]] = []
     provider_override = benchmark_provider_override(provider)
+    visible_tasks = [model_visible_task(task) for task in suite.tasks]
+    evaluator_by_id = {task["id"]: evaluator_record(task) for task in suite.tasks}
+    write_json(input_path, visible_tasks)
+
+    previous_run_dir = os.environ.get("APP_RUN_DIR")
+    os.environ["APP_RUN_DIR"] = str(task_run_dir)
+    try:
+        run_payload = run_tasks_file(input_path=input_path, output_path=output_results_path, provider_override=provider_override)
+    finally:
+        if previous_run_dir is None:
+            os.environ.pop("APP_RUN_DIR", None)
+        else:
+            os.environ["APP_RUN_DIR"] = previous_run_dir
+
+    submission_results = index_submission_results(
+        run_payload["results"],
+        expected_ids=set(evaluator_by_id),
+    )
+    audit_by_id = {record["task_id"]: record for record in run_payload["audit_records"]}
 
     for benchmark_task in suite.tasks:
+        task_id = benchmark_task["id"]
         visible = model_visible_task(benchmark_task)
-        task = Task(
-            id=str(visible["id"]),
-            prompt=str(visible["prompt"]),
-            task_family=str(visible.get("task_family") or ""),
-            expected_format=str(visible.get("expected_format") or "text"),
-            evidence_refs=[str(item) for item in visible.get("evidence_refs") or []],
-        )
-        route_record = run_task(task, provider_override=provider_override, run_dir=task_run_dir)
-        evaluation = evaluator_record(benchmark_task)
+        route_record = audit_by_id[task_id]
+        evaluation = evaluator_by_id[task_id]
+        answer = str(submission_results[task_id]["answer"])
         try:
-            evaluation_result = evaluate_output(route_record["output"], evaluation["evaluation"])
+            evaluation_result = evaluate_output(answer, evaluation["evaluation"])
         except ValueError as exc:
             evaluation_result = {
                 "implemented": False,
@@ -303,10 +348,10 @@ def run_category_benchmark(
             }
         records.append(
             {
-                "task_id": benchmark_task["id"],
-                "task_category": benchmark_task["task_category"],
-                "task_family": benchmark_task.get("task_family"),
-                "difficulty_hint": benchmark_task["difficulty_hint"],
+                "task_id": task_id,
+                "task_category": evaluation["task_category"],
+                "task_family": evaluation.get("task_family"),
+                "difficulty_hint": evaluation["difficulty_hint"],
                 "model_visible_task": visible,
                 "evaluator": {
                     "type": evaluation["evaluation"].get("type"),
@@ -327,6 +372,9 @@ def run_category_benchmark(
         "benchmark_path": str(suite.path),
         "run_id": run_id,
         "candidate": candidate,
+        "model_visible_tasks_path": str(input_path),
+        "official_results_path": str(output_results_path),
+        "production_path_used": True,
         "qualification_status": "PENDING_POLICY_REVIEW",
         "authorization_registry_mutated": False,
         "policy_thresholds": "blocked_until_final_thresholds_are_defined",

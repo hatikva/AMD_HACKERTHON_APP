@@ -2,8 +2,9 @@
   "schema": "amd_hackathon.public_algorithm.v1",
   "name": "Work Jurisdiction Routing",
   "steps": [
-    "Load tasks from /input/tasks.json.",
-    "Normalize task family with deterministic rules.",
+    "Load official tasks from /input/tasks.json as records containing only task_id and prompt.",
+    "Adapt official tasks into internal task records without benchmark answers or evaluator data.",
+    "Classify task category internally with deterministic rules and fallback policy.",
     "Assign a Work Jurisdiction for the task scope.",
     "Select an answer schema and compact prompt template.",
     "Pack available evidence within the token budget.",
@@ -14,13 +15,15 @@
     "Call the configured provider through the approved base URL.",
     "Validate output deterministically.",
     "Apply structural repair when safe.",
-    "Write records to /output/results.json."
+    "Write only task_id and answer records to /output/results.json.",
+    "Write provider, model, token, validation, repair, fallback, and latency telemetry to separate audit artifacts."
   ],
   "qualification_steps": [
     "Load benchmarks/categories/version5_local_category_benchmarks_v2.json with the dedicated benchmark loader.",
     "Validate suite schema, category coverage, unique IDs, unique prompts, progressive difficulty, and evaluator metadata.",
-    "Project each benchmark record into a model-visible task without evaluation answers or rubrics.",
-    "Run an explicit provider/model candidate through the offline benchmark runner.",
+    "Project each benchmark record into an official-format model-visible task containing only task_id and prompt.",
+    "Keep category, difficulty, expected answers, accepted answers, rubrics, and evaluator metadata in evaluator-only data.",
+    "Run an explicit provider/model candidate through the production execution path.",
     "Evaluate outputs with implemented deterministic evaluators or mark unsafe code evaluators blocked.",
     "Write qualification results outside /output/results.json.",
     "Review qualification evidence before updating any runtime authorization registry."

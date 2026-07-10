@@ -16,7 +16,10 @@
   },
   "io_contract": {
     "input": "/input/tasks.json",
-    "output": "/output/results.json"
+    "input_shape": "top-level array of task_id and prompt records",
+    "output": "/output/results.json",
+    "output_shape": "top-level array of task_id and answer records",
+    "audit_output": "separate run artifacts, not the official results file"
   },
   "historical_surfaces": [
     "containers/lemonade",

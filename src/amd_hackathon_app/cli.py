@@ -47,6 +47,16 @@ def cmd_run_tasks(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_submission(args: argparse.Namespace) -> int:
+    record = run_tasks_file(
+        input_path=Path(args.input),
+        output_path=Path(args.output),
+        provider_override=args.provider,
+    )
+    print(record_to_json({"status": "completed", "result_path": record["result_path"], "task_count": record["task_count"]}))
+    return 0
+
+
 def cmd_validate_benchmark(args: argparse.Namespace) -> int:
     suite = load_category_benchmark(Path(args.suite))
     print(
@@ -104,6 +114,12 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_parser.add_argument("--output", default="/output/results.json")
     tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
     tasks_parser.set_defaults(func=cmd_run_tasks)
+
+    submission_parser = subcommands.add_parser("run-submission")
+    submission_parser.add_argument("--input", default="/input/tasks.json")
+    submission_parser.add_argument("--output", default="/output/results.json")
+    submission_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
+    submission_parser.set_defaults(func=cmd_run_submission)
 
     validate_benchmark_parser = subcommands.add_parser("validate-category-benchmark")
     validate_benchmark_parser.add_argument("--suite", default=str(CANONICAL_BENCHMARK_PATH))

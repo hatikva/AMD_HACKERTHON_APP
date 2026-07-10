@@ -18,19 +18,15 @@ python3 -m amd_hackathon_app.cli run-scenario \
 
 mkdir -p "$tmp_root/input" "$tmp_root/output"
 cat >"$tmp_root/input/tasks.json" <<'JSON'
-{
-  "tasks": [
-    {
-      "id": "validation-task",
-      "prompt": "Classify sentiment: the routing demo is ready.",
-      "task_family": "sentiment",
-      "expected_format": "json"
-    }
-  ]
-}
+[
+  {
+    "task_id": "validation-task",
+    "prompt": "Classify sentiment: the routing demo is ready."
+  }
+]
 JSON
 
-python3 -m amd_hackathon_app.cli run-tasks \
+python3 -m amd_hackathon_app.cli run-submission \
   --input "$tmp_root/input/tasks.json" \
   --output "$tmp_root/output/results.json" \
   --provider mock >"$tmp_root/batch.json"
@@ -90,9 +86,9 @@ import sys
 from pathlib import Path
 
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-assert payload["schema"] == "amd_hackathon.results.v3"
-assert payload["results"][0]["work_jurisdiction"] in {"ANSWER_SCHEMA_SELECTION", "DEMO_LOCAL_MODEL_EXECUTION"}
-assert payload["results"][0]["validation_result"]["passed"] is True
+assert isinstance(payload, list)
+assert payload == [{"answer": '{"label":"neutral","confidence":0.74}', "task_id": "validation-task"}]
+assert set(payload[0]) == {"task_id", "answer"}
 PY
 
 python3 - "$tmp_root/category-benchmark.json" "$tmp_root/mock-category-qualification.json" <<'PY'
@@ -108,6 +104,8 @@ assert qualification["benchmark_suite"] == "version5-category-benchmark-v2"
 assert qualification["authorization_registry_mutated"] is False
 assert len(qualification["results"]) == 40
 assert all("evaluation" not in row["model_visible_task"] for row in qualification["results"])
+assert all(set(row["model_visible_task"]) == {"task_id", "prompt"} for row in qualification["results"])
+assert qualification["production_path_used"] is True
 PY
 
 echo "app validation passed"

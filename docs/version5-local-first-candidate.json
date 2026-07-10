@@ -41,7 +41,23 @@
     ],
     "version_1_status": "retired_not_active",
     "live_task_processing": "not_executed_during_input_tasks_json_processing",
+    "projection_policy": "rich benchmark tasks are projected into official runtime tasks containing only task_id and prompt",
+    "evaluator_split_policy": "category labels, difficulty hints, expected answers, rubrics, accepted answers, and evaluator metadata are evaluator-only",
     "authorization_mutation": "benchmark_results_require_review_before_registry_promotion"
+  },
+  "official_runtime_contract": {
+    "input_path": "/input/tasks.json",
+    "input_fields": [
+      "task_id",
+      "prompt"
+    ],
+    "output_path": "/output/results.json",
+    "output_fields": [
+      "task_id",
+      "answer"
+    ],
+    "normal_runtime_grading": false,
+    "telemetry_location": "separate audit artifacts outside /output/results.json"
   },
   "evaluator_status": {
     "implemented": [

@@ -16,4 +16,4 @@ RUN python -m pip install --no-cache-dir .
 
 RUN mkdir -p /input /output
 
-CMD ["amd-router", "run-tasks", "--input", "/input/tasks.json", "--output", "/output/results.json"]
+CMD ["amd-router", "run-submission", "--input", "/input/tasks.json", "--output", "/output/results.json"]
