@@ -1,0 +1,1282 @@
+{
+  "schema": "amd_hackathon.local_category_benchmarks.v2",
+  "version": "2.0.0",
+  "purpose": "A second, unique repository-owned offline benchmark suite for qualifying candidate models across the eight primary task categories. Each category contains one task at each difficulty level from 1 through 5.",
+  "execution_policy": {
+    "offline_only": true,
+    "qualification_happens_before_live_task_processing": true,
+    "must_not_mutate_authorization_registry_at_runtime": true,
+    "model_input_fields": [
+      "id",
+      "task_category",
+      "task_family",
+      "prompt",
+      "expected_format",
+      "difficulty_hint",
+      "evidence_refs"
+    ],
+    "withhold_from_model": [
+      "evaluation"
+    ]
+  },
+  "difficulty_policy": {
+    "scale": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "requirement": "Every category contains exactly one task at every difficulty level.",
+    "interpretation": {
+      "1": "Direct and highly constrained",
+      "2": "Simple transformation or one additional condition",
+      "3": "Multi-step or mixed-signal",
+      "4": "Several constraints, distractors, or structural requirements",
+      "5": "Compound reasoning, synthesis, or algorithmic complexity"
+    }
+  },
+  "summary": {
+    "category_count": 8,
+    "tasks_per_category": 5,
+    "total_tasks": 40
+  },
+  "categories": [
+    {
+      "id": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "task_count": 5,
+      "difficulty_hints": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "v2-factual-knowledge-01",
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "prompt": "What is the largest ocean on Earth? Return only its name.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "Pacific Ocean",
+        "accepted_answers": [
+          "Pacific Ocean",
+          "Pacific"
+        ]
+      }
+    },
+    {
+      "id": "v2-factual-knowledge-02",
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "prompt": "What process do green plants use to convert light energy into chemical energy? Return only the process name.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "Photosynthesis",
+        "accepted_answers": [
+          "Photosynthesis"
+        ]
+      }
+    },
+    {
+      "id": "v2-factual-knowledge-03",
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "prompt": "Read the passage and answer the question.\n\nPassage: The Ardent observatory uses a 4.2-metre primary mirror. Its infrared camera is cooled to reduce thermal noise, while its spectrograph separates light into wavelengths for chemical analysis.\n\nQuestion: Which instrument is used for chemical analysis? Return only the instrument name.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "Spectrograph",
+        "accepted_answers": [
+          "Spectrograph",
+          "The spectrograph"
+        ]
+      }
+    },
+    {
+      "id": "v2-factual-knowledge-04",
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "prompt": "Read the project note and answer in valid JSON with keys \"service\", \"region\", and \"retention_days\".\n\nProject note: The Atlas team runs the billing archive in the eu-west region. The archive keeps encrypted records for 45 days. The analytics cache, which runs in us-central, retains data for only 7 days.\n\nQuestion: Identify the service, region, and retention period of the billing archive.",
+      "expected_format": "json",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "service": "billing archive",
+          "region": "eu-west",
+          "retention_days": 45
+        }
+      }
+    },
+    {
+      "id": "v2-factual-knowledge-05",
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "prompt": "Use only the records below. Return valid JSON with keys \"selected_probe\", \"launch_year\", and \"destination\".\n\nRecord A: Probe Meridian launched in 2031 and is travelling to Europa. It carries a radar sounder but no atmospheric sampler.\nRecord B: Probe Solace launched in 2029 and is travelling to Titan. It carries both an atmospheric sampler and a surface imager.\nRecord C: Probe Vantage launched in 2030 and is travelling to Enceladus. It carries a surface imager but no atmospheric sampler.\n\nQuestion: Which probe both carries an atmospheric sampler and launched before 2030?",
+      "expected_format": "json",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "selected_probe": "Solace",
+          "launch_year": 2029,
+          "destination": "Titan"
+        }
+      }
+    },
+    {
+      "id": "v2-mathematical-reasoning-01",
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "prompt": "Calculate 9 × 7. Return only the number.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "numeric_exact_match",
+        "expected": 63
+      }
+    },
+    {
+      "id": "v2-mathematical-reasoning-02",
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "prompt": "A £240 subscription is increased by 15%, then the increased price is discounted by 10%. What is the final price in pounds? Return only the number.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "numeric_exact_match",
+        "expected": 248.4,
+        "tolerance": 1e-06
+      }
+    },
+    {
+      "id": "v2-mathematical-reasoning-03",
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "prompt": "Three identical machines produce 180 parts in 4 hours. At the same constant rate, how many parts will five machines produce in 6 hours? Return only the number.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "numeric_exact_match",
+        "expected": 450
+      }
+    },
+    {
+      "id": "v2-mathematical-reasoning-04",
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "prompt": "A bag contains 5 red balls and 3 blue balls. Two balls are drawn without replacement. What is the probability that both are red? Return a simplified fraction.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "5/14",
+        "accepted_answers": [
+          "5/14"
+        ]
+      }
+    },
+    {
+      "id": "v2-mathematical-reasoning-05",
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "prompt": "A tank contains 30 litres of a solution that is 20% solute. How many litres of pure solute must be added to make the resulting mixture 35% solute? Return the exact answer as a simplified fraction.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "90/13",
+        "accepted_answers": [
+          "90/13",
+          "90/13 litres",
+          "90/13 liters"
+        ]
+      }
+    },
+    {
+      "id": "v2-sentiment-classification-01",
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "prompt": "Classify the sentiment as positive, negative, or neutral.\nText: The new dashboard is clear, fast, and genuinely useful.\nReturn only the label.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "label_exact_match",
+        "expected": "positive",
+        "labels": [
+          "positive",
+          "negative",
+          "neutral"
+        ]
+      }
+    },
+    {
+      "id": "v2-sentiment-classification-02",
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "prompt": "Classify the sentiment as positive, negative, or neutral.\nText: The package contains one adapter, two cables, and a printed guide.\nReturn only the label.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "label_exact_match",
+        "expected": "neutral",
+        "labels": [
+          "positive",
+          "negative",
+          "neutral"
+        ]
+      }
+    },
+    {
+      "id": "v2-sentiment-classification-03",
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "prompt": "Classify the overall sentiment as positive, negative, or neutral.\nText: The interface is plain, but it loads instantly and has never lost my work.\nReturn only the label.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "label_exact_match",
+        "expected": "positive",
+        "labels": [
+          "positive",
+          "negative",
+          "neutral"
+        ]
+      }
+    },
+    {
+      "id": "v2-sentiment-classification-04",
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "prompt": "Classify the overall sentiment as positive, negative, or neutral.\nText: Impressive—another update that replaces one working feature with three new crashes.\nReturn only the label.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "label_exact_match",
+        "expected": "negative",
+        "labels": [
+          "positive",
+          "negative",
+          "neutral"
+        ],
+        "notes": "The opening praise is sarcastic; the overall judgement is negative."
+      }
+    },
+    {
+      "id": "v2-sentiment-classification-05",
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "prompt": "Classify the overall sentiment as positive, negative, or neutral.\nText: The migration reduced hosting costs and improved uptime, but it also erased a week of audit logs; for a compliance system, that failure outweighs every gain.\nReturn only the label.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "label_exact_match",
+        "expected": "negative",
+        "labels": [
+          "positive",
+          "negative",
+          "neutral"
+        ],
+        "notes": "The author explicitly states that the severe failure outweighs the benefits."
+      }
+    },
+    {
+      "id": "v2-text-summarisation-01",
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "prompt": "Summarise the passage in no more than 12 words.\n\nPassage: The library will close at 6 p.m. on Friday for electrical maintenance and reopen at 9 a.m. on Saturday.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "summary_rubric",
+        "max_words": 12,
+        "required_facts": [
+          "Friday closure at 6 p.m.",
+          "electrical maintenance",
+          "Saturday reopening at 9 a.m."
+        ],
+        "reference_summary": "Library closes Friday at 6 for maintenance and reopens Saturday at 9."
+      }
+    },
+    {
+      "id": "v2-text-summarisation-02",
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "prompt": "Summarise the passage in one sentence of no more than 20 words.\n\nPassage: The school added breakfast service before classes. Attendance improved, and teachers reported that pupils were more attentive during the first lesson.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "summary_rubric",
+        "max_words": 20,
+        "required_facts": [
+          "breakfast service was introduced",
+          "attendance improved",
+          "early-lesson attentiveness improved"
+        ],
+        "reference_summary": "Introducing school breakfast improved attendance and pupils' attentiveness during the first lesson."
+      }
+    },
+    {
+      "id": "v2-text-summarisation-03",
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "prompt": "Summarise the passage in no more than 28 words, preserving the main trade-off.\n\nPassage: The bank shortened its online loan application from twelve pages to four. Completion rates increased sharply, but fraud-review staff received fewer supporting documents and had to request additional evidence more often.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "summary_rubric",
+        "max_words": 28,
+        "required_facts": [
+          "loan application was shortened from twelve pages to four",
+          "completion increased",
+          "fraud reviewers received less evidence",
+          "additional evidence requests increased"
+        ],
+        "reference_summary": "Shortening loan applications from twelve pages to four increased completion, but left fraud reviewers requesting missing evidence more often."
+      }
+    },
+    {
+      "id": "v2-text-summarisation-04",
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "prompt": "Summarise the passage in no more than 35 words. Preserve the causal sequence and the different effects on customers and staff.\n\nPassage: A payment outage prevented card transactions for 47 minutes. Customers abandoned some purchases, while support calls tripled. Engineers restored service by disabling a faulty rules update, then began reviewing why automated rollback had not started.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "summary_rubric",
+        "max_words": 35,
+        "required_facts": [
+          "card payments failed for 47 minutes",
+          "customers abandoned purchases",
+          "support calls tripled",
+          "engineers disabled a faulty rules update",
+          "automated rollback failed to start"
+        ],
+        "reference_summary": "A faulty rules update caused a 47-minute card outage, abandoned purchases and tripled support calls; engineers disabled it and investigated the failed automatic rollback."
+      }
+    },
+    {
+      "id": "v2-text-summarisation-05",
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "prompt": "Summarise the passage in no more than 45 words. Retain the deployment condition, the measured benefit, the unresolved risk, and the decision.\n\nPassage: During a six-week trial, the company routed low-risk document classification to a small local model only when a deterministic validator could verify the output schema. Fireworks token use fell by 41 percent, and median latency improved. However, accuracy dropped on multilingual documents because the local qualification set contained too few non-English examples. The team approved local routing for English documents but kept multilingual documents on the hosted model pending a broader audit.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "summary_rubric",
+        "max_words": 45,
+        "required_facts": [
+          "local routing applied only to low-risk classification with deterministic schema validation",
+          "Fireworks token use fell by 41 percent",
+          "median latency improved",
+          "multilingual accuracy dropped because qualification evidence was insufficient",
+          "local routing was approved only for English documents"
+        ],
+        "reference_summary": "Validator-gated local classification cut Fireworks tokens 41% and improved latency, but weak multilingual qualification reduced accuracy, so only English documents were approved locally while multilingual work remained hosted."
+      }
+    },
+    {
+      "id": "v2-named-entity-recognition-01",
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "prompt": "Extract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: Priya Shah visited Rome on 6 May 2024.",
+      "expected_format": "json",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "persons": [
+            "Priya Shah"
+          ],
+          "organizations": [],
+          "locations": [
+            "Rome"
+          ],
+          "dates": [
+            "6 May 2024"
+          ]
+        }
+      }
+    },
+    {
+      "id": "v2-named-entity-recognition-02",
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "prompt": "Extract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: Omar Diallo joined Horizon Robotics in Paris in January 2025.",
+      "expected_format": "json",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "persons": [
+            "Omar Diallo"
+          ],
+          "organizations": [
+            "Horizon Robotics"
+          ],
+          "locations": [
+            "Paris"
+          ],
+          "dates": [
+            "January 2025"
+          ]
+        }
+      }
+    },
+    {
+      "id": "v2-named-entity-recognition-03",
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "prompt": "Extract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: On 14 August 2026, Dr. Laila Mensah spoke for the African Climate Institute at a conference in Accra.",
+      "expected_format": "json",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "persons": [
+            "Laila Mensah"
+          ],
+          "organizations": [
+            "African Climate Institute"
+          ],
+          "locations": [
+            "Accra"
+          ],
+          "dates": [
+            "14 August 2026"
+          ]
+        }
+      }
+    },
+    {
+      "id": "v2-named-entity-recognition-04",
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "prompt": "Extract named entities from both sentences. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array. Do not duplicate repeated entities.\n\nText: Sofia Petrov met Arctic Grid executives in Helsinki on 2 February 2025. Later that month, Arctic Grid appointed Petrov to lead its Oslo office.",
+      "expected_format": "json",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "persons": [
+            "Sofia Petrov"
+          ],
+          "organizations": [
+            "Arctic Grid"
+          ],
+          "locations": [
+            "Helsinki",
+            "Oslo"
+          ],
+          "dates": [
+            "2 February 2025",
+            "Later that month"
+          ]
+        }
+      }
+    },
+    {
+      "id": "v2-named-entity-recognition-05",
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "prompt": "Extract named entities from the text. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array. Preserve first-appearance order and do not duplicate entities.\n\nText: On 11 November 2024, Director Amara Ndlovu of Cape Meridian Bank met Luis Ortega at the United Nations Office in Geneva. Ortega later represented Solis Energy during a 13 November session in Zurich.",
+      "expected_format": "json",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "persons": [
+            "Amara Ndlovu",
+            "Luis Ortega"
+          ],
+          "organizations": [
+            "Cape Meridian Bank",
+            "United Nations Office in Geneva",
+            "Solis Energy"
+          ],
+          "locations": [
+            "Geneva",
+            "Zurich"
+          ],
+          "dates": [
+            "11 November 2024",
+            "13 November"
+          ]
+        }
+      }
+    },
+    {
+      "id": "v2-code-debugging-01",
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "prompt": "Fix the Python function so it returns True for even integers and False for odd integers. Return only the corrected function.\n\ndef is_even(number):\n    return number % 2 == 1",
+      "expected_format": "code",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests",
+        "entrypoint": "is_even",
+        "tests": [
+          {
+            "args": [
+              2
+            ],
+            "expected": true
+          },
+          {
+            "args": [
+              7
+            ],
+            "expected": false
+          },
+          {
+            "args": [
+              0
+            ],
+            "expected": true
+          },
+          {
+            "args": [
+              -4
+            ],
+            "expected": true
+          }
+        ],
+        "reference_solution": "def is_even(number):\n    return number % 2 == 0"
+      }
+    },
+    {
+      "id": "v2-code-debugging-02",
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "prompt": "Fix the Python function so it counts all values without raising KeyError. Return only the corrected function.\n\ndef count_occurrences(values):\n    counts = {}\n    for value in values:\n        counts[value] += 1\n    return counts",
+      "expected_format": "code",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests",
+        "entrypoint": "count_occurrences",
+        "tests": [
+          {
+            "args": [
+              [
+                1,
+                2,
+                1
+              ]
+            ],
+            "expected": {
+              "1": 2,
+              "2": 1
+            }
+          },
+          {
+            "args": [
+              []
+            ],
+            "expected": {}
+          },
+          {
+            "args": [
+              [
+                "a",
+                "b",
+                "a"
+              ]
+            ],
+            "expected": {
+              "a": 2,
+              "b": 1
+            }
+          }
+        ],
+        "comparison_notes": "JSON-normalize dictionary keys before comparison.",
+        "reference_solution": "def count_occurrences(values):\n    counts = {}\n    for value in values:\n        counts[value] = counts.get(value, 0) + 1\n    return counts"
+      }
+    },
+    {
+      "id": "v2-code-debugging-03",
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "prompt": "Fix the Python function so factorial(0) returns 1, positive inputs work, and negative inputs raise ValueError. Return only the corrected function.\n\ndef factorial(n):\n    if n == 1:\n        return 1\n    return n * factorial(n - 1)",
+      "expected_format": "code",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests_with_exceptions",
+        "entrypoint": "factorial",
+        "tests": [
+          {
+            "args": [
+              0
+            ],
+            "expected": 1
+          },
+          {
+            "args": [
+              1
+            ],
+            "expected": 1
+          },
+          {
+            "args": [
+              5
+            ],
+            "expected": 120
+          },
+          {
+            "args": [
+              -1
+            ],
+            "raises": "ValueError"
+          }
+        ],
+        "reference_solution": "def factorial(n):\n    if n < 0:\n        raise ValueError('n must be non-negative')\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)"
+      }
+    },
+    {
+      "id": "v2-code-debugging-04",
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "prompt": "Fix the Python function so it merges two already sorted lists without losing remaining items from either list. Return only the corrected function.\n\ndef merge_sorted(left, right):\n    result = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i])\n            i += 1\n        else:\n            result.append(right[j])\n            j += 1\n    return result",
+      "expected_format": "code",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests",
+        "entrypoint": "merge_sorted",
+        "tests": [
+          {
+            "args": [
+              [
+                1,
+                3,
+                5
+              ],
+              [
+                2,
+                4,
+                6
+              ]
+            ],
+            "expected": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          },
+          {
+            "args": [
+              [
+                1,
+                2
+              ],
+              []
+            ],
+            "expected": [
+              1,
+              2
+            ]
+          },
+          {
+            "args": [
+              [],
+              [
+                3,
+                4
+              ]
+            ],
+            "expected": [
+              3,
+              4
+            ]
+          },
+          {
+            "args": [
+              [
+                1,
+                1
+              ],
+              [
+                1
+              ]
+            ],
+            "expected": [
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "reference_solution": "def merge_sorted(left, right):\n    result = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i])\n            i += 1\n        else:\n            result.append(right[j])\n            j += 1\n    result.extend(left[i:])\n    result.extend(right[j:])\n    return result"
+      }
+    },
+    {
+      "id": "v2-code-debugging-05",
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "prompt": "Fix the Python function so it returns a shortest path from start to goal in an unweighted directed graph. Return an empty list when no path exists. Return only the corrected function.\n\ndef shortest_path(graph, start, goal):\n    queue = [(start, [start])]\n    visited = set()\n    while queue:\n        node, path = queue.pop()\n        if node == goal:\n            return path\n        if node in visited:\n            continue\n        visited.add(node)\n        for neighbour in graph.get(node, []):\n            queue.append((neighbour, path + [neighbour]))\n    return []",
+      "expected_format": "code",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_behavioral_tests",
+        "entrypoint": "shortest_path",
+        "tests": [
+          {
+            "args": [
+              {
+                "A": [
+                  "B",
+                  "C"
+                ],
+                "B": [
+                  "D"
+                ],
+                "C": [
+                  "E"
+                ],
+                "E": [
+                  "D"
+                ],
+                "D": []
+              },
+              "A",
+              "D"
+            ],
+            "expected": [
+              "A",
+              "B",
+              "D"
+            ]
+          },
+          {
+            "args": [
+              {
+                "A": [
+                  "B"
+                ],
+                "B": [],
+                "C": []
+              },
+              "A",
+              "C"
+            ],
+            "expected": []
+          },
+          {
+            "args": [
+              {
+                "A": [
+                  "B"
+                ],
+                "B": []
+              },
+              "A",
+              "A"
+            ],
+            "expected": [
+              "A"
+            ]
+          }
+        ],
+        "reference_solution": "from collections import deque\n\ndef shortest_path(graph, start, goal):\n    queue = deque([(start, [start])])\n    visited = {start}\n    while queue:\n        node, path = queue.popleft()\n        if node == goal:\n            return path\n        for neighbour in graph.get(node, []):\n            if neighbour not in visited:\n                visited.add(neighbour)\n                queue.append((neighbour, path + [neighbour]))\n    return []"
+      }
+    },
+    {
+      "id": "v2-logical-deductive-reasoning-01",
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "prompt": "All copper objects conduct electricity. This wire is made of copper. Does the wire conduct electricity? Return only yes or no.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "yes",
+        "accepted_answers": [
+          "yes"
+        ]
+      }
+    },
+    {
+      "id": "v2-logical-deductive-reasoning-02",
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "prompt": "Nia arrived before Omar. Omar arrived before Pavel. Who arrived second? Return only the person's name.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "Omar",
+        "accepted_answers": [
+          "Omar"
+        ]
+      }
+    },
+    {
+      "id": "v2-logical-deductive-reasoning-03",
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "prompt": "Exactly one of A, B, and C is selected. If C is not selected, then B is selected. B is not selected. Which option is selected? Return only A, B, or C.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "normalized_exact_match",
+        "expected": "C",
+        "accepted_answers": [
+          "C"
+        ]
+      }
+    },
+    {
+      "id": "v2-logical-deductive-reasoning-04",
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "prompt": "Four presentations—L, M, N, and O—must occupy slots 1 through 4, one per slot. L is before M. N is immediately after L. M is not in slot 4. O is after M. Return the unique order as comma-separated letters.",
+      "expected_format": "plain_text",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "ordered_list_match",
+        "expected": [
+          "L",
+          "N",
+          "M",
+          "O"
+        ]
+      }
+    },
+    {
+      "id": "v2-logical-deductive-reasoning-05",
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "prompt": "Ada, Ben, and Chen each handle one different task—database, network, or UI—and work on one different day—Monday, Tuesday, or Wednesday.\nClues:\n1. Ada does not handle the database task.\n2. Ada works before Ben.\n3. The network task is performed on Tuesday.\n4. Chen works on Wednesday.\n5. Ben does not handle the UI task.\nReturn only valid JSON mapping each person to an object with keys \"task\" and \"day\".",
+      "expected_format": "json",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "json_deep_exact_match",
+        "expected": {
+          "Ada": {
+            "task": "UI",
+            "day": "Monday"
+          },
+          "Ben": {
+            "task": "network",
+            "day": "Tuesday"
+          },
+          "Chen": {
+            "task": "database",
+            "day": "Wednesday"
+          }
+        }
+      }
+    },
+    {
+      "id": "v2-code-generation-01",
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "prompt": "Write a Python function clamp(value, minimum, maximum) that returns value limited to the inclusive range [minimum, maximum]. Assume minimum <= maximum. Return only the function.",
+      "expected_format": "code",
+      "difficulty_hint": 1,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests",
+        "entrypoint": "clamp",
+        "tests": [
+          {
+            "args": [
+              5,
+              0,
+              10
+            ],
+            "expected": 5
+          },
+          {
+            "args": [
+              -3,
+              0,
+              10
+            ],
+            "expected": 0
+          },
+          {
+            "args": [
+              14,
+              0,
+              10
+            ],
+            "expected": 10
+          }
+        ]
+      }
+    },
+    {
+      "id": "v2-code-generation-02",
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "prompt": "Write a Python function rotate_right(items, steps) that returns a new list rotated right by steps positions. It must handle empty lists and steps larger than the list. Do not mutate the input. Return only the function.",
+      "expected_format": "code",
+      "difficulty_hint": 2,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests",
+        "entrypoint": "rotate_right",
+        "tests": [
+          {
+            "args": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              1
+            ],
+            "expected": [
+              4,
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "args": [
+              [
+                1,
+                2,
+                3,
+                4
+              ],
+              6
+            ],
+            "expected": [
+              3,
+              4,
+              1,
+              2
+            ]
+          },
+          {
+            "args": [
+              [],
+              3
+            ],
+            "expected": []
+          },
+          {
+            "args": [
+              [
+                1
+              ],
+              10
+            ],
+            "expected": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "v2-code-generation-03",
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "prompt": "Write a Python function flatten_dict(data) that flattens nested dictionaries using dot-separated keys. Values that are not dictionaries remain unchanged. An empty nested dictionary should produce no output key. Return only the function.",
+      "expected_format": "code",
+      "difficulty_hint": 3,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests",
+        "entrypoint": "flatten_dict",
+        "tests": [
+          {
+            "args": [
+              {
+                "user": {
+                  "name": "Ava",
+                  "meta": {
+                    "age": 30
+                  }
+                },
+                "active": true
+              }
+            ],
+            "expected": {
+              "user.name": "Ava",
+              "user.meta.age": 30,
+              "active": true
+            }
+          },
+          {
+            "args": [
+              {}
+            ],
+            "expected": {}
+          },
+          {
+            "args": [
+              {
+                "a": {
+                  "b": {}
+                },
+                "c": 1
+              }
+            ],
+            "expected": {
+              "c": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "v2-code-generation-04",
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "prompt": "Write a Python function topological_sort(dependencies) where dependencies maps each node to a list of its prerequisite nodes. Return a valid ordering containing every referenced node exactly once. When multiple nodes are available, choose the lexicographically smallest. Raise ValueError if a cycle exists. Return only the function.",
+      "expected_format": "code",
+      "difficulty_hint": 4,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests_with_exceptions",
+        "entrypoint": "topological_sort",
+        "tests": [
+          {
+            "args": [
+              {
+                "deploy": [
+                  "test",
+                  "build"
+                ],
+                "test": [
+                  "build"
+                ],
+                "build": []
+              }
+            ],
+            "expected": [
+              "build",
+              "test",
+              "deploy"
+            ]
+          },
+          {
+            "args": [
+              {
+                "b": [],
+                "a": []
+              }
+            ],
+            "expected": [
+              "a",
+              "b"
+            ]
+          },
+          {
+            "args": [
+              {
+                "a": [
+                  "b"
+                ],
+                "b": [
+                  "a"
+                ]
+              }
+            ],
+            "raises": "ValueError"
+          },
+          {
+            "args": [
+              {
+                "ship": [
+                  "pack"
+                ]
+              }
+            ],
+            "expected": [
+              "pack",
+              "ship"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "v2-code-generation-05",
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "prompt": "Write a Python function smallest_covering_window(text, required) that returns the shortest substring of text containing every character from required with at least the required multiplicity. Return an empty string when no such window exists. If multiple shortest windows exist, return the earliest. Return only the function.",
+      "expected_format": "code",
+      "difficulty_hint": 5,
+      "evidence_refs": [],
+      "evaluation": {
+        "type": "python_unit_tests",
+        "entrypoint": "smallest_covering_window",
+        "tests": [
+          {
+            "args": [
+              "ADOBECODEBANC",
+              "ABC"
+            ],
+            "expected": "BANC"
+          },
+          {
+            "args": [
+              "aaabcbc",
+              "aabc"
+            ],
+            "expected": "aabc"
+          },
+          {
+            "args": [
+              "abcdef",
+              "xyz"
+            ],
+            "expected": ""
+          },
+          {
+            "args": [
+              "abc",
+              ""
+            ],
+            "expected": ""
+          },
+          {
+            "args": [
+              "abdcab",
+              "ab"
+            ],
+            "expected": "ab"
+          }
+        ]
+      }
+    }
+  ]
+}

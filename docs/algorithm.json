@@ -16,6 +16,15 @@
     "Apply structural repair when safe.",
     "Write records to /output/results.json."
   ],
+  "qualification_steps": [
+    "Load benchmarks/categories/version5_local_category_benchmarks_v2.json with the dedicated benchmark loader.",
+    "Validate suite schema, category coverage, unique IDs, unique prompts, progressive difficulty, and evaluator metadata.",
+    "Project each benchmark record into a model-visible task without evaluation answers or rubrics.",
+    "Run an explicit provider/model candidate through the offline benchmark runner.",
+    "Evaluate outputs with implemented deterministic evaluators or mark unsafe code evaluators blocked.",
+    "Write qualification results outside /output/results.json.",
+    "Review qualification evidence before updating any runtime authorization registry."
+  ],
   "public_jurisdictions": [
     "TASK_FAMILY_CLASSIFICATION",
     "PROMPT_OPTIMIZATION",
@@ -39,6 +48,22 @@
     "CODE_DEBUGGING_SMALL",
     "CODE_GENERATION_SMALL"
   ],
+  "version_5_canonical_categories": [
+    "FACTUAL_KNOWLEDGE",
+    "MATHEMATICAL_REASONING",
+    "SENTIMENT_CLASSIFICATION",
+    "TEXT_SUMMARISATION",
+    "NAMED_ENTITY_RECOGNITION",
+    "CODE_DEBUGGING",
+    "LOGICAL_DEDUCTIVE_REASONING",
+    "CODE_GENERATION"
+  ],
+  "benchmark_boundary": {
+    "suite_id": "version5-category-benchmark-v2",
+    "live_input": false,
+    "authorization_mutation": "never during benchmark execution or live task execution",
+    "version_1_status": "retired"
+  },
   "private_details_omitted": [
     "benchmark thresholds",
     "full certification strategy",

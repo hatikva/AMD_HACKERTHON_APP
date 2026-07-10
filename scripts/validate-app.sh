@@ -37,7 +37,12 @@ python3 -m amd_hackathon_app.cli run-tasks \
 
 python3 -m py_compile scripts/model-acquisition.py scripts/show-pipeline.py
 python3 -m py_compile src/amd_hackathon_app/ui.py
+python3 -m py_compile src/amd_hackathon_app/benchmarks.py
 bash -n scripts/benchmark-version-candidates.sh
+python3 -m amd_hackathon_app.cli validate-category-benchmark >"$tmp_root/category-benchmark.json"
+python3 -m amd_hackathon_app.cli benchmark-categories \
+  --provider mock \
+  --output "$tmp_root/mock-category-qualification.json" >"$tmp_root/mock-category-qualification.stdout.json"
 
 grep -q 'Most Innovative Routing System' README.md
 grep -q 'Work Jurisdiction' README.md
@@ -45,6 +50,7 @@ grep -q 'FIREWORKS_BASE_URL' README.md
 grep -q 'ALLOWED_MODELS' README.md
 grep -q 'Local demo inference uses Ollama, not Lemonade' README.md
 grep -q 'Version 5 local-first execution is blocked' README.md
+grep -q 'version5-category-benchmark-v2' README.md
 grep -q 'docs/algorithm.json' README.md
 
 grep -q 'ALLOWED_MODELS' .env.example
@@ -61,8 +67,11 @@ grep -q 'analytics-grid' web/styles.css
 grep -q 'no bundled model weights' docs/concept.json
 grep -q 'Work Jurisdiction Routing' docs/algorithm.json
 grep -q 'llama.cpp' docs/version5-local-first-candidate.json
+grep -q 'version5-category-benchmark-v2' docs/version5-local-first-candidate.json
 grep -q 'ALLOWED_MODELS' docs/allowed-models.json
 grep -q '/input/tasks.json' docs/repo-structure.json
+grep -q 'version5_local_category_benchmarks_v2.json' benchmarks/categories/README.md
+grep -q 'version5_local_category_benchmarks_v2.json' docs/BENCHMARK_STATUS.md
 
 grep -q 'python:3.12-slim' Dockerfile.submission
 grep -q 'python:3.12-slim' Dockerfile.ui
@@ -84,6 +93,21 @@ payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert payload["schema"] == "amd_hackathon.results.v3"
 assert payload["results"][0]["work_jurisdiction"] in {"ANSWER_SCHEMA_SELECTION", "DEMO_LOCAL_MODEL_EXECUTION"}
 assert payload["results"][0]["validation_result"]["passed"] is True
+PY
+
+python3 - "$tmp_root/category-benchmark.json" "$tmp_root/mock-category-qualification.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+benchmark = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+qualification = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+assert benchmark["benchmark_suite"] == "version5-category-benchmark-v2"
+assert benchmark["task_count"] == 40
+assert qualification["benchmark_suite"] == "version5-category-benchmark-v2"
+assert qualification["authorization_registry_mutated"] is False
+assert len(qualification["results"]) == 40
+assert all("evaluation" not in row["model_visible_task"] for row in qualification["results"])
 PY
 
 echo "app validation passed"

@@ -36,6 +36,54 @@ Version 5 is represented as a llama.cpp local-first submission candidate. It pre
 
 No Work Jurisdiction is marked `LOCAL_CERTIFIED` yet. Until a selected GGUF model, license, size, memory profile, and benchmark results are recorded, Version 5 routes through the Fireworks fallback path.
 
+## Version 5 Qualification Benchmark
+
+The canonical offline Version 5 primary-category benchmark is:
+
+```text
+benchmarks/categories/version5_local_category_benchmarks_v2.json
+```
+
+Suite identifier:
+
+```text
+version5-category-benchmark-v2
+```
+
+Content hash:
+
+```text
+sha256:24e9981521b91173e70f17910f14740ca6c159c7165e7272196835fcc2b9d6e7
+```
+
+This repository-owned Version 2 suite contains eight canonical task categories, five progressively difficult tasks per category, and 40 tasks total. It is used only for offline model qualification before live task execution. It is never executed as part of live `/input/tasks.json` processing, and it does not dynamically authorize models during runtime routing.
+
+Validate the benchmark:
+
+```bash
+python3 -m amd_hackathon_app.cli validate-category-benchmark
+```
+
+Run a dry wiring benchmark with the mock provider:
+
+```bash
+python3 -m amd_hackathon_app.cli benchmark-categories \
+  --provider mock \
+  --output qualification/results/mock-version5-category-benchmark.json
+```
+
+Run a candidate qualification pass by recording the exact provider and model:
+
+```bash
+python3 -m amd_hackathon_app.cli benchmark-categories \
+  --suite benchmarks/categories/version5_local_category_benchmarks_v2.json \
+  --provider fireworks \
+  --model "$ONE_ALLOWED_MODEL" \
+  --output qualification/results/fireworks-candidate.json
+```
+
+Mock benchmark output validates wiring only. It is not model qualification evidence.
+
 ## Environment
 
 Required for Fireworks execution:

@@ -494,13 +494,8 @@ class LlamaCppProvider:
         self.max_tokens = int(os.environ.get("LLAMA_MAX_TOKENS", "128"))
         self.timeout_seconds = int(os.environ.get("LLAMA_TIMEOUT_SECONDS", "60"))
 
-    def complete(self, prompt: str, model: str) -> ProviderResult:
-        start = time.perf_counter()
-        if not Path(self.binary).exists():
-            raise RuntimeError(f"llama.cpp binary not found: {self.binary}")
-        if not Path(model).exists():
-            raise RuntimeError(f"GGUF model not found: {model}")
-        command = [
+    def command_for(self, prompt: str, model: str) -> list[str]:
+        return [
             self.binary,
             "-m",
             model,
@@ -513,6 +508,14 @@ class LlamaCppProvider:
             "-t",
             str(self.threads),
         ]
+
+    def complete(self, prompt: str, model: str) -> ProviderResult:
+        start = time.perf_counter()
+        if not Path(self.binary).exists():
+            raise RuntimeError(f"llama.cpp binary not found: {self.binary}")
+        if not Path(model).exists():
+            raise RuntimeError(f"GGUF model not found: {model}")
+        command = self.command_for(prompt, model)
         try:
             completed = subprocess.run(
                 command,
@@ -594,6 +597,7 @@ def run_task(
     jurisdiction = jurisdiction_for(task_family, provider_override)
     packet = compile_execution_packet(task, task_family, jurisdiction)
     decision = route_task(task_family, jurisdiction, provider_override, allowed_models)
+    initial_decision = decision
     provider = provider_for(decision.provider)
     fallback_reason = None
     try:
@@ -619,20 +623,43 @@ def run_task(
         output, repair = structural_repair(packet["answer_schema"]["format"], result.text)
         validation = validate_output(packet["answer_schema"]["format"], output)
 
+    candidate_version = initial_decision.candidate_version
+    local_certification = initial_decision.local_certification
+    selected_path = "local_then_fireworks_fallback" if fallback_reason else initial_decision.selected_path
+    local_attempted = candidate_version == "version_5" and initial_decision.provider == "llama-cpp"
+    local_success = bool(local_attempted and not fallback_reason and validation["passed"])
+    fireworks_used = decision.provider == "fireworks"
+    retry_count = 1 if fallback_reason else 0
+    fireworks_token_usage = (
+        {
+            "prompt_tokens": result.token_usage.get("prompt_tokens", 0),
+            "completion_tokens": result.token_usage.get("completion_tokens", 0),
+            "total_tokens": result.token_usage.get("total_tokens", 0),
+        }
+        if fireworks_used
+        else {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    )
+
     record = {
         **packet,
-        "candidate_version": decision.candidate_version,
+        "candidate_version": candidate_version,
         "selected_provider": decision.provider,
-        "selected_path": "local_then_fireworks_fallback" if fallback_reason else decision.selected_path,
+        "selected_path": selected_path,
         "selected_model": decision.model,
         "allowed_models_source": "ALLOWED_MODELS" if decision.provider == "fireworks" else "not_required_for_provider",
-        "local_certification": decision.local_certification,
+        "local_certification": local_certification,
+        "local_attempted": local_attempted,
+        "local_success": local_success,
+        "local_failure": fallback_reason if local_attempted and fallback_reason else None,
         "fallback_reason": fallback_reason,
-        "routing_reason": decision.reason,
+        "routing_reason": initial_decision.reason,
         "final_mode_compliant": decision.final_mode_compliant,
         "validation_result": validation,
         "repair": repair,
         "token_usage": result.token_usage,
+        "fireworks_token_usage": fireworks_token_usage,
+        "retry_count": retry_count,
+        "memory_estimate": None,
         "latency": {"milliseconds": result.latency_ms},
         "output": output,
     }

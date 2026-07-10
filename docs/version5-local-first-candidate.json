@@ -24,6 +24,41 @@
     "expected_ram_use": null,
     "benchmark_status": "blocked_until_artifact_is_selected"
   },
+  "canonical_qualification_benchmark": {
+    "suite_id": "version5-category-benchmark-v2",
+    "path": "benchmarks/categories/version5_local_category_benchmarks_v2.json",
+    "sha256": "24e9981521b91173e70f17910f14740ca6c159c7165e7272196835fcc2b9d6e7",
+    "schema": "amd_hackathon.local_category_benchmarks.v2",
+    "category_count": 8,
+    "tasks_per_category": 5,
+    "total_tasks": 40,
+    "difficulty_levels_per_category": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "version_1_status": "retired_not_active",
+    "live_task_processing": "not_executed_during_input_tasks_json_processing",
+    "authorization_mutation": "benchmark_results_require_review_before_registry_promotion"
+  },
+  "evaluator_status": {
+    "implemented": [
+      "normalized_exact_match",
+      "numeric_exact_match",
+      "label_exact_match",
+      "unordered_set_match",
+      "ordered_list_match",
+      "json_deep_exact_match",
+      "summary_rubric"
+    ],
+    "blocked_until_sandboxed": [
+      "python_unit_tests",
+      "python_unit_tests_with_exceptions",
+      "python_behavioral_tests"
+    ]
+  },
   "fallback_policy": {
     "provider": "Fireworks",
     "base_url": "FIREWORKS_BASE_URL",

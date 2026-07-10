@@ -17,6 +17,13 @@
       "inference_policy": "Use local inference only for certified Work Jurisdictions. Until a GGUF model artifact and benchmark evidence exist, route through Fireworks fallback."
     }
   },
+  "version_5_qualification": {
+    "benchmark_suite": "version5-category-benchmark-v2",
+    "benchmark_path": "benchmarks/categories/version5_local_category_benchmarks_v2.json",
+    "benchmark_hash": "sha256:24e9981521b91173e70f17910f14740ca6c159c7165e7272196835fcc2b9d6e7",
+    "status": "canonical_offline_primary_category_suite",
+    "policy": "The suite is used before live task execution to produce reviewable qualification evidence. Live /input/tasks.json processing never executes this benchmark and never mutates model authorization."
+  },
   "final_constraints": [
     "no hardcoded final model IDs",
     "no bundled model weights",

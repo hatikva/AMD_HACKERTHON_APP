@@ -4,8 +4,15 @@
     "package": "src/amd_hackathon_app",
     "cli": "src/amd_hackathon_app/cli.py",
     "pipeline": "src/amd_hackathon_app/pipeline.py",
+    "benchmark_loader": "src/amd_hackathon_app/benchmarks.py",
     "tests": "tests/test_pipeline.py",
     "validation": "scripts/validate-app.sh"
+  },
+  "qualification_benchmarks": {
+    "version5_category_benchmark_v2": "benchmarks/categories/version5_local_category_benchmarks_v2.json",
+    "benchmark_index": "benchmarks/categories/README.md",
+    "result_location": "qualification/results/",
+    "live_runtime_input": false
   },
   "io_contract": {
     "input": "/input/tasks.json",

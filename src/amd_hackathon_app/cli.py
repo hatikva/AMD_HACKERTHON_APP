@@ -10,6 +10,7 @@ from .env import load_dotenv
 
 load_dotenv()
 
+from .benchmarks import CANONICAL_BENCHMARK_PATH, BENCHMARK_SUITE_ID, load_category_benchmark, run_category_benchmark
 from .pipeline import preflight, record_to_json, run_scenario, run_tasks_file
 from .ui import run as run_ui
 
@@ -46,6 +47,39 @@ def cmd_run_tasks(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_validate_benchmark(args: argparse.Namespace) -> int:
+    suite = load_category_benchmark(Path(args.suite))
+    print(
+        json.dumps(
+            {
+                "benchmark_suite": suite.suite_id,
+                "benchmark_hash": suite.content_hash,
+                "path": str(suite.path),
+                "schema": suite.payload["schema"],
+                "category_count": len(suite.payload["categories"]),
+                "task_count": len(suite.tasks),
+                "status": "valid",
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def cmd_benchmark_categories(args: argparse.Namespace) -> int:
+    if args.suite_id != BENCHMARK_SUITE_ID:
+        raise SystemExit(f"unsupported benchmark suite id: {args.suite_id}")
+    result = run_category_benchmark(
+        suite_path=Path(args.suite),
+        provider=args.provider,
+        model=args.model,
+        output_path=Path(args.output) if args.output else None,
+    )
+    print(record_to_json(result))
+    return 0
+
+
 def cmd_ui(args: argparse.Namespace) -> int:
     run_ui(host=args.host, port=args.port)
     return 0
@@ -70,6 +104,18 @@ def build_parser() -> argparse.ArgumentParser:
     tasks_parser.add_argument("--output", default="/output/results.json")
     tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
     tasks_parser.set_defaults(func=cmd_run_tasks)
+
+    validate_benchmark_parser = subcommands.add_parser("validate-category-benchmark")
+    validate_benchmark_parser.add_argument("--suite", default=str(CANONICAL_BENCHMARK_PATH))
+    validate_benchmark_parser.set_defaults(func=cmd_validate_benchmark)
+
+    benchmark_parser = subcommands.add_parser("benchmark-categories")
+    benchmark_parser.add_argument("--suite", default=str(CANONICAL_BENCHMARK_PATH))
+    benchmark_parser.add_argument("--provider", choices=["mock", "fireworks", "version5", "llama-cpp"], default="mock")
+    benchmark_parser.add_argument("--model", default=None)
+    benchmark_parser.add_argument("--output", default=None)
+    benchmark_parser.add_argument("--suite-id", default=BENCHMARK_SUITE_ID, help="Expected suite identifier for operator clarity.")
+    benchmark_parser.set_defaults(func=cmd_benchmark_categories)
 
     ui_parser = subcommands.add_parser("ui")
     ui_parser.add_argument("--host", default=os.environ.get("UI_HOST", "127.0.0.1"))

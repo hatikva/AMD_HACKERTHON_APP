@@ -28,3 +28,11 @@ Before claiming a submission image is self-contained:
 4. Confirm the selected model loads and serves a non-empty response.
 
 Compose YAML alone does not prove scoring accepts multiple containers or that weights are self-contained.
+
+## Version 5 Qualification Benchmark Packaging
+
+`benchmarks/categories/version5_local_category_benchmarks_v2.json` is an offline qualification suite, not a live task fixture.
+
+Do not place the benchmark in `/input/tasks.json`, `/output`, or automatic live-processing paths. If a development or qualification image includes the benchmark, treat it as evaluator-only material: it contains expected answers, rubrics, and reference solutions that must never be sent to a tested model.
+
+Production submission packaging should include qualification artifacts only when explicitly required by the submission process. Otherwise, use benchmark-derived, reviewed authorization records rather than bundling evaluator answers into the runtime image.
