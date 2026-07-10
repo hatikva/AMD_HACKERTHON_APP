@@ -57,7 +57,7 @@ Observed on 2026-07-10:
 
 ```text
 llama.cpp compressed image: 2,860,434,793 bytes
-CPU-only Ollama compressed image after final provider promotion: 2,866,482,218 bytes
+CPU-only Ollama compressed image after final provider promotion: 2,866,482,542 bytes
 delta: +6,030,430 bytes for Ollama
 Ollama constrained smoke: passed under --memory=4g --cpus=2
 llama.cpp constrained direct inference: OOM-killed under --memory=4g --cpus=2

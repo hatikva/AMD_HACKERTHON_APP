@@ -78,7 +78,7 @@ VERSION_5_RUNTIME_CERTIFICATION = {
     "local_runtime_provider": VERSION_5_LOCAL_PROVIDER,
     "local_runtime_image_status": "SELF_CONTAINED_UNDER_10GB",
     "local_runtime_memory_status": "PASSED_4GB_2VCPU_SMOKE",
-    "compressed_image_bytes": 2866482218,
+    "compressed_image_bytes": 2866482542,
     "constrained_smoke": {
         "memory": "4g",
         "cpus": 2,

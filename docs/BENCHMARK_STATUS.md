@@ -75,7 +75,7 @@ Containerized CPU-only experiment:
 ```text
 image: amd-hackathon-version5:ollama
 uncompressed image size: 3,038,198,978 bytes
-compressed image size after final provider promotion: 2,866,482,218 bytes
+compressed image size after final provider promotion: 2,866,482,542 bytes
 smoke under --memory=4g --cpus=2: passed
 smoke answer: 4
 smoke elapsed: 19.98s

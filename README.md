@@ -248,7 +248,7 @@ scripts/verify-version5-ollama-image.sh amd-hackathon-version5:ollama
 Observed comparison on 2026-07-10:
 
 - llama.cpp image: `2,860,434,793` compressed bytes;
-- CPU-only Ollama image: `2,866,482,218` compressed bytes after final provider promotion;
+- CPU-only Ollama image: `2,866,482,542` compressed bytes after final provider promotion;
 - Ollama constrained smoke: passed under `--memory=4g --cpus=2`, answer `4`, elapsed `19.98s`;
 - llama.cpp constrained direct inference: OOM-killed for `nemotron-3-nano:4b`.
 
