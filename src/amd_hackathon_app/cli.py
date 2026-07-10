@@ -15,12 +15,19 @@ from .pipeline import preflight, record_to_json, run_scenario, run_tasks_file
 from .ui import run as run_ui
 
 
+def optional_command(command: list[str]) -> str:
+    try:
+        return subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False).stdout.strip()
+    except FileNotFoundError:
+        return "not_found"
+
+
 def cmd_preflight(_: argparse.Namespace) -> int:
     data = preflight()
     probes = {
-        "kernel": subprocess.run(["uname", "-a"], text=True, stdout=subprocess.PIPE, check=False).stdout.strip(),
-        "pid1": subprocess.run(["ps", "-p", "1", "-o", "comm="], text=True, stdout=subprocess.PIPE, check=False).stdout.strip(),
-        "docker": subprocess.run(["docker", "--version"], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False).stdout.strip(),
+        "kernel": optional_command(["uname", "-a"]),
+        "pid1": optional_command(["ps", "-p", "1", "-o", "comm="]),
+        "docker": optional_command(["docker", "--version"]),
     }
     print(json.dumps({**data, "environment": probes}, indent=2, sort_keys=True))
     return 0
@@ -105,20 +112,20 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = subcommands.add_parser("run-scenario")
     run_parser.add_argument("--scenario", default="classification-basic")
     run_parser.add_argument("--profile", default=os.environ.get("ROUTING_PROFILE", "version-3-work-jurisdiction"))
-    run_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
+    run_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5", "llama-cpp"], default=None)
     run_parser.add_argument("--run-dir", default=None)
     run_parser.set_defaults(func=cmd_run_scenario)
 
     tasks_parser = subcommands.add_parser("run-tasks")
     tasks_parser.add_argument("--input", default="/input/tasks.json")
     tasks_parser.add_argument("--output", default="/output/results.json")
-    tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
+    tasks_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5", "llama-cpp"], default=None)
     tasks_parser.set_defaults(func=cmd_run_tasks)
 
     submission_parser = subcommands.add_parser("run-submission")
     submission_parser.add_argument("--input", default="/input/tasks.json")
     submission_parser.add_argument("--output", default="/output/results.json")
-    submission_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5"], default=None)
+    submission_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5", "llama-cpp"], default=None)
     submission_parser.set_defaults(func=cmd_run_submission)
 
     validate_benchmark_parser = subcommands.add_parser("validate-category-benchmark")
@@ -127,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     benchmark_parser = subcommands.add_parser("benchmark-categories")
     benchmark_parser.add_argument("--suite", default=str(CANONICAL_BENCHMARK_PATH))
-    benchmark_parser.add_argument("--provider", choices=["mock", "fireworks", "version5", "llama-cpp"], default="mock")
+    benchmark_parser.add_argument("--provider", choices=["mock", "fireworks", "ollama-demo", "version5", "llama-cpp"], default="mock")
     benchmark_parser.add_argument("--model", default=None)
     benchmark_parser.add_argument("--output", default=None)
     benchmark_parser.add_argument("--suite-id", default=BENCHMARK_SUITE_ID, help="Expected suite identifier for operator clarity.")

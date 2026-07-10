@@ -21,6 +21,93 @@ Current evaluator status:
 
 Mock benchmark runs validate wiring only and are not model qualification evidence.
 
+## Version 5 Selected Local Model
+
+Selected model: `nemotron-3-nano:4b`
+
+Selected GGUF path in image: `/app/models/nemotron-3-nano-4b.gguf`
+
+Observed local source paths:
+
+- `.local/ollama-backup-gguf-import/backup-nemotron-3-nano-4b.gguf`
+- `/mnt/g/ollama-models-backup-container/models/blobs/sha256-527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970`
+
+Observed size: `2,837,586,496` bytes.
+
+Observed SHA-256: `527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970`.
+
+No jurisdiction is currently `LOCAL_CERTIFIED`. Real Version 5 benchmark passes must run before local-first routing is enabled.
+
+## Version 5 Runtime Experiments
+
+### llama.cpp bundled image
+
+Final verified image:
+
+```text
+image: amd-hackathon-version5:nemotron
+llama.cpp commit: 07d937828636e305bc0cfe738b288f9ab05ff748
+uncompressed image size: 3,019,067,622 bytes
+compressed image size: 2,860,434,793 bytes
+preflight under --memory=4g --cpus=2: passed
+```
+
+Runtime evidence:
+
+- older `b5753` llama.cpp did not recognize `nemotron_h`;
+- current pinned llama.cpp loads the architecture but direct local inference under `--memory=4g --cpus=2` was not viable;
+- default context/generation timed out;
+- minimal one-token/context-128 smoke was OOM-killed with exit `137`.
+
+### Ollama CPU-only experiment
+
+Host Ollama evidence:
+
+```text
+ollama client/server version: 0.31.1
+model: nemotron-3-nano:4b
+HTTP smoke, num_ctx=128, num_predict=8, num_thread=2: response 4 in 27.63s
+loaded runner RSS with OLLAMA_CONTEXT_LENGTH=128: about 998 MB
+```
+
+Containerized CPU-only experiment:
+
+```text
+image: amd-hackathon-version5:ollama
+uncompressed image size: 3,038,198,978 bytes
+compressed image size: 2,866,465,223 bytes
+smoke under --memory=4g --cpus=2: passed
+smoke answer: 4
+smoke elapsed: 19.98s
+oom_killed: false
+```
+
+The CPU-only Ollama image is about `6,030,430` bytes larger compressed than the llama.cpp image, but it completed the constrained smoke where direct llama.cpp did not. It remains an experiment because the current app route is `ollama-demo`, marked `final_mode_compliant=false`.
+
+Host Ollama full category pass:
+
+```text
+result: qualification/results/version5-ollama-host-real.json
+provider: ollama-demo
+model: nemotron-3-nano:4b
+overall_tasks: 40
+overall_passed: 16
+overall_accuracy: 0.40
+runtime_failures: 0
+validation_failures: 0
+judged_fireworks_tokens: 0
+elapsed_seconds: 362.17
+```
+
+Promotion into authorization records requires:
+
+- overall accuracy at or above the selected candidate gate;
+- per-category pass rate above the category threshold;
+- zero unsupported evaluator types except sandbox-blocked code evaluators;
+- validator coverage adequate for the jurisdiction;
+- local fallback plus repair tokens lower than Version 4 judged Fireworks tokens;
+- memory below about 4 GB RAM and latency acceptable under 2 vCPU.
+
 Latest local benchmark:
 
 ```text

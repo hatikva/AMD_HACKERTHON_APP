@@ -1,11 +1,11 @@
 {
   "schema": "amd_hackathon.version5_candidate.v1",
   "name": "Version 5 local-first candidate",
-  "status": "provider_and_routing_scaffold_ready_model_artifact_blocked",
+  "status": "provider_and_routing_scaffold_ready_selected_model_pending_benchmarks",
   "runtime": {
     "engine": "llama.cpp",
     "binary_path": "/app/bin/llama-cli",
-    "model_path": "/app/models/model.gguf",
+    "model_path": "/app/models/nemotron-3-nano-4b.gguf",
     "context_length": 2048,
     "threads": 2,
     "max_tokens": 128,
@@ -13,16 +13,17 @@
     "generation_concurrency": 1
   },
   "local_model_artifact": {
-    "model_name": null,
-    "source_url": null,
-    "license": null,
+    "model_name": "nemotron-3-nano:4b",
+    "source_url": "local Ollama backup store",
+    "license": "observed in bundled Ollama license layer; review before final submission",
     "file_format": "GGUF",
-    "quantization": null,
+    "quantization": "observed_ollama_model_blob",
     "compressed_size": null,
-    "uncompressed_size": null,
-    "expected_image_path": "/app/models/model.gguf",
+    "uncompressed_size": 2837586496,
+    "sha256": "527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970",
+    "expected_image_path": "/app/models/nemotron-3-nano-4b.gguf",
     "expected_ram_use": null,
-    "benchmark_status": "blocked_until_artifact_is_selected"
+    "benchmark_status": "selected_pending_real_benchmark_passes"
   },
   "canonical_qualification_benchmark": {
     "suite_id": "version5-category-benchmark-v2",
@@ -87,6 +88,93 @@
     "LOCAL_CONDITIONAL",
     "FIREWORKS_ONLY"
   ],
-  "certification_policy": "Start conservative. Do not mark a jurisdiction LOCAL_CERTIFIED without model artifact evidence, deterministic validator coverage, and benchmark results.",
+  "local_jurisdiction_matrix": [
+    {
+      "jurisdiction_id": "TASK_FAMILY_CLASSIFICATION",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "medium"
+    },
+    {
+      "jurisdiction_id": "PROMPT_OPTIMIZATION",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "medium"
+    },
+    {
+      "jurisdiction_id": "TASK_CONTRACT_EXTRACTION",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "medium"
+    },
+    {
+      "jurisdiction_id": "SHORT_FACTUAL_ANSWERING",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "low"
+    },
+    {
+      "jurisdiction_id": "SENTIMENT_CLASSIFICATION",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "high"
+    },
+    {
+      "jurisdiction_id": "NAMED_ENTITY_RECOGNITION",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "medium"
+    },
+    {
+      "jurisdiction_id": "SIMPLE_SUMMARIZATION",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "low"
+    },
+    {
+      "jurisdiction_id": "MATH_LIGHT",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "medium"
+    },
+    {
+      "jurisdiction_id": "LOGICAL_DEDUCTION_LIGHT",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "low"
+    },
+    {
+      "jurisdiction_id": "CODE_DEBUGGING_SMALL",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "low"
+    },
+    {
+      "jurisdiction_id": "CODE_GENERATION_SMALL",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "low"
+    },
+    {
+      "jurisdiction_id": "ANSWER_SCHEMA_SELECTION",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "high"
+    },
+    {
+      "jurisdiction_id": "DETERMINISTIC_VALIDATION",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "high"
+    },
+    {
+      "jurisdiction_id": "STRUCTURAL_REPAIR",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "high"
+    },
+    {
+      "jurisdiction_id": "SEMANTIC_REPAIR",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "low"
+    },
+    {
+      "jurisdiction_id": "FIREWORKS_FALLBACK",
+      "local_status": "FIREWORKS_ONLY",
+      "validator_coverage": "not_applicable"
+    },
+    {
+      "jurisdiction_id": "TOKEN_BUDGETING",
+      "local_status": "LOCAL_DENIED",
+      "validator_coverage": "high"
+    }
+  ],
+  "certification_policy": "Start conservative. No jurisdiction is LOCAL_CERTIFIED. Do not promote a jurisdiction without deterministic validator coverage, real benchmark results, memory evidence, latency evidence, and reviewed authorization records.",
   "candidate_selection_policy": "Version 5 is not the final submission until it is benchmarked against Version 4 on the same suite, passes the accuracy gate, and shows lower judged Fireworks token usage with acceptable operational risk."
 }

@@ -28,13 +28,18 @@ Version 5 is represented as a llama.cpp local-first submission candidate. It pre
 
 - local inference runtime: `llama.cpp`;
 - default binary path: `/app/bin/llama-cli`;
-- default model path: `/app/models/model.gguf`;
+- selected local model: `nemotron-3-nano:4b`;
+- default model path: `/app/models/nemotron-3-nano-4b.gguf`;
+- selected GGUF SHA-256: `527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970`;
+- selected GGUF size: `2,837,586,496` bytes;
 - default context length: `2048`;
 - default thread count: `2`;
 - Fireworks fallback: `FIREWORKS_BASE_URL` with model IDs from `ALLOWED_MODELS`;
-- local certification status: blocked until an exact GGUF artifact and benchmark evidence exist.
+- local certification status: selected model is staged, but no Work Jurisdiction is `LOCAL_CERTIFIED` until real benchmark evidence is reviewed and promoted.
 
-No Work Jurisdiction is marked `LOCAL_CERTIFIED` yet. Until a selected GGUF model, license, size, memory profile, and benchmark results are recorded, Version 5 routes through the Fireworks fallback path.
+No Work Jurisdiction is marked `LOCAL_CERTIFIED` yet. Until memory, latency, accuracy, validator coverage, and promotion thresholds are recorded, Version 5 routes through the Fireworks fallback path.
+
+An experimental CPU-only Ollama image also exists for comparison after `nemotron-3-nano:4b` failed direct llama.cpp inference under the 4 GB / 2 vCPU envelope. The Ollama experiment completed a constrained one-task smoke and is only about 6 MB larger compressed than the llama.cpp image, but it still uses the `ollama-demo` path and is not final-mode compliant.
 
 ## Version 5 Qualification Benchmark
 
@@ -110,8 +115,8 @@ Optional Version 5 llama.cpp settings:
 
 ```bash
 export LLAMA_CPP_BINARY=/app/bin/llama-cli
-export LLAMA_MODEL_PATH=/app/models/model.gguf
-export LLAMA_MODEL_NAME=selected-gguf-model
+export LLAMA_MODEL_PATH=/app/models/nemotron-3-nano-4b.gguf
+export LLAMA_MODEL_NAME=nemotron-3-nano:4b
 export LLAMA_CONTEXT_LENGTH=2048
 export LLAMA_THREADS=2
 export LLAMA_MAX_TOKENS=128
@@ -173,7 +178,7 @@ Run the Version 3 UI:
 python3 -m amd_hackathon_app.cli ui --host 127.0.0.1 --port 18083
 ```
 
-Open `http://127.0.0.1:18083`. The UI accepts `/input/tasks.json`-style task payloads, shows outputs, token counts, validation state, latency, selected provider/model, and lightweight analytics for Version 3, Version 4, and Version 5 comparison. Version 3 uses the Ollama demo path. Version 4 requires Fireworks environment variables. Version 5 remains blocked until the selected GGUF artifact and certification evidence exist.
+Open `http://127.0.0.1:18083`. The UI accepts `/input/tasks.json`-style task payloads, shows outputs, token counts, validation state, latency, selected provider/model, and lightweight analytics for Version 3, Version 4, and Version 5 comparison. Version 3 uses the Ollama demo path. Version 4 requires Fireworks environment variables. Version 5 remains Fireworks-fallback-only until certification evidence exists.
 
 Run the same UI as a separate container:
 
@@ -196,7 +201,35 @@ python3 -m amd_hackathon_app.cli run-submission \
   --provider version5
 ```
 
-This currently requires Fireworks configuration because the local GGUF artifact is not finalized and local jurisdictions are not certified.
+This currently requires Fireworks configuration because local jurisdictions are not certified.
+
+Stage the selected GGUF for a Version 5 container build:
+
+```bash
+scripts/stage-version5-model.sh
+```
+
+Build and verify the Version 5 image with the selected GGUF bundled:
+
+```bash
+scripts/verify-version5-image.sh amd-hackathon-version5:local
+```
+
+That check builds `Dockerfile.version5`, verifies the compressed image stays below 10 GB, and runs `amd-router preflight` under a 4 GB RAM / 2 vCPU container limit.
+
+Build the experimental CPU-only Ollama comparison image:
+
+```bash
+scripts/stage-version5-ollama-runtime.sh
+docker build -f Dockerfile.version5-ollama -t amd-hackathon-version5:ollama .
+```
+
+Observed comparison on 2026-07-10:
+
+- llama.cpp image: `2,860,434,793` compressed bytes;
+- CPU-only Ollama image: `2,866,465,223` compressed bytes;
+- Ollama constrained smoke: passed under `--memory=4g --cpus=2`, answer `4`, elapsed `19.98s`;
+- llama.cpp constrained direct inference: OOM-killed for `nemotron-3-nano:4b`.
 
 The repository-owned Version 5 benchmark format is intentionally richer. During offline qualification it is split into a model-visible official-format task file and evaluator-only grading data. The normal runtime receives only the official-format task file.
 
@@ -248,5 +281,5 @@ These files describe operation and compliance without exposing private benchmark
 
 - The benchmark-derived model eligibility matrix is represented by the current deterministic selector and must be populated with measured evidence before Version 4 final scoring.
 - Fireworks execution requires credentials and an `ALLOWED_MODELS` value from the runtime environment.
-- Ollama execution is demo-only and is excluded from the final scoring path.
-- Version 5 local-first execution is blocked until the exact GGUF model artifact, license, expected memory use, image path, and jurisdiction certification matrix are finalized.
+- Ollama execution is demo/experiment-only and is excluded from the final scoring path until explicitly promoted.
+- Version 5 local-first execution is blocked until the selected `nemotron-3-nano:4b` artifact has real accuracy, memory, latency, image-size, and jurisdiction-promotion evidence.

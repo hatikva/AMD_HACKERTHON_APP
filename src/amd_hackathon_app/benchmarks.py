@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .pipeline import ROOT, parse_allowed_models, run_tasks_file, write_json
+from .pipeline import ROOT, VERSION_5_LOCAL_MODEL, parse_allowed_models, run_tasks_file, write_json
 
 
 BENCHMARK_SUITE_ID = "version5-category-benchmark-v2"
@@ -271,15 +271,24 @@ def candidate_metadata(provider: str, model: str | None) -> dict[str, Any]:
     if provider == "llama-cpp":
         return {
             "provider": "llama-cpp",
-            "model": model or os.environ.get("LLAMA_MODEL_PATH", "/app/models/model.gguf"),
-            "model_name": os.environ.get("LLAMA_MODEL_NAME", "selected-gguf-model"),
+            "model": model or os.environ.get("LLAMA_MODEL_PATH", VERSION_5_LOCAL_MODEL["image_path"]),
+            "model_name": os.environ.get("LLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
+            "model_sha256": VERSION_5_LOCAL_MODEL["sha256"],
             "runtime": os.environ.get("LLAMA_CPP_BINARY", "/app/bin/llama-cli"),
         }
     if provider == "version5":
         return {
             "provider": "version5",
-            "model": model or os.environ.get("LLAMA_MODEL_NAME", "selected-gguf-model"),
+            "model": model or os.environ.get("LLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
+            "model_sha256": VERSION_5_LOCAL_MODEL["sha256"],
             "policy_version": "version_5_local_certification_lookup",
+        }
+    if provider == "ollama-demo":
+        return {
+            "provider": "ollama-demo",
+            "model": model or os.environ.get("MODEL_NAME", "qwen2.5-coder:3b"),
+            "base_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
+            "final_mode_compliant": False,
         }
     if provider == "mock":
         return {"provider": "mock", "model": model or "mock-model"}
@@ -287,8 +296,6 @@ def candidate_metadata(provider: str, model: str | None) -> dict[str, Any]:
 
 
 def benchmark_provider_override(provider: str) -> str:
-    if provider == "llama-cpp":
-        return "version5"
     return provider
 
 
@@ -315,7 +322,10 @@ def run_category_benchmark(
     write_json(input_path, visible_tasks)
 
     previous_run_dir = os.environ.get("APP_RUN_DIR")
+    previous_model_name = os.environ.get("MODEL_NAME")
     os.environ["APP_RUN_DIR"] = str(task_run_dir)
+    if provider == "ollama-demo" and model:
+        os.environ["MODEL_NAME"] = model
     try:
         run_payload = run_tasks_file(input_path=input_path, output_path=output_results_path, provider_override=provider_override)
     finally:
@@ -323,6 +333,10 @@ def run_category_benchmark(
             os.environ.pop("APP_RUN_DIR", None)
         else:
             os.environ["APP_RUN_DIR"] = previous_run_dir
+        if previous_model_name is None:
+            os.environ.pop("MODEL_NAME", None)
+        else:
+            os.environ["MODEL_NAME"] = previous_model_name
 
     submission_results = index_submission_results(
         run_payload["results"],

@@ -16,7 +16,7 @@ These volumes are not part of the image. A container that depends on them is not
 
 The final submission must not depend on host bind mounts or pre-existing model volumes. Do not commit model weights to Git.
 
-Only one selected local model should be embedded or downloaded for the final image after benchmark evidence identifies the recommended model/profile. Runtime downloads are smaller but require evaluator network access. Build-time embedding increases image size but can support offline startup if tested honestly.
+Only one selected local model should be embedded in the Version 5 image. The selected artifact is `nemotron-3-nano:4b`, staged as `models/version5/nemotron-3-nano-4b.gguf` and copied to `/app/models/nemotron-3-nano-4b.gguf`. Runtime downloads are not part of the final Version 5 path.
 
 ## Offline Test Requirement
 
@@ -28,6 +28,44 @@ Before claiming a submission image is self-contained:
 4. Confirm the selected model loads and serves a non-empty response.
 
 Compose YAML alone does not prove scoring accepts multiple containers or that weights are self-contained.
+
+Use:
+
+```bash
+scripts/stage-version5-model.sh
+scripts/verify-version5-image.sh amd-hackathon-version5:local
+```
+
+The verification script builds `Dockerfile.version5`, checks the gzip-compressed saved image is below 10 GB, and runs `amd-router preflight` with `--memory=4g --cpus=2`.
+
+## Ollama Runtime Experiment
+
+An experimental CPU-only Ollama image can be built from the host Ollama installation and existing local model cache without pulling `ollama/ollama:latest`:
+
+```bash
+scripts/stage-version5-ollama-runtime.sh
+docker build -f Dockerfile.version5-ollama -t amd-hackathon-version5:ollama .
+```
+
+The staging script copies only:
+
+- `/usr/local/bin/ollama`;
+- CPU shared libraries from `/usr/local/lib/ollama`;
+- the selected `nemotron-3-nano:4b` Ollama manifest and required blobs.
+
+It intentionally excludes the CUDA and Vulkan backend directories from the host Ollama install. The staged payload remains under ignored `models/version5-ollama/` and must not be committed.
+
+Observed on 2026-07-10:
+
+```text
+llama.cpp compressed image: 2,860,434,793 bytes
+CPU-only Ollama compressed image: 2,866,465,223 bytes
+delta: +6,030,430 bytes for Ollama
+Ollama constrained smoke: passed under --memory=4g --cpus=2
+llama.cpp constrained direct inference: OOM-killed under --memory=4g --cpus=2
+```
+
+The Ollama image is still experimental. It uses the `ollama-demo` provider path and is not final-mode compliant until routing, certification, startup behavior, and benchmark promotion policy are deliberately updated.
 
 ## Version 5 Qualification Benchmark Packaging
 

@@ -11,3 +11,8 @@ data/
 containers/lemonade/
 compose*.yml
 scripts/benchmark-*.sh
+!models/
+!models/version5/
+!models/version5/nemotron-3-nano-4b.gguf
+!models/version5-ollama/
+!models/version5-ollama/**

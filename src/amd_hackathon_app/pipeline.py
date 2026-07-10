@@ -57,10 +57,33 @@ VERSION_5_WORK_JURISDICTIONS = [
 
 LOCAL_STATUS_VALUES = {"LOCAL_CERTIFIED", "LOCAL_DENIED", "LOCAL_CONDITIONAL", "FIREWORKS_ONLY"}
 
+VERSION_5_LOCAL_MODEL = {
+    "model_name": "nemotron-3-nano:4b",
+    "file_name": "nemotron-3-nano-4b.gguf",
+    "image_path": "/app/models/nemotron-3-nano-4b.gguf",
+    "sha256": "527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970",
+    "size_bytes": 2837586496,
+    "source": "local Ollama GGUF backup",
+    "backup_path": "/mnt/g/ollama-models-backup-container/models/blobs/sha256-527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970",
+    "format": "GGUF",
+    "quantization": "observed_ollama_model_blob",
+    "license": "from bundled Ollama license layer; review before final submission",
+}
+
 VERSION_5_LOCAL_CERTIFICATION = {
     "TASK_FAMILY_CLASSIFICATION": {
         "local_status": "LOCAL_DENIED",
-        "fallback": "FIREWORKS_ONLY_UNTIL_MODEL_ARTIFACT_AND_TESTS_EXIST",
+        "fallback": "FIREWORKS_ONLY_UNTIL_BENCHMARK_PROMOTION",
+        "validator_coverage": "medium",
+    },
+    "PROMPT_OPTIMIZATION": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "FIREWORKS_ONLY_UNTIL_BENCHMARK_PROMOTION",
+        "validator_coverage": "medium",
+    },
+    "TASK_CONTRACT_EXTRACTION": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "FIREWORKS_ONLY_UNTIL_BENCHMARK_PROMOTION",
         "validator_coverage": "medium",
     },
     "SHORT_FACTUAL_ANSWERING": {
@@ -70,12 +93,12 @@ VERSION_5_LOCAL_CERTIFICATION = {
     },
     "SENTIMENT_CLASSIFICATION": {
         "local_status": "LOCAL_DENIED",
-        "fallback": "FIREWORKS_ONLY_UNTIL_MODEL_ARTIFACT_AND_TESTS_EXIST",
+        "fallback": "FIREWORKS_ONLY_UNTIL_BENCHMARK_PROMOTION",
         "validator_coverage": "high",
     },
     "NAMED_ENTITY_RECOGNITION": {
         "local_status": "LOCAL_DENIED",
-        "fallback": "FIREWORKS_ONLY_UNTIL_MODEL_ARTIFACT_AND_TESTS_EXIST",
+        "fallback": "FIREWORKS_ONLY_UNTIL_BENCHMARK_PROMOTION",
         "validator_coverage": "medium",
     },
     "SIMPLE_SUMMARIZATION": {
@@ -102,6 +125,36 @@ VERSION_5_LOCAL_CERTIFICATION = {
         "local_status": "FIREWORKS_ONLY",
         "fallback": "FIREWORKS_REQUIRED",
         "validator_coverage": "low",
+    },
+    "ANSWER_SCHEMA_SELECTION": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "FIREWORKS_ONLY_UNTIL_BENCHMARK_PROMOTION",
+        "validator_coverage": "high",
+    },
+    "DETERMINISTIC_VALIDATION": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "DETERMINISTIC_CODE_ONLY",
+        "validator_coverage": "high",
+    },
+    "STRUCTURAL_REPAIR": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "DETERMINISTIC_REPAIR_OR_FIREWORKS",
+        "validator_coverage": "high",
+    },
+    "SEMANTIC_REPAIR": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "low",
+    },
+    "FIREWORKS_FALLBACK": {
+        "local_status": "FIREWORKS_ONLY",
+        "fallback": "FIREWORKS_REQUIRED",
+        "validator_coverage": "not_applicable",
+    },
+    "TOKEN_BUDGETING": {
+        "local_status": "LOCAL_DENIED",
+        "fallback": "DETERMINISTIC_CODE_ONLY",
+        "validator_coverage": "high",
     },
 }
 
@@ -327,12 +380,13 @@ def local_certification_for(jurisdiction: str) -> dict[str, Any]:
     return {
         "jurisdiction_id": jurisdiction,
         "local_status": status,
-        "local_model": os.environ.get("LLAMA_MODEL_NAME", "missing-selected-gguf-model"),
+        "local_model": os.environ.get("LLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
+        "local_model_sha256": VERSION_5_LOCAL_MODEL["sha256"],
         "local_threshold": None,
         "validator_coverage": row["validator_coverage"],
         "fallback": row["fallback"],
         "fireworks_policy": "ALLOWED_MODELS_ONLY",
-        "benchmark_status": "blocked_until_model_artifact_and_tests_exist",
+        "benchmark_status": "selected_model_pending_real_benchmark_promotion",
     }
 
 
@@ -396,7 +450,7 @@ def select_model(allowed_models: list[str], provider_name: str) -> str:
     if provider_name == "ollama-demo":
         return os.environ.get("MODEL_NAME", "qwen2.5-coder:3b")
     if provider_name == "llama-cpp":
-        return os.environ.get("LLAMA_MODEL_PATH", "/app/models/model.gguf")
+        return os.environ.get("LLAMA_MODEL_PATH", VERSION_5_LOCAL_MODEL["image_path"])
     if not allowed_models:
         raise RuntimeError("ALLOWED_MODELS is required for Fireworks execution")
     return allowed_models[0]
@@ -410,7 +464,7 @@ def route_task(
 ) -> RouteDecision:
     provider_name = provider_override or "fireworks"
     allowed = allowed_models if allowed_models is not None else parse_allowed_models()
-    if provider_name not in {"mock", "fireworks", "ollama-demo", "version5"}:
+    if provider_name not in {"mock", "fireworks", "ollama-demo", "version5", "llama-cpp"}:
         raise ValueError(f"unknown provider override: {provider_name}")
     local_certification = None
     candidate_version = "version_3"
@@ -424,6 +478,10 @@ def route_task(
         else:
             provider_name = "fireworks"
             selected_path = "fireworks"
+    elif provider_name == "llama-cpp":
+        candidate_version = "version_5"
+        local_certification = local_certification_for(jurisdiction)
+        selected_path = "local_uncertified_benchmark"
     model = select_model(allowed, provider_name)
     final_mode_compliant = provider_name in {"fireworks", "mock", "llama-cpp"}
     if provider_name == "ollama-demo":
@@ -473,6 +531,9 @@ class OpenAICompatibleProvider:
     def __init__(self, base_url: str, api_key: str | None = None) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
+        self.max_retries = int(os.environ.get("FIREWORKS_MAX_RETRIES", "4"))
+        self.retry_backoff_seconds = float(os.environ.get("FIREWORKS_RETRY_BACKOFF_SECONDS", "2"))
+        self.timeout_seconds = int(os.environ.get("FIREWORKS_TIMEOUT_SECONDS", "300"))
 
     def complete(self, prompt: str, model: str) -> ProviderResult:
         start = time.perf_counter()
@@ -492,13 +553,38 @@ class OpenAICompatibleProvider:
             headers=headers,
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(request, timeout=120) as response:
-                payload = json.loads(response.read().decode("utf-8"))
-        except urllib.error.URLError as exc:
-            raise RuntimeError(f"provider request failed for {self.base_url}: {exc}") from exc
+        last_error: Exception | None = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                last_error = exc
+                if exc.code != 429 or attempt >= self.max_retries:
+                    raise RuntimeError(f"provider request failed for {self.base_url}: {exc}") from exc
+                retry_after = exc.headers.get("Retry-After")
+                delay = float(retry_after) if retry_after and retry_after.isdigit() else self.retry_backoff_seconds * (attempt + 1)
+                time.sleep(delay)
+            except urllib.error.URLError as exc:
+                last_error = exc
+                if attempt >= self.max_retries:
+                    raise RuntimeError(f"provider request failed for {self.base_url}: {exc}") from exc
+                time.sleep(self.retry_backoff_seconds * (attempt + 1))
+            except TimeoutError as exc:
+                last_error = exc
+                if attempt >= self.max_retries:
+                    raise RuntimeError(f"provider request timed out for {self.base_url}: {exc}") from exc
+                time.sleep(self.retry_backoff_seconds * (attempt + 1))
+        else:
+            raise RuntimeError(f"provider request failed for {self.base_url}: {last_error}")
 
-        text = payload["choices"][0]["message"]["content"]
+        choice = payload["choices"][0]
+        message = choice.get("message") or {}
+        text = message.get("content") or message.get("reasoning") or choice.get("text") or ""
+        if isinstance(text, list):
+            text = "".join(str(part.get("text", part)) if isinstance(part, dict) else str(part) for part in text)
+        text = str(text)
         usage = payload.get("usage") or {}
         return ProviderResult(
             text=text,
@@ -546,7 +632,6 @@ class LlamaCppProvider:
         try:
             completed = subprocess.run(
                 command,
-                text=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 timeout=self.timeout_seconds,
@@ -555,9 +640,9 @@ class LlamaCppProvider:
         except subprocess.TimeoutExpired as exc:
             raise RuntimeError(f"llama.cpp timed out after {self.timeout_seconds}s") from exc
         if completed.returncode != 0:
-            stderr = completed.stderr.strip()[:500]
+            stderr = completed.stderr.decode("utf-8", errors="replace").strip()[:500]
             raise RuntimeError(f"llama.cpp exited with {completed.returncode}: {stderr}")
-        text = completed.stdout.strip()
+        text = completed.stdout.decode("utf-8", errors="replace").strip()
         return ProviderResult(
             text=text,
             token_usage={
@@ -627,10 +712,11 @@ def run_task(
     initial_decision = decision
     provider = provider_for(decision.provider)
     fallback_reason = None
+    allow_version5_fallback = provider_override == "version5"
     try:
         result = provider.complete(packet["compiled_prompt"], decision.model)
     except RuntimeError as exc:
-        if decision.candidate_version != "version_5" or decision.provider != "llama-cpp":
+        if not allow_version5_fallback or decision.candidate_version != "version_5" or decision.provider != "llama-cpp":
             raise
         fallback_reason = f"local_runtime_failure: {exc}"
         decision = route_task(task_family, jurisdiction, "fireworks", allowed_models)
@@ -642,6 +728,7 @@ def run_task(
         decision.candidate_version == "version_5"
         and decision.provider == "llama-cpp"
         and not validation["passed"]
+        and allow_version5_fallback
     ):
         fallback_reason = f"local_validation_failure: {validation['reason']}"
         decision = route_task(task_family, jurisdiction, "fireworks", allowed_models)
@@ -730,6 +817,8 @@ def run_tasks_file(
             if provider_override == "ollama-demo"
             else "version_5_candidate"
             if provider_override == "version5"
+            else "version_5_direct_llama_cpp_benchmark"
+            if provider_override == "llama-cpp"
             else "fireworks_final_compatible"
         ),
         "result_path": str(output_path),
@@ -745,9 +834,13 @@ def preflight() -> dict[str, Any]:
         "repo_root": str(ROOT),
         "doctrine": "version-3-most-innovative-routing-system",
         "version_5_candidate_available": True,
-        "version_5_local_model_status": "blocked_until_selected_gguf_artifact_is_available",
+        "version_5_local_model_status": "selected_pending_real_benchmarks_and_certification",
+        "version_5_local_model": VERSION_5_LOCAL_MODEL,
+        "version_5_local_certified_count": sum(
+            1 for row in VERSION_5_LOCAL_CERTIFICATION.values() if row["local_status"] == "LOCAL_CERTIFIED"
+        ),
         "llama_cpp_binary": os.environ.get("LLAMA_CPP_BINARY", "/app/bin/llama-cli"),
-        "llama_model_path": os.environ.get("LLAMA_MODEL_PATH", "/app/models/model.gguf"),
+        "llama_model_path": os.environ.get("LLAMA_MODEL_PATH", VERSION_5_LOCAL_MODEL["image_path"]),
         "llama_context_length": int(os.environ.get("LLAMA_CONTEXT_LENGTH", "2048")),
         "llama_threads": int(os.environ.get("LLAMA_THREADS", "2")),
         "fireworks_base_url_configured": bool(os.environ.get("FIREWORKS_BASE_URL")),

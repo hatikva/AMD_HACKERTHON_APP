@@ -1,12 +1,40 @@
+FROM debian:bookworm-slim AS llamacpp-builder
+
+ARG LLAMA_CPP_REPO=https://github.com/ggml-org/llama.cpp.git
+ARG LLAMA_CPP_REF=07d937828636e305bc0cfe738b288f9ab05ff748
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+      build-essential \
+      ca-certificates \
+      cmake \
+      git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+RUN git init llama.cpp \
+    && git -C llama.cpp remote add origin "$LLAMA_CPP_REPO" \
+    && git -C llama.cpp fetch --depth 1 --filter=blob:none origin "$LLAMA_CPP_REF" \
+    && git -C llama.cpp checkout FETCH_HEAD
+RUN cmake -S llama.cpp -B llama.cpp/build \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DGGML_NATIVE=OFF \
+      -DGGML_OPENMP=OFF \
+      -DGGML_BLAS=OFF \
+      -DLLAMA_CURL=OFF \
+    && cmake --build llama.cpp/build --target llama-cli -j2
+
 FROM python:3.12-slim AS app
 
 LABEL org.opencontainers.image.title="AMD Hackathon Track 1 Version 5 Candidate"
-LABEL org.opencontainers.image.description="llama.cpp local-first candidate with Fireworks fallback. Model artifact is supplied only when explicitly available."
+LABEL org.opencontainers.image.description="llama.cpp local-first candidate with bundled nemotron-3-nano:4b GGUF and Fireworks fallback."
 
 ENV PYTHONUNBUFFERED=1
 ENV APP_RUN_DIR=/output/runs
 ENV LLAMA_CPP_BINARY=/app/bin/llama-cli
-ENV LLAMA_MODEL_PATH=/app/models/model.gguf
+ENV LD_LIBRARY_PATH=/app/lib
+ENV LLAMA_MODEL_PATH=/app/models/nemotron-3-nano-4b.gguf
+ENV LLAMA_MODEL_NAME=nemotron-3-nano:4b
 ENV LLAMA_CONTEXT_LENGTH=2048
 ENV LLAMA_THREADS=2
 ENV LLAMA_MAX_TOKENS=128
@@ -18,11 +46,14 @@ WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY docs ./docs
+COPY --from=llamacpp-builder /build/llama.cpp/build/bin/llama-cli /app/bin/llama-cli
+COPY --from=llamacpp-builder /build/llama.cpp/build/bin/lib*.so* /app/lib/
+COPY models/version5/nemotron-3-nano-4b.gguf /app/models/nemotron-3-nano-4b.gguf
 
 RUN python -m pip install --no-cache-dir .
-RUN mkdir -p /input /output /app/bin /app/models
+RUN mkdir -p /input /output \
+    && test -x /app/bin/llama-cli \
+    && test -s /app/lib/libllama.so \
+    && test -s /app/models/nemotron-3-nano-4b.gguf
 
-# Version 5 requires a pinned llama.cpp binary and a selected GGUF model before
-# local jurisdictions can be certified. This Dockerfile keeps those paths stable
-# without pretending that a model artifact has been selected.
 CMD ["amd-router", "run-submission", "--input", "/input/tasks.json", "--output", "/output/results.json", "--provider", "version5"]

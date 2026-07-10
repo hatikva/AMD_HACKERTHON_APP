@@ -132,11 +132,23 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(set(public_results[0]), {"task_id", "answer"})
         self.assertEqual(payload["audit_records"][0]["selected_provider"], "mock")
 
-    def test_version5_certification_is_conservative_until_model_artifact_exists(self) -> None:
+    def test_version5_certification_is_conservative_until_benchmarks_promote_model(self) -> None:
         certification = local_certification_for("SENTIMENT_CLASSIFICATION")
         self.assertEqual(certification["local_status"], "LOCAL_DENIED")
+        self.assertEqual(certification["local_model"], "nemotron-3-nano:4b")
+        self.assertEqual(
+            certification["local_model_sha256"],
+            "527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970",
+        )
         self.assertEqual(certification["fireworks_policy"], "ALLOWED_MODELS_ONLY")
-        self.assertEqual(certification["benchmark_status"], "blocked_until_model_artifact_and_tests_exist")
+        self.assertEqual(certification["benchmark_status"], "selected_model_pending_real_benchmark_promotion")
+
+    def test_version5_has_no_local_certified_jurisdictions_by_default(self) -> None:
+        statuses = {
+            jurisdiction: local_certification_for(jurisdiction)["local_status"]
+            for jurisdiction in pipeline_module.VERSION_5_WORK_JURISDICTIONS
+        }
+        self.assertNotIn("LOCAL_CERTIFIED", set(statuses.values()))
 
     def test_version5_routes_to_fireworks_when_local_is_not_certified(self) -> None:
         decision = route_task(
@@ -149,6 +161,18 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(decision.provider, "fireworks")
         self.assertEqual(decision.selected_path, "fireworks")
         self.assertEqual(decision.model, "allowed-model-a")
+
+    def test_direct_llama_cpp_route_is_available_for_uncertified_benchmarking(self) -> None:
+        decision = route_task(
+            task_family="sentiment",
+            jurisdiction="SENTIMENT_CLASSIFICATION",
+            provider_override="llama-cpp",
+            allowed_models=[],
+        )
+        self.assertEqual(decision.candidate_version, "version_5")
+        self.assertEqual(decision.provider, "llama-cpp")
+        self.assertEqual(decision.selected_path, "local_uncertified_benchmark")
+        self.assertEqual(decision.local_certification["local_status"], "LOCAL_DENIED")
 
     def test_llama_cpp_provider_reports_missing_binary(self) -> None:
         provider = LlamaCppProvider()
@@ -163,10 +187,10 @@ class PipelineTests(unittest.TestCase):
         provider.threads = 2
         provider.max_tokens = 128
 
-        command = provider.command_for("Return yes.", "/app/models/model.gguf")
+        command = provider.command_for("Return yes.", "/app/models/nemotron-3-nano-4b.gguf")
 
         self.assertEqual(command[0], "/app/bin/llama-cli")
-        self.assertIn("/app/models/model.gguf", command)
+        self.assertIn("/app/models/nemotron-3-nano-4b.gguf", command)
         self.assertIn("2048", command)
         self.assertIn("2", command)
         self.assertIn("128", command)
