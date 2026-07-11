@@ -31,6 +31,7 @@ from amd_hackathon_app.pipeline import (
     VERSION_6_LOCAL_PROVIDER,
     VERSION_6_PRODUCTION_PROVIDER,
     VERSION_6_STAGING_PROVIDER,
+    VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
     local_certification_for,
     parse_allowed_models,
     parse_staging_allowed_models,
@@ -178,6 +179,34 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(decision.provider, "fireworks")
         self.assertEqual(decision.selected_path, "fireworks")
         self.assertEqual(decision.model, "allowed-model-a")
+
+    def test_version6_staging_remote_baseline_routes_directly_to_ollama_cloud(self) -> None:
+        old_allowed = os.environ.get("STAGING_ALLOWED_MODELS")
+        old_model = os.environ.get("STAGING_INFERENCE_MODEL")
+        try:
+            os.environ["STAGING_ALLOWED_MODELS"] = "minimax-m3:cloud"
+            os.environ["STAGING_INFERENCE_MODEL"] = "minimax-m3:cloud"
+            decision = route_task(
+                task_family="factual_qa",
+                jurisdiction="STAGING_REMOTE_BASELINE",
+                provider_override=VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
+                allowed_models=[],
+            )
+        finally:
+            if old_allowed is None:
+                os.environ.pop("STAGING_ALLOWED_MODELS", None)
+            else:
+                os.environ["STAGING_ALLOWED_MODELS"] = old_allowed
+            if old_model is None:
+                os.environ.pop("STAGING_INFERENCE_MODEL", None)
+            else:
+                os.environ["STAGING_INFERENCE_MODEL"] = old_model
+
+        self.assertEqual(decision.candidate_version, "version_6")
+        self.assertEqual(decision.provider, VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER)
+        self.assertEqual(decision.model, "minimax-m3")
+        self.assertEqual(decision.selected_path, "staging_remote_baseline")
+        self.assertEqual(decision.reason, "staging_remote_baseline_direct_ollama_cloud")
 
     def test_direct_llama_cpp_route_is_available_for_uncertified_benchmarking(self) -> None:
         decision = route_task(
@@ -337,6 +366,18 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(len(rows), 5)
             self.assertEqual(sorted(row["difficulty_hint"] for row in rows), [1, 2, 3, 4, 5])
             self.assertTrue(all("evaluation" in row for row in rows))
+
+    def test_version6_shadow_category_benchmark_loads_with_expected_integrity(self) -> None:
+        suite = load_category_benchmark(Path("benchmarks/categories/version6_shadow_category_benchmarks_v1.json"))
+
+        self.assertEqual(len(suite.tasks), 40)
+        self.assertEqual({row["id"] for row in suite.payload["categories"]}, set(CANONICAL_CATEGORIES))
+        self.assertEqual(len({row["id"] for row in suite.tasks}), 40)
+        self.assertEqual(len({row["prompt"] for row in suite.tasks}), 40)
+        for category in CANONICAL_CATEGORIES:
+            rows = [row for row in suite.tasks if row["task_category"] == category]
+            self.assertEqual(len(rows), 5)
+            self.assertEqual(sorted(row["difficulty_hint"] for row in rows), [1, 2, 3, 4, 5])
 
     def test_benchmark_model_visible_projection_excludes_evaluation_metadata(self) -> None:
         task = load_category_benchmark().tasks[0]

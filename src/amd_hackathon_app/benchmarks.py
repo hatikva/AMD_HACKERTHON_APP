@@ -18,6 +18,7 @@ from .pipeline import (
     VERSION_5_LOCAL_MODEL,
     VERSION_5_LOCAL_PROVIDER,
     VERSION_6_STAGING_PROVIDER,
+    VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
     parse_allowed_models,
     parse_staging_allowed_models,
     resolve_ollama_cloud_model,
@@ -314,18 +315,23 @@ def candidate_metadata(provider: str, model: str | None) -> dict[str, Any]:
             "base_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
             "final_mode_compliant": False,
         }
-    if provider == VERSION_6_STAGING_PROVIDER:
+    if provider in {VERSION_6_STAGING_PROVIDER, VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER}:
         supplied_model = model or os.environ.get("STAGING_INFERENCE_MODEL", "")
         allowed = parse_staging_allowed_models()
         api_model = resolve_ollama_cloud_model(supplied_model, allowed)
         return {
-            "provider": VERSION_6_STAGING_PROVIDER,
+            "provider": provider,
             "remote_provider": STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
             "supplied_model": supplied_model,
+            "requested_model_alias": supplied_model,
+            "exact_api_model_id": api_model,
             "model": api_model,
             "mapping": OLLAMA_CLOUD_MODEL_MAPPINGS[supplied_model],
             "allowed_models_source": "STAGING_ALLOWED_MODELS",
             "official_fireworks_token_score": "NOT_MEASURED",
+            "evidence_class": "staging_only",
+            "submission_eligible": False,
+            "automatic_authority_promotion": False,
             "not_for_submission": True,
             "production_authorization_registry_mutated": False,
         }

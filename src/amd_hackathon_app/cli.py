@@ -15,6 +15,7 @@ from .pipeline import (
     VERSION_6_LOCAL_PROVIDER,
     VERSION_6_PRODUCTION_PROVIDER,
     VERSION_6_STAGING_PROVIDER,
+    VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
     preflight,
     record_to_json,
     run_scenario,
@@ -166,6 +167,7 @@ def build_parser() -> argparse.ArgumentParser:
         VERSION_6_LOCAL_PROVIDER,
         VERSION_6_PRODUCTION_PROVIDER,
         VERSION_6_STAGING_PROVIDER,
+        VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
         "llama-cpp",
     ]
     canonical_benchmark_path = "benchmarks/categories/version5_local_category_benchmarks_v2.json"

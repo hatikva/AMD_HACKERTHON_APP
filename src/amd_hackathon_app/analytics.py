@@ -21,6 +21,7 @@ ANALYTICS_SCHEMA = "amd_hackathon.version5_authority_analytics.v1"
 VERSION6_ANALYTICS_SCHEMA = "amd_hackathon.version6_submission_analytics.v1"
 CATEGORY_TASK_TOTAL = 5
 QUALIFICATION_ONLY_PROVIDERS = {"ollama-demo", "llama-cpp"}
+STAGING_ONLY_PROVIDERS = {"version6-staging", "version6-staging-remote-baseline"}
 
 FAMILY_TO_CATEGORY = {
     "factual_qa": "FACTUAL_KNOWLEDGE",
@@ -71,6 +72,27 @@ def load_result_files(results_dir: Path) -> list[tuple[Path, dict[str, Any]]]:
     return payloads
 
 
+def numeric_value(value: Any, default: int = 0) -> int:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return default
+    return default
+
+
+def token_sort_value(value: Any) -> int:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return int(value)
+    return 10**12
+
+
 def result_identity(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
     candidate = payload.get("candidate") or {}
     provider = str(candidate.get("provider") or "unknown")
@@ -97,6 +119,13 @@ def result_identity(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
         evidence_class = "qualification_only_evidence"
         final_provider_evidence = False
         qualification_only = True
+    elif provider in STAGING_ONLY_PROVIDERS or candidate.get("evidence_class") == "staging_only":
+        mode = "remote baseline" if provider == "version6-staging-remote-baseline" else "Version 6 routed"
+        alias = candidate.get("requested_model_alias") or candidate.get("supplied_model") or model
+        display_name = f"Ollama Cloud staging {mode} / {alias}"
+        evidence_class = "staging_only"
+        final_provider_evidence = False
+        qualification_only = True
     elif provider == VERSION_5_LOCAL_PROVIDER:
         display_name = f"{provider} / {model}"
         evidence_class = "final_provider_evidence"
@@ -114,6 +143,12 @@ def result_identity(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
         "model": model,
         "effective_provider": effective_provider,
         "effective_model": effective_model,
+        "requested_model_alias": candidate.get("requested_model_alias") or candidate.get("supplied_model"),
+        "exact_api_model_id": candidate.get("exact_api_model_id") or model,
+        "remote_provider": candidate.get("remote_provider"),
+        "submission_eligible": bool(candidate.get("submission_eligible", True)) and evidence_class != "staging_only",
+        "automatic_authority_promotion": bool(candidate.get("automatic_authority_promotion", True))
+        and evidence_class != "staging_only",
         "result_file": str(path),
         "result_file_name": path.name,
         "evidence_class": evidence_class,
@@ -133,7 +168,7 @@ def safe_summary(payload: dict[str, Any]) -> dict[str, Any]:
         "overall_tasks": total,
         "overall_passed": passed,
         "overall_accuracy": passed / total if total else 0,
-        "judged_fireworks_tokens": sum(int(row.get("judged_fireworks_tokens") or 0) for row in records),
+        "judged_fireworks_tokens": sum(numeric_value(row.get("judged_fireworks_tokens")) for row in records),
         "runtime_failures": 0,
         "validation_failures": 0,
         "evaluator_failures": total - passed,
@@ -144,16 +179,21 @@ def safe_summary(payload: dict[str, Any]) -> dict[str, Any]:
 def overall_metrics(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
     summary = safe_summary(payload)
     records = payload.get("results", [])
-    latency = sum(int(((row.get("route_record") or {}).get("latency") or {}).get("milliseconds") or 0) for row in records)
-    fireworks_tokens = sum(int(row.get("judged_fireworks_tokens") or 0) for row in records)
+    latency = sum(numeric_value(((row.get("route_record") or {}).get("latency") or {}).get("milliseconds")) for row in records)
+    fireworks_tokens = sum(numeric_value(row.get("judged_fireworks_tokens")) for row in records)
     return {
         **result_identity(path, payload),
         "benchmark_suite": payload.get("benchmark_suite"),
+        "suite": payload.get("suite"),
+        "execution_mode": payload.get("execution_mode"),
+        "run_id": payload.get("run_id"),
         "benchmark_hash": payload.get("benchmark_hash"),
         "overall_tasks": int(summary.get("overall_tasks") or 0),
         "overall_passed": int(summary.get("overall_passed") or 0),
         "overall_accuracy": float(summary.get("overall_accuracy") or 0),
         "judged_fireworks_tokens": fireworks_tokens,
+        "staging_remote_tokens": summary.get("staging_remote_tokens", "NOT_RETURNED"),
+        "token_metric_status": summary.get("token_metric_status"),
         "runtime_failures": int(summary.get("runtime_failures") or 0),
         "validation_failures": int(summary.get("validation_failures") or 0),
         "evaluator_failures": int(summary.get("evaluator_failures") or 0),
@@ -177,7 +217,7 @@ def per_category_metrics(path: Path, payload: dict[str, Any]) -> dict[str, dict[
             "tasks": tasks,
             "passed": passed,
             "accuracy": float(row.get("accuracy") or (passed / tasks if tasks else 0)),
-            "judged_fireworks_tokens": int(row.get("judged_fireworks_tokens") or 0),
+            "judged_fireworks_tokens": numeric_value(row.get("judged_fireworks_tokens")),
             "validation_failures": int(row.get("validation_failures") or 0),
             "evaluator_failures": int(row.get("evaluator_failures") or max(0, tasks - passed)),
             "latency_ms": int(row.get("latency_ms") or 0),
@@ -188,7 +228,7 @@ def per_category_metrics(path: Path, payload: dict[str, Any]) -> dict[str, dict[
 def ranking_key(row: dict[str, Any]) -> tuple[int, int, int, int, str]:
     return (
         -int(row["passed"]),
-        int(row["judged_fireworks_tokens"]),
+        token_sort_value(row["judged_fireworks_tokens"]),
         int(row["validation_failures"]),
         int(row["latency_ms"]),
         str(row["id"]),
@@ -411,6 +451,7 @@ def write_version5_analytics(results_dir: Path, output_path: Path) -> dict[str, 
 def build_version6_analytics(results_dir: Path = ROOT / "qualification/results") -> dict[str, Any]:
     evidence = build_version5_analytics(results_dir)
     metrics = evidence["per_model_overall_metrics"]
+    staging_rows = [row for row in metrics if row["evidence_class"] == "staging_only"]
     local_rows = [row for row in metrics if row["provider"] in {"version6-ollama", "version5-ollama", "ollama-demo"}]
     fallback_rows = [row for row in metrics if row["effective_provider"] == "fireworks" or row["provider"] == "fireworks"]
     compliance = {
@@ -437,6 +478,14 @@ def build_version6_analytics(results_dir: Path = ROOT / "qualification/results")
             "production": "FIREWORKS_BASE_URL with FIREWORKS_API_KEY and ALLOWED_MODELS",
             "staging": "STAGING_INFERENCE_BASE_URL for token-safe development only",
             "production_external_non_fireworks_allowed": False,
+        },
+        "staging_results": {
+            "provider": "Ollama Cloud staging",
+            "submission_eligible": False,
+            "official_production_evidence": False,
+            "automatic_authority_promotion": False,
+            "fireworks_token_evidence": False,
+            "rows": staging_rows,
         },
     }
     deduced = {
@@ -482,6 +531,7 @@ def build_version6_analytics(results_dir: Path = ROOT / "qualification/results")
             ],
         },
         "local_nemotron_evidence": local_rows,
+        "staging_ollama_cloud_evidence": staging_rows,
         "staging_vs_production_readiness": {
             "same_code_path_required": True,
             "only_remote_fallback_differs": True,

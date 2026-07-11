@@ -11,6 +11,8 @@ qualification/results/*
 !qualification/results/.gitkeep
 runs/*
 !runs/.gitkeep
+staging-runs/*
+!staging-runs/.gitkeep
 data/
 *.gguf
 models/

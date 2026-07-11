@@ -59,6 +59,65 @@ class AnalyticsTests(unittest.TestCase):
         self.assertTrue(local_rows[0]["qualification_only"])
         self.assertFalse(local_rows[0]["final_provider_evidence"])
 
+    def test_staging_only_evidence_is_visible_but_not_production_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            results_dir = Path(tmp)
+            result_path = results_dir / "version6-staging-canonical-minimax-m3-remote-test.json"
+            result_path.write_text(
+                """{
+  "schema": "amd_hackathon.qualification_results.v1",
+  "benchmark_suite": "version5-category-benchmark-v2",
+  "benchmark_hash": "test",
+  "suite": "canonical",
+  "execution_mode": "staging_remote_baseline",
+  "run_id": "test-run",
+  "candidate": {
+    "provider": "version6-staging-remote-baseline",
+    "remote_provider": "ollama-cloud",
+    "requested_model_alias": "minimax-m3:cloud",
+    "exact_api_model_id": "minimax-m3",
+    "model": "minimax-m3",
+    "evidence_class": "staging_only",
+    "submission_eligible": false,
+    "automatic_authority_promotion": false
+  },
+  "summary": {
+    "overall_tasks": 1,
+    "overall_passed": 1,
+    "overall_accuracy": 1.0,
+    "judged_fireworks_tokens": 0,
+    "runtime_failures": 0,
+    "validation_failures": 0,
+    "evaluator_failures": 0,
+    "staging_remote_tokens": "NOT_RETURNED",
+    "token_metric_status": "NOT_RETURNED",
+    "by_category": {}
+  },
+  "results": [
+    {
+      "task_id": "one",
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "difficulty_hint": 1,
+      "evaluation_result": {"passed": true},
+      "judged_fireworks_tokens": "not_applicable",
+      "route_record": {"latency": {"milliseconds": 5}}
+    }
+  ]
+}
+""",
+                encoding="utf-8",
+            )
+
+            payload = build_version6_analytics(results_dir)
+
+        staging_rows = payload["staging_ollama_cloud_evidence"]
+        self.assertEqual(len(staging_rows), 1)
+        self.assertEqual(staging_rows[0]["evidence_class"], "staging_only")
+        self.assertFalse(staging_rows[0]["final_provider_evidence"])
+        self.assertFalse(staging_rows[0]["submission_eligible"])
+        self.assertFalse(staging_rows[0]["automatic_authority_promotion"])
+        self.assertEqual(staging_rows[0]["judged_fireworks_tokens"], 0)
+
     def test_categorization_evaluation_uses_official_shape_projection(self) -> None:
         payload = build_version5_analytics(Path("qualification/results"))
         report = payload["categorization_evaluation"]

@@ -60,6 +60,7 @@ VERSION_5_LOCAL_PROVIDER = "version5-ollama"
 VERSION_6_LOCAL_PROVIDER = "version6-ollama"
 VERSION_6_PRODUCTION_PROVIDER = "version6-production"
 VERSION_6_STAGING_PROVIDER = "version6-staging"
+VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER = "version6-staging-remote-baseline"
 VERSION_5_LOCAL_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, "llama-cpp"}
 VERSION_6_PROVIDERS = {VERSION_6_PRODUCTION_PROVIDER, VERSION_6_STAGING_PROVIDER}
 LOCAL_OLLAMA_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, VERSION_6_LOCAL_PROVIDER}
@@ -419,6 +420,8 @@ def normalize_task_family(value: str | None, prompt: str) -> str:
 def jurisdiction_for(task_family: str, provider_override: str | None = None) -> str:
     if provider_override == "ollama-demo":
         return "DEMO_LOCAL_MODEL_EXECUTION"
+    if provider_override == VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER:
+        return "STAGING_REMOTE_BASELINE"
     if provider_override in {"version5", VERSION_5_LOCAL_PROVIDER, "llama-cpp", *VERSION_6_PROVIDERS, VERSION_6_LOCAL_PROVIDER}:
         return version5_jurisdiction_for(task_family)
     if task_family in {"sentiment", "named_entity_recognition"}:
@@ -534,7 +537,7 @@ def select_model(allowed_models: list[str], provider_name: str) -> str:
         return os.environ.get("MODEL_NAME", "qwen2.5-coder:3b")
     if provider_name in LOCAL_OLLAMA_PROVIDERS:
         return os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"])
-    if provider_name == VERSION_6_STAGING_PROVIDER:
+    if provider_name in {VERSION_6_STAGING_PROVIDER, VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER}:
         supplied_id = os.environ.get("STAGING_INFERENCE_MODEL", "").strip()
         staging_allowed = parse_staging_allowed_models()
         return resolve_ollama_cloud_model(supplied_id, staging_allowed)
@@ -562,6 +565,7 @@ def route_task(
         VERSION_6_LOCAL_PROVIDER,
         VERSION_6_PRODUCTION_PROVIDER,
         VERSION_6_STAGING_PROVIDER,
+        VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
         "llama-cpp",
     }:
         raise ValueError(f"unknown provider override: {provider_name}")
@@ -600,10 +604,15 @@ def route_task(
         candidate_version = "version_6"
         local_certification = local_certification_for(jurisdiction)
         selected_path = "local_direct_runtime_evidence"
+    elif provider_name == VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER:
+        candidate_version = "version_6"
+        selected_path = "staging_remote_baseline"
     model = select_model(allowed, provider_name)
     final_mode_compliant = provider_name in {"fireworks", "mock", VERSION_5_LOCAL_PROVIDER, VERSION_6_LOCAL_PROVIDER}
     if provider_name == "ollama-demo":
         reason = "demo_local_model_execution"
+    elif provider_name == VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER:
+        reason = "staging_remote_baseline_direct_ollama_cloud"
     elif candidate_version == "version_6":
         reason = "version_6_local_certification_lookup"
     elif candidate_version == "version_5":
@@ -903,7 +912,7 @@ def provider_for(name: str) -> Any:
         return OpenAICompatibleProvider(os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"))
     if name in LOCAL_OLLAMA_PROVIDERS:
         return OllamaLocalProvider()
-    if name == VERSION_6_STAGING_PROVIDER:
+    if name in {VERSION_6_STAGING_PROVIDER, VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER}:
         return OllamaCloudStagingProvider()
     if name == "fireworks":
         api_key = os.environ.get("FIREWORKS_API_KEY")
@@ -1086,6 +1095,7 @@ def preflight() -> dict[str, Any]:
         "doctrine": "version-6-confirmed-submission-runtime",
         "version_6": VERSION_6_MODE,
         "version_6_submission_providers": sorted(VERSION_6_PROVIDERS),
+        "version_6_staging_remote_baseline_provider": VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
         "version_5_candidate_available": False,
         "version_5_local_model_status": "ollama_runtime_certified_jurisdictions_pending_benchmark_promotion",
         "version_5_local_model": VERSION_5_LOCAL_MODEL,
@@ -1129,6 +1139,8 @@ def submission_mode_name(provider_override: str | None) -> str:
         return "version_6_production_submission"
     if provider_override == VERSION_6_STAGING_PROVIDER:
         return "version_6_staging_submission_shape"
+    if provider_override == VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER:
+        return "version_6_staging_remote_baseline"
     if provider_override == VERSION_6_LOCAL_PROVIDER:
         return "version_6_direct_ollama_evidence"
     if provider_override == "ollama-demo":
