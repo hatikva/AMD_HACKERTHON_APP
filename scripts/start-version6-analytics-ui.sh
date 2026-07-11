@@ -2,7 +2,7 @@
 set -euo pipefail
 
 image="${ANALYTICS_UI_IMAGE:-amd-hackathon:version6-analytics-ui}"
-port="${UI_PORT:-18083}"
+port="${UI_PORT:-18084}"
 
 podman rm -f amd-version6-analytics-ui >/dev/null 2>&1 || true
 

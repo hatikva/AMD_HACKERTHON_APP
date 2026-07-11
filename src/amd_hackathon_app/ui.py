@@ -85,7 +85,7 @@ class UiHandler(BaseHTTPRequestHandler):
         print(f"{self.address_string()} - {fmt % args}")
 
 
-def run(host: str = "127.0.0.1", port: int = 18083) -> None:
+def run(host: str = "127.0.0.1", port: int = 18084) -> None:
     server = ThreadingHTTPServer((host, port), UiHandler)
     print(f"AMD Version 6 analytics UI listening on http://{host}:{port}")
     server.serve_forever()

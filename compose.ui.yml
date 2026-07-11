@@ -6,7 +6,7 @@ services:
     network_mode: host
     environment:
       UI_HOST: 127.0.0.1
-      UI_PORT: 18083
+      UI_PORT: 18084
       UI_RUN_DIR: /tmp/amd-hackathon-ui-runs
       OLLAMA_BASE_URL: http://127.0.0.1:11434/v1
       MODEL_NAME: qwen2.5-coder:3b

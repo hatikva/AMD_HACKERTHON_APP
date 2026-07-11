@@ -136,7 +136,7 @@ docker build -f Dockerfile.version6-ui -t amd-hackathon:version6-analytics-ui .
 docker run --rm --network host amd-hackathon:version6-analytics-ui
 ```
 
-Open `http://127.0.0.1:18083`.
+Open `http://127.0.0.1:18084`.
 
 ## Validation
 

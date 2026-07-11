@@ -219,7 +219,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     ui_parser = subcommands.add_parser("ui")
     ui_parser.add_argument("--host", default=os.environ.get("UI_HOST", "127.0.0.1"))
-    ui_parser.add_argument("--port", type=int, default=int(os.environ.get("UI_PORT", "18083")))
+    ui_parser.add_argument("--port", type=int, default=int(os.environ.get("UI_PORT", "18084")))
     ui_parser.set_defaults(func=cmd_ui)
     return parser
 

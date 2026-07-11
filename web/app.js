@@ -1,5 +1,6 @@
 const statusStrip = document.querySelector("#statusStrip");
 const tabButtons = [...document.querySelectorAll(".tab-button")];
+const views = [...document.querySelectorAll(".view")];
 
 const nodes = {
   overview: document.querySelector("#overview"),
@@ -37,8 +38,16 @@ function statusClass(value) {
 }
 
 function switchView(viewId) {
-  for (const button of tabButtons) button.classList.toggle("active", button.dataset.view === viewId);
-  for (const view of document.querySelectorAll(".view")) view.classList.toggle("active", view.id === viewId);
+  for (const button of tabButtons) {
+    const selected = button.dataset.view === viewId;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-selected", selected ? "true" : "false");
+  }
+  for (const view of views) {
+    const selected = view.id === viewId;
+    view.classList.toggle("active", selected);
+    view.hidden = !selected;
+  }
 }
 
 function table(headers, rows) {

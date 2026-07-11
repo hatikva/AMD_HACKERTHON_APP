@@ -16,8 +16,8 @@ RUN python -m pip install --no-cache-dir -e . \
     && mkdir -p /app/qualification/results
 
 ENV UI_HOST=127.0.0.1
-ENV UI_PORT=18083
+ENV UI_PORT=18084
 
-EXPOSE 18083
+EXPOSE 18084
 
 CMD ["amd-router", "ui"]
