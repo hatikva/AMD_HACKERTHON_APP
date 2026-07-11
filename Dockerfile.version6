@@ -51,6 +51,9 @@ ENTRYPOINT ["/app/bin/version6-entrypoint.sh"]
 
 FROM version6-base AS version6-staging
 ENV VERSION6_REMOTE_FALLBACK=staging
+ENV STAGING_REMOTE_PROVIDER=ollama-cloud
+ENV OLLAMA_CLOUD_BASE_URL=https://ollama.com
+ENV VERSION6_SUBMISSION_STATUS=NOT_FOR_SUBMISSION
 CMD ["amd-router", "run-submission", "--input", "/input/tasks.json", "--output", "/output/results.json", "--provider", "version6-staging"]
 
 FROM version6-base AS version6-production

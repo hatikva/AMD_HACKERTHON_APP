@@ -168,8 +168,8 @@ def build_parser() -> argparse.ArgumentParser:
         VERSION_6_STAGING_PROVIDER,
         "llama-cpp",
     ]
-    canonical_benchmark_path = "qualification/version5_local_category_benchmarks_v2.json"
-    benchmark_suite_id = "version5_local_category_benchmarks_v2"
+    canonical_benchmark_path = "benchmarks/categories/version5_local_category_benchmarks_v2.json"
+    benchmark_suite_id = "version5-category-benchmark-v2"
 
     preflight_parser = subcommands.add_parser("preflight")
     preflight_parser.set_defaults(func=cmd_preflight)

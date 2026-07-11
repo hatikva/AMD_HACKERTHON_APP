@@ -63,6 +63,29 @@ VERSION_6_STAGING_PROVIDER = "version6-staging"
 VERSION_5_LOCAL_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, "llama-cpp"}
 VERSION_6_PROVIDERS = {VERSION_6_PRODUCTION_PROVIDER, VERSION_6_STAGING_PROVIDER}
 LOCAL_OLLAMA_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, VERSION_6_LOCAL_PROVIDER}
+STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD = "ollama-cloud"
+OLLAMA_CLOUD_MODEL_MAPPINGS = {
+    "minimax-m3:cloud": {
+        "api_model_id": "minimax-m3",
+        "mapping_status": "VERIFIED_FROM_API_TAGS",
+        "direct_smoke_status": "STAGING_MODEL_VERIFIED",
+    },
+    "nemotron-3-super:cloud": {
+        "api_model_id": "nemotron-3-super",
+        "mapping_status": "VERIFIED_FROM_API_TAGS",
+        "direct_smoke_status": "STAGING_MODEL_UNAVAILABLE_TIMEOUT",
+    },
+    "gpt-oss:20b-cloud": {
+        "api_model_id": "gpt-oss:20b",
+        "mapping_status": "VERIFIED_FROM_API_TAGS",
+        "direct_smoke_status": "STAGING_MODEL_VERIFIED",
+    },
+    "gemma4:31b-cloud": {
+        "api_model_id": "gemma4:31b",
+        "mapping_status": "VERIFIED_FROM_API_TAGS",
+        "direct_smoke_status": "STAGING_MODEL_VERIFIED",
+    },
+}
 
 VERSION_6_MODE = {
     "track": "AMD Developer Hackathon ACT II Track 1",
@@ -74,7 +97,8 @@ VERSION_6_MODE = {
         "end": "2026-07-12 16:00 British Summer Time",
     },
     "production_remote_fallback": "fireworks",
-    "staging_remote_fallback": "staging-openai-compatible",
+    "staging_remote_fallback": STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
+    "staging_status": "NOT_FOR_SUBMISSION",
 }
 
 VERSION_5_LOCAL_MODEL = {
@@ -242,7 +266,7 @@ class RouteDecision:
 @dataclass(frozen=True)
 class ProviderResult:
     text: str
-    token_usage: dict[str, int]
+    token_usage: dict[str, Any]
     latency_ms: int
 
 
@@ -274,6 +298,24 @@ def parse_allowed_models(value: str | None = None) -> list[str]:
         parsed = json.loads(raw)
         return [str(item).strip() for item in parsed if str(item).strip()]
     return [item.strip() for item in raw.replace("\n", ",").split(",") if item.strip()]
+
+
+def parse_staging_allowed_models(value: str | None = None) -> list[str]:
+    raw = value if value is not None else os.environ.get("STAGING_ALLOWED_MODELS", "")
+    return parse_allowed_models(raw)
+
+
+def resolve_ollama_cloud_model(supplied_id: str, allowed_models: list[str]) -> str:
+    if not supplied_id:
+        raise RuntimeError("STAGING_INFERENCE_MODEL is required for Version 6 Ollama Cloud staging")
+    if not allowed_models:
+        raise RuntimeError("STAGING_ALLOWED_MODELS is required for Version 6 Ollama Cloud staging")
+    if supplied_id not in allowed_models:
+        raise RuntimeError(f"STAGING_INFERENCE_MODEL {supplied_id} is not present in STAGING_ALLOWED_MODELS")
+    mapping = OLLAMA_CLOUD_MODEL_MAPPINGS.get(supplied_id)
+    if not mapping or mapping.get("mapping_status") != "VERIFIED_FROM_API_TAGS":
+        raise RuntimeError(f"Ollama Cloud model {supplied_id} has not been verified through /api/tags")
+    return str(mapping["api_model_id"])
 
 
 def task_from_mapping(row: dict[str, Any], fallback_id: str) -> Task:
@@ -493,7 +535,9 @@ def select_model(allowed_models: list[str], provider_name: str) -> str:
     if provider_name in LOCAL_OLLAMA_PROVIDERS:
         return os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"])
     if provider_name == VERSION_6_STAGING_PROVIDER:
-        return os.environ.get("STAGING_INFERENCE_MODEL") or (allowed_models[0] if allowed_models else "staging-model")
+        supplied_id = os.environ.get("STAGING_INFERENCE_MODEL", "").strip()
+        staging_allowed = parse_staging_allowed_models()
+        return resolve_ollama_cloud_model(supplied_id, staging_allowed)
     if provider_name == "llama-cpp":
         return os.environ.get("LLAMA_MODEL_PATH", VERSION_5_LOCAL_MODEL["image_path"])
     if not allowed_models:
@@ -698,6 +742,101 @@ class OllamaLocalProvider(OpenAICompatibleProvider):
         )
 
 
+class OllamaCloudStagingProvider:
+    name = VERSION_6_STAGING_PROVIDER
+
+    def __init__(self) -> None:
+        remote_fallback = os.environ.get("VERSION6_REMOTE_FALLBACK")
+        staging_provider = os.environ.get("STAGING_REMOTE_PROVIDER")
+        if remote_fallback != "staging" or staging_provider != STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD:
+            raise RuntimeError(
+                "Ollama Cloud staging provider requires VERSION6_REMOTE_FALLBACK=staging "
+                "and STAGING_REMOTE_PROVIDER=ollama-cloud"
+            )
+        self.base_url = os.environ.get("OLLAMA_CLOUD_BASE_URL", "https://ollama.com").rstrip("/")
+        self.api_key = os.environ.get("OLLAMA_API_KEY")
+        if not self.api_key:
+            raise RuntimeError("OLLAMA_API_KEY is required for Ollama Cloud staging")
+        self.max_retries = int(os.environ.get("STAGING_MAX_RETRIES", "2"))
+        self.retry_backoff_seconds = float(os.environ.get("STAGING_RETRY_BACKOFF_SECONDS", "2"))
+        self.timeout_seconds = int(os.environ.get("STAGING_TIMEOUT_SECONDS", "180"))
+
+    def complete(self, prompt: str, model: str) -> ProviderResult:
+        start = time.perf_counter()
+        body = json.dumps(
+            {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "stream": False,
+            }
+        ).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}",
+        }
+        last_error: Exception | None = None
+        payload: dict[str, Any] | None = None
+        for attempt in range(self.max_retries + 1):
+            request = urllib.request.Request(
+                f"{self.base_url}/api/chat",
+                data=body,
+                headers=headers,
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as exc:
+                last_error = exc
+                if exc.code not in {429, 500, 502, 503, 504} or attempt >= self.max_retries:
+                    raise RuntimeError(f"Ollama Cloud staging request failed with HTTP {exc.code}") from exc
+                retry_after = exc.headers.get("Retry-After")
+                delay = float(retry_after) if retry_after and retry_after.isdigit() else self.retry_backoff_seconds * (attempt + 1)
+                time.sleep(delay)
+            except (urllib.error.URLError, TimeoutError) as exc:
+                last_error = exc
+                if attempt >= self.max_retries:
+                    raise RuntimeError(f"Ollama Cloud staging request failed: {type(exc).__name__}") from exc
+                time.sleep(self.retry_backoff_seconds * (attempt + 1))
+        else:
+            raise RuntimeError(f"Ollama Cloud staging request failed: {last_error}")
+
+        if not isinstance(payload, dict):
+            raise RuntimeError("Ollama Cloud staging response was malformed")
+        message = payload.get("message")
+        if not isinstance(message, dict):
+            raise RuntimeError("Ollama Cloud staging response was missing message")
+        text = message.get("content")
+        if not isinstance(text, str) or not text.strip():
+            raise RuntimeError("Ollama Cloud staging response was empty")
+
+        prompt_count = payload.get("prompt_eval_count")
+        completion_count = payload.get("eval_count")
+        token_usage: dict[str, Any] = {
+            "judged_fireworks_tokens": "not_applicable",
+            "official_fireworks_token_score": "NOT_MEASURED",
+            "staging_remote_provider": STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
+            "staging_remote_model": model,
+            "staging_remote_total_duration": payload.get("total_duration"),
+            "staging_remote_load_duration": payload.get("load_duration"),
+            "staging_remote_eval_duration": payload.get("eval_duration"),
+            "retry_count": 0,
+        }
+        if isinstance(prompt_count, int):
+            token_usage["staging_remote_prompt_tokens"] = prompt_count
+        if isinstance(completion_count, int):
+            token_usage["staging_remote_completion_tokens"] = completion_count
+        if isinstance(prompt_count, int) and isinstance(completion_count, int):
+            token_usage["staging_remote_total_tokens"] = prompt_count + completion_count
+
+        return ProviderResult(
+            text=text,
+            token_usage=token_usage,
+            latency_ms=int((time.perf_counter() - start) * 1000),
+        )
+
+
 class LlamaCppProvider:
     name = "llama-cpp"
 
@@ -765,11 +904,7 @@ def provider_for(name: str) -> Any:
     if name in LOCAL_OLLAMA_PROVIDERS:
         return OllamaLocalProvider()
     if name == VERSION_6_STAGING_PROVIDER:
-        base_url = os.environ.get("STAGING_INFERENCE_BASE_URL")
-        if not base_url:
-            raise RuntimeError("STAGING_INFERENCE_BASE_URL is required for Version 6 staging fallback")
-        api_key = os.environ.get("STAGING_INFERENCE_API_KEY")
-        return OpenAICompatibleProvider(base_url, api_key)
+        return OllamaCloudStagingProvider()
     if name == "fireworks":
         api_key = os.environ.get("FIREWORKS_API_KEY")
         if not api_key:
@@ -861,15 +996,20 @@ def run_task(
     local_success = bool(local_attempted and not fallback_reason and validation["passed"])
     fireworks_used = decision.provider == "fireworks"
     retry_count = 1 if fallback_reason else 0
-    fireworks_token_usage = (
-        {
+    staging_remote_used = decision.provider == VERSION_6_STAGING_PROVIDER
+    if fireworks_used:
+        fireworks_token_usage: dict[str, Any] = {
             "prompt_tokens": result.token_usage.get("prompt_tokens", 0),
             "completion_tokens": result.token_usage.get("completion_tokens", 0),
             "total_tokens": result.token_usage.get("total_tokens", 0),
         }
-        if fireworks_used
-        else {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
-    )
+        judged_fireworks_tokens: int | str = int(fireworks_token_usage["total_tokens"])
+    elif staging_remote_used:
+        fireworks_token_usage = {"judged_fireworks_tokens": "not_applicable", "official_fireworks_token_score": "NOT_MEASURED"}
+        judged_fireworks_tokens = "not_applicable"
+    else:
+        fireworks_token_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        judged_fireworks_tokens = 0
 
     record = {
         **packet,
@@ -889,6 +1029,8 @@ def run_task(
         "repair": repair,
         "token_usage": result.token_usage,
         "fireworks_token_usage": fireworks_token_usage,
+        "judged_fireworks_tokens": judged_fireworks_tokens,
+        "official_fireworks_token_score": "NOT_MEASURED" if staging_remote_used else judged_fireworks_tokens,
         "retry_count": retry_count,
         "memory_estimate": None,
         "latency": {"milliseconds": result.latency_ms},
@@ -959,7 +1101,14 @@ def preflight() -> dict[str, Any]:
         "version6_ollama_provider": VERSION_6_LOCAL_PROVIDER,
         "version6_production_provider": VERSION_6_PRODUCTION_PROVIDER,
         "version6_staging_provider": VERSION_6_STAGING_PROVIDER,
-        "staging_inference_base_url_configured": bool(os.environ.get("STAGING_INFERENCE_BASE_URL")),
+        "staging_remote_provider": os.environ.get("STAGING_REMOTE_PROVIDER"),
+        "staging_remote_provider_required": STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
+        "staging_allowed_models_count": len(parse_staging_allowed_models()),
+        "staging_inference_model": os.environ.get("STAGING_INFERENCE_MODEL"),
+        "ollama_cloud_base_url": os.environ.get("OLLAMA_CLOUD_BASE_URL", "https://ollama.com"),
+        "ollama_cloud_api_key_configured": bool(os.environ.get("OLLAMA_API_KEY")),
+        "ollama_cloud_model_mappings": OLLAMA_CLOUD_MODEL_MAPPINGS,
+        "ollama_cloud_not_for_submission": True,
         "version5_ollama_model": os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
         "version5_ollama_base_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
         "version5_ollama_context_length": int(os.environ.get("OLLAMA_CONTEXT_LENGTH", "128")),

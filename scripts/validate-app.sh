@@ -67,7 +67,11 @@ grep -q 'DEMO_LOCAL_MODEL_EXECUTION' src/amd_hackathon_app/pipeline.py
 grep -q 'LlamaCppProvider' src/amd_hackathon_app/pipeline.py
 grep -q 'OllamaLocalProvider' src/amd_hackathon_app/pipeline.py
 grep -q 'version6-production' src/amd_hackathon_app/pipeline.py
-grep -q 'STAGING_INFERENCE_BASE_URL' src/amd_hackathon_app/pipeline.py
+grep -q 'OllamaCloudStagingProvider' src/amd_hackathon_app/pipeline.py
+grep -q 'OLLAMA_CLOUD_BASE_URL' src/amd_hackathon_app/pipeline.py
+grep -q 'STAGING_ALLOWED_MODELS' src/amd_hackathon_app/pipeline.py
+grep -q 'STAGING_INFERENCE_MODEL' src/amd_hackathon_app/pipeline.py
+grep -q 'STAGING_REMOTE_PROVIDER' src/amd_hackathon_app/pipeline.py
 grep -q 'ThreadingHTTPServer' src/amd_hackathon_app/ui.py
 grep -q 'METHOD_NOT_ALLOWED' src/amd_hackathon_app/ui.py
 grep -q 'Version 6 Analytics' web/index.html
@@ -86,6 +90,9 @@ grep -q '/input/tasks.json' docs/repo-structure.json
 grep -q 'version5_local_category_benchmarks_v2.json' benchmarks/categories/README.md
 grep -q 'version5_local_category_benchmarks_v2.json' docs/BENCHMARK_STATUS.md
 grep -q 'Categorization Risk' docs/CATEGORIZATION_RISK.md
+grep -q 'STAGING_PROVIDER_IMPLEMENTED' docs/VERSION6_STAGING_OLLAMA_CLOUD.md
+grep -q 'NOT_FOR_SUBMISSION' docs/VERSION6_STAGING_OLLAMA_CLOUD.md
+grep -q 'POST https://ollama.com/api/chat' docs/VERSION6_STAGING_OLLAMA_CLOUD.md
 
 grep -q 'python:3.12-slim' Dockerfile.submission
 grep -q 'python:3.12-slim' Dockerfile.ui

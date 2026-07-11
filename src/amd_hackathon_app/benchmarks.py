@@ -11,7 +11,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .pipeline import ROOT, VERSION_5_LOCAL_MODEL, VERSION_5_LOCAL_PROVIDER, parse_allowed_models, run_tasks_file, write_json
+from .pipeline import (
+    OLLAMA_CLOUD_MODEL_MAPPINGS,
+    ROOT,
+    STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
+    VERSION_5_LOCAL_MODEL,
+    VERSION_5_LOCAL_PROVIDER,
+    VERSION_6_STAGING_PROVIDER,
+    parse_allowed_models,
+    parse_staging_allowed_models,
+    resolve_ollama_cloud_model,
+    run_tasks_file,
+    write_json,
+)
 
 
 BENCHMARK_SUITE_ID = "version5-category-benchmark-v2"
@@ -302,6 +314,21 @@ def candidate_metadata(provider: str, model: str | None) -> dict[str, Any]:
             "base_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
             "final_mode_compliant": False,
         }
+    if provider == VERSION_6_STAGING_PROVIDER:
+        supplied_model = model or os.environ.get("STAGING_INFERENCE_MODEL", "")
+        allowed = parse_staging_allowed_models()
+        api_model = resolve_ollama_cloud_model(supplied_model, allowed)
+        return {
+            "provider": VERSION_6_STAGING_PROVIDER,
+            "remote_provider": STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
+            "supplied_model": supplied_model,
+            "model": api_model,
+            "mapping": OLLAMA_CLOUD_MODEL_MAPPINGS[supplied_model],
+            "allowed_models_source": "STAGING_ALLOWED_MODELS",
+            "official_fireworks_token_score": "NOT_MEASURED",
+            "not_for_submission": True,
+            "production_authorization_registry_mutated": False,
+        }
     if provider == "mock":
         return {"provider": "mock", "model": model or "mock-model"}
     raise ValueError(f"unsupported benchmark provider: {provider}")
@@ -339,8 +366,11 @@ def run_category_benchmark(
     os.environ["APP_RUN_DIR"] = str(task_run_dir)
     if provider == "ollama-demo" and model:
         os.environ["MODEL_NAME"] = model
+    previous_staging_model = os.environ.get("STAGING_INFERENCE_MODEL")
     if provider == VERSION_5_LOCAL_PROVIDER and model:
         os.environ["OLLAMA_MODEL_NAME"] = model
+    if provider == VERSION_6_STAGING_PROVIDER and model:
+        os.environ["STAGING_INFERENCE_MODEL"] = model
     try:
         run_payload = run_tasks_file(input_path=input_path, output_path=output_results_path, provider_override=provider_override)
     finally:
@@ -356,6 +386,10 @@ def run_category_benchmark(
             os.environ.pop("OLLAMA_MODEL_NAME", None)
         else:
             os.environ["OLLAMA_MODEL_NAME"] = previous_ollama_model_name
+        if previous_staging_model is None:
+            os.environ.pop("STAGING_INFERENCE_MODEL", None)
+        else:
+            os.environ["STAGING_INFERENCE_MODEL"] = previous_staging_model
 
     submission_results = index_submission_results(
         run_payload["results"],
@@ -392,7 +426,11 @@ def run_category_benchmark(
                 },
                 "evaluation_result": evaluation_result,
                 "route_record": route_record,
-                "judged_fireworks_tokens": route_record["fireworks_token_usage"]["total_tokens"],
+                "judged_fireworks_tokens": route_record["judged_fireworks_tokens"],
+                "official_fireworks_token_score": route_record["official_fireworks_token_score"],
+                "staging_remote_prompt_tokens": route_record["token_usage"].get("staging_remote_prompt_tokens"),
+                "staging_remote_completion_tokens": route_record["token_usage"].get("staging_remote_completion_tokens"),
+                "staging_remote_total_tokens": route_record["token_usage"].get("staging_remote_total_tokens"),
                 "local_estimated_input_tokens": route_record["token_usage"].get("local_prompt_estimate", 0),
                 "local_estimated_output_tokens": route_record["token_usage"].get("local_completion_estimate", 0),
             }
@@ -442,7 +480,10 @@ def summarize_results(records: list[dict[str, Any]]) -> dict[str, Any]:
 def summarize_group(rows: list[dict[str, Any]]) -> dict[str, Any]:
     total = len(rows)
     passed = sum(1 for row in rows if row["evaluation_result"].get("passed"))
-    fireworks_tokens = sum(row["judged_fireworks_tokens"] for row in rows)
+    numeric_fireworks_tokens = [row["judged_fireworks_tokens"] for row in rows if isinstance(row["judged_fireworks_tokens"], int)]
+    fireworks_tokens: int | str = (
+        sum(numeric_fireworks_tokens) if len(numeric_fireworks_tokens) == len(rows) else "NOT_MEASURED"
+    )
     latency = sum(row["route_record"]["latency"]["milliseconds"] for row in rows)
     return {
         "tasks": total,

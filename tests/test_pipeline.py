@@ -21,8 +21,11 @@ from amd_hackathon_app.benchmarks import (
 )
 from amd_hackathon_app.pipeline import (
     LlamaCppProvider,
+    OLLAMA_CLOUD_MODEL_MAPPINGS,
+    OllamaCloudStagingProvider,
     OllamaLocalProvider,
     ProviderResult,
+    STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
     Task,
     VERSION_5_LOCAL_PROVIDER,
     VERSION_6_LOCAL_PROVIDER,
@@ -30,7 +33,9 @@ from amd_hackathon_app.pipeline import (
     VERSION_6_STAGING_PROVIDER,
     local_certification_for,
     parse_allowed_models,
+    parse_staging_allowed_models,
     provider_for,
+    resolve_ollama_cloud_model,
     route_task,
     run_task,
     run_scenario,
@@ -118,6 +123,10 @@ class PipelineTests(unittest.TestCase):
     def test_allowed_models_parses_comma_and_json_values(self) -> None:
         self.assertEqual(parse_allowed_models("model-a, model-b"), ["model-a", "model-b"])
         self.assertEqual(parse_allowed_models('["model-a", "model-b"]'), ["model-a", "model-b"])
+
+    def test_staging_allowed_models_are_separate_from_production_allowed_models(self) -> None:
+        self.assertEqual(parse_staging_allowed_models("minimax-m3:cloud, gemma4:31b-cloud"), ["minimax-m3:cloud", "gemma4:31b-cloud"])
+        self.assertEqual(parse_allowed_models("accounts/fireworks/models/minimax-m3"), ["accounts/fireworks/models/minimax-m3"])
 
     def test_run_tasks_file_writes_results_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -451,17 +460,31 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(decision.model, "allowed-fireworks-model")
 
     def test_version6_staging_fallback_is_distinct_from_production(self) -> None:
-        decision = route_task(
-            task_family="sentiment",
-            jurisdiction="SENTIMENT_CLASSIFICATION",
-            provider_override=VERSION_6_STAGING_PROVIDER,
-            allowed_models=[],
-        )
+        old_allowed = os.environ.get("STAGING_ALLOWED_MODELS")
+        old_model = os.environ.get("STAGING_INFERENCE_MODEL")
+        try:
+            os.environ["STAGING_ALLOWED_MODELS"] = "minimax-m3:cloud,gemma4:31b-cloud"
+            os.environ["STAGING_INFERENCE_MODEL"] = "minimax-m3:cloud"
+            decision = route_task(
+                task_family="sentiment",
+                jurisdiction="SENTIMENT_CLASSIFICATION",
+                provider_override=VERSION_6_STAGING_PROVIDER,
+                allowed_models=[],
+            )
+        finally:
+            if old_allowed is None:
+                os.environ.pop("STAGING_ALLOWED_MODELS", None)
+            else:
+                os.environ["STAGING_ALLOWED_MODELS"] = old_allowed
+            if old_model is None:
+                os.environ.pop("STAGING_INFERENCE_MODEL", None)
+            else:
+                os.environ["STAGING_INFERENCE_MODEL"] = old_model
 
         self.assertEqual(decision.candidate_version, "version_6")
         self.assertEqual(decision.provider, VERSION_6_STAGING_PROVIDER)
         self.assertEqual(decision.selected_path, "staging_remote_fallback")
-        self.assertEqual(decision.model, "staging-model")
+        self.assertEqual(decision.model, "minimax-m3")
         self.assertFalse(decision.final_mode_compliant)
 
     def test_version6_direct_ollama_records_zero_fireworks_tokens(self) -> None:
@@ -477,14 +500,122 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(decision.model, "nemotron-3-nano:4b")
         self.assertTrue(decision.final_mode_compliant)
 
-    def test_version6_staging_requires_staging_endpoint(self) -> None:
-        old = os.environ.pop("STAGING_INFERENCE_BASE_URL", None)
+    def test_version6_staging_requires_ollama_cloud_guard_environment(self) -> None:
+        old_fallback = os.environ.pop("VERSION6_REMOTE_FALLBACK", None)
+        old_provider = os.environ.pop("STAGING_REMOTE_PROVIDER", None)
         try:
-            with self.assertRaisesRegex(RuntimeError, "STAGING_INFERENCE_BASE_URL"):
+            with self.assertRaisesRegex(RuntimeError, "VERSION6_REMOTE_FALLBACK=staging"):
                 provider_for(VERSION_6_STAGING_PROVIDER)
         finally:
-            if old is not None:
-                os.environ["STAGING_INFERENCE_BASE_URL"] = old
+            if old_fallback is not None:
+                os.environ["VERSION6_REMOTE_FALLBACK"] = old_fallback
+            if old_provider is not None:
+                os.environ["STAGING_REMOTE_PROVIDER"] = old_provider
+
+    def test_ollama_cloud_model_mapping_requires_explicit_verified_allowed_model(self) -> None:
+        self.assertEqual(
+            resolve_ollama_cloud_model("gpt-oss:20b-cloud", ["gpt-oss:20b-cloud"]),
+            "gpt-oss:20b",
+        )
+        self.assertEqual(OLLAMA_CLOUD_MODEL_MAPPINGS["minimax-m3:cloud"]["mapping_status"], "VERIFIED_FROM_API_TAGS")
+        with self.assertRaisesRegex(RuntimeError, "STAGING_INFERENCE_MODEL"):
+            resolve_ollama_cloud_model("", ["minimax-m3:cloud"])
+        with self.assertRaisesRegex(RuntimeError, "not present in STAGING_ALLOWED_MODELS"):
+            resolve_ollama_cloud_model("gemma4:31b-cloud", ["minimax-m3:cloud"])
+        with self.assertRaisesRegex(RuntimeError, "not been verified"):
+            resolve_ollama_cloud_model("unknown:cloud", ["unknown:cloud"])
+
+    def test_ollama_cloud_provider_posts_native_chat_request_without_leaking_key(self) -> None:
+        env_updates = {
+            "VERSION6_REMOTE_FALLBACK": "staging",
+            "STAGING_REMOTE_PROVIDER": STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
+            "OLLAMA_API_KEY": "test-secret-key",
+            "OLLAMA_CLOUD_BASE_URL": "https://ollama.test",
+            "STAGING_MAX_RETRIES": "0",
+        }
+        old_values = {key: os.environ.get(key) for key in env_updates}
+        captured = {}
+
+        class FakeResponse:
+            status = 200
+
+            def __enter__(self) -> "FakeResponse":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                return json.dumps(
+                    {
+                        "message": {"content": "4"},
+                        "prompt_eval_count": 7,
+                        "eval_count": 1,
+                        "total_duration": 10,
+                        "load_duration": 2,
+                        "eval_duration": 3,
+                    }
+                ).encode("utf-8")
+
+        def fake_urlopen(request: object, timeout: int) -> FakeResponse:
+            captured["full_url"] = request.full_url
+            captured["headers"] = dict(request.header_items())
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            captured["timeout"] = timeout
+            return FakeResponse()
+
+        try:
+            for key, value in env_updates.items():
+                os.environ[key] = value
+            with mock.patch.object(pipeline_module.urllib.request, "urlopen", side_effect=fake_urlopen):
+                result = OllamaCloudStagingProvider().complete("Return 4.", "minimax-m3")
+        finally:
+            for key, value in old_values.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+        self.assertEqual(captured["full_url"], "https://ollama.test/api/chat")
+        self.assertNotIn("chat/completions", captured["full_url"])
+        self.assertEqual(captured["headers"]["Authorization"], "Bearer test-secret-key")
+        self.assertEqual(captured["body"]["stream"], False)
+        self.assertEqual(captured["body"]["model"], "minimax-m3")
+        self.assertEqual(result.text, "4")
+        self.assertEqual(result.token_usage["staging_remote_prompt_tokens"], 7)
+        self.assertEqual(result.token_usage["staging_remote_completion_tokens"], 1)
+        self.assertEqual(result.token_usage["staging_remote_total_tokens"], 8)
+        self.assertEqual(result.token_usage["official_fireworks_token_score"], "NOT_MEASURED")
+        self.assertNotIn("test-secret-key", json.dumps(result.token_usage))
+
+    def test_production_route_ignores_ollama_cloud_staging_variables(self) -> None:
+        env_updates = {
+            "VERSION6_REMOTE_FALLBACK": "staging",
+            "STAGING_REMOTE_PROVIDER": STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD,
+            "OLLAMA_API_KEY": "test-secret-key",
+            "STAGING_ALLOWED_MODELS": "minimax-m3:cloud",
+            "STAGING_INFERENCE_MODEL": "minimax-m3:cloud",
+        }
+        old_values = {key: os.environ.get(key) for key in env_updates}
+        try:
+            for key, value in env_updates.items():
+                os.environ[key] = value
+            decision = route_task(
+                task_family="sentiment",
+                jurisdiction="SENTIMENT_CLASSIFICATION",
+                provider_override=VERSION_6_PRODUCTION_PROVIDER,
+                allowed_models=["accounts/fireworks/models/minimax-m3"],
+            )
+        finally:
+            for key, value in old_values.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+        self.assertEqual(decision.provider, "fireworks")
+        self.assertEqual(decision.model, "accounts/fireworks/models/minimax-m3")
+        self.assertEqual(decision.selected_path, "fireworks")
 
     def test_grading_join_fails_duplicate_missing_and_unknown_results(self) -> None:
         expected = {"one", "two"}

@@ -62,10 +62,10 @@ They use the same code path, bundled model, runtime entrypoint, input/output beh
 
 The only intended difference:
 
-- `version6-staging` uses `STAGING_INFERENCE_BASE_URL` for non-submission remote fallback testing.
+- `version6-staging` uses Ollama Cloud through the native `/api/chat` API for non-submission remote fallback testing.
 - `version6-production` uses Fireworks fallback through `FIREWORKS_BASE_URL`.
 
-Production must not route inference to any external hosted provider other than Fireworks.
+Production must not route inference to any external hosted provider other than Fireworks. Staging is explicitly `NOT_FOR_SUBMISSION`.
 
 Build staging:
 
@@ -78,12 +78,19 @@ Run staging with official mounts:
 
 ```bash
 docker run --rm \
-  -e STAGING_INFERENCE_BASE_URL="$STAGING_INFERENCE_BASE_URL" \
-  -e STAGING_INFERENCE_API_KEY="$STAGING_INFERENCE_API_KEY" \
+  -e OLLAMA_API_KEY="$OLLAMA_API_KEY" \
+  -e OLLAMA_CLOUD_BASE_URL="https://ollama.com" \
+  -e STAGING_REMOTE_PROVIDER="ollama-cloud" \
+  -e STAGING_ALLOWED_MODELS="minimax-m3:cloud,nemotron-3-super:cloud,gpt-oss:20b-cloud,gemma4:31b-cloud" \
+  -e STAGING_INFERENCE_MODEL="minimax-m3:cloud" \
   -v "$PWD/input:/input:ro" \
   -v "$PWD/output:/output" \
   amd-hackathon:version6-staging
 ```
+
+`STAGING_ALLOWED_MODELS` is a development candidate list for Ollama Cloud. It is separate from production `ALLOWED_MODELS`, which is the harness-provided Fireworks allow list for official judging. Ollama Cloud token metadata is staging comparison data only and is reported as `official_fireworks_token_score=NOT_MEASURED`.
+
+See [Version 6 Ollama Cloud Staging](docs/VERSION6_STAGING_OLLAMA_CLOUD.md) for the native API contract and verified supplied-ID mappings.
 
 Build production:
 
