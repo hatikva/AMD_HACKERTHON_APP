@@ -108,8 +108,13 @@ h2 {
   flex: 1;
 }
 
+.view[hidden],
+.view:not(.active) {
+  display: none !important;
+}
+
 .view.active {
-  display: grid;
+  display: flex;
 }
 
 #runnerView.active {

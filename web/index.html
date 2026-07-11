@@ -18,27 +18,27 @@
     </header>
 
     <main class="layout">
-      <nav class="tabbar" aria-label="Analytics pages">
-        <button class="tab-button active" type="button" data-view="overviewView" aria-controls="overviewView" aria-selected="true">Overview</button>
-        <button class="tab-button" type="button" data-view="resultsView" aria-controls="resultsView" aria-selected="false">Results</button>
-        <button class="tab-button" type="button" data-view="categoryView" aria-controls="categoryView" aria-selected="false">Categories</button>
-        <button class="tab-button" type="button" data-view="routeView" aria-controls="routeView" aria-selected="false">Route Flow</button>
-        <button class="tab-button" type="button" data-view="localView" aria-controls="localView" aria-selected="false">Local Nemotron</button>
-        <button class="tab-button" type="button" data-view="readinessView" aria-controls="readinessView" aria-selected="false">Readiness</button>
-        <button class="tab-button" type="button" data-view="failuresView" aria-controls="failuresView" aria-selected="false">Failures</button>
-        <button class="tab-button" type="button" data-view="complianceView" aria-controls="complianceView" aria-selected="false">Compliance</button>
-        <button class="tab-button" type="button" data-view="deducedView" aria-controls="deducedView" aria-selected="false">Deduced Analytics</button>
+      <nav class="tabbar" id="tabbar" aria-label="Analytics pages" role="tablist">
+        <button class="tab-button active" type="button" data-view="overviewView" aria-controls="overviewView" aria-selected="true" role="tab">Overview</button>
+        <button class="tab-button" type="button" data-view="resultsView" aria-controls="resultsView" aria-selected="false" role="tab">Results</button>
+        <button class="tab-button" type="button" data-view="categoryView" aria-controls="categoryView" aria-selected="false" role="tab">Categories</button>
+        <button class="tab-button" type="button" data-view="routeView" aria-controls="routeView" aria-selected="false" role="tab">Route Flow</button>
+        <button class="tab-button" type="button" data-view="localView" aria-controls="localView" aria-selected="false" role="tab">Local Nemotron</button>
+        <button class="tab-button" type="button" data-view="readinessView" aria-controls="readinessView" aria-selected="false" role="tab">Readiness</button>
+        <button class="tab-button" type="button" data-view="failuresView" aria-controls="failuresView" aria-selected="false" role="tab">Failures</button>
+        <button class="tab-button" type="button" data-view="complianceView" aria-controls="complianceView" aria-selected="false" role="tab">Compliance</button>
+        <button class="tab-button" type="button" data-view="deducedView" aria-controls="deducedView" aria-selected="false" role="tab">Deduced Analytics</button>
       </nav>
 
-      <section class="view review-view active" id="overviewView"><div class="review-content" id="overview"></div></section>
-      <section class="view review-view" id="resultsView" hidden><div class="review-content" id="results"></div></section>
-      <section class="view review-view" id="categoryView" hidden><div class="review-content" id="categories"></div></section>
-      <section class="view review-view" id="routeView" hidden><div class="review-content" id="routeFlow"></div></section>
-      <section class="view review-view" id="localView" hidden><div class="review-content" id="localEvidence"></div></section>
-      <section class="view review-view" id="readinessView" hidden><div class="review-content" id="readiness"></div></section>
-      <section class="view review-view" id="failuresView" hidden><div class="review-content" id="failures"></div></section>
-      <section class="view review-view" id="complianceView" hidden><div class="review-content" id="compliance"></div></section>
-      <section class="view review-view" id="deducedView" hidden><div class="review-content" id="deduced"></div></section>
+      <section class="view review-view active" id="overviewView" role="tabpanel"><div class="review-content" id="overview"></div></section>
+      <section class="view review-view" id="resultsView" role="tabpanel" hidden><div class="review-content" id="results"></div></section>
+      <section class="view review-view" id="categoryView" role="tabpanel" hidden><div class="review-content" id="categories"></div></section>
+      <section class="view review-view" id="routeView" role="tabpanel" hidden><div class="review-content" id="routeFlow"></div></section>
+      <section class="view review-view" id="localView" role="tabpanel" hidden><div class="review-content" id="localEvidence"></div></section>
+      <section class="view review-view" id="readinessView" role="tabpanel" hidden><div class="review-content" id="readiness"></div></section>
+      <section class="view review-view" id="failuresView" role="tabpanel" hidden><div class="review-content" id="failures"></div></section>
+      <section class="view review-view" id="complianceView" role="tabpanel" hidden><div class="review-content" id="compliance"></div></section>
+      <section class="view review-view" id="deducedView" role="tabpanel" hidden><div class="review-content" id="deduced"></div></section>
     </main>
 
     <script src="/app.js?v=20260711-tabs"></script>

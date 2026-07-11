@@ -1,4 +1,5 @@
 const statusStrip = document.querySelector("#statusStrip");
+const tabbar = document.querySelector("#tabbar");
 const tabButtons = [...document.querySelectorAll(".tab-button")];
 const views = [...document.querySelectorAll(".view")];
 
@@ -37,16 +38,24 @@ function statusClass(value) {
   return "";
 }
 
-function switchView(viewId) {
+function validViewId(viewId) {
+  return views.some((view) => view.id === viewId) ? viewId : "overviewView";
+}
+
+function switchView(viewId, updateHash = true) {
+  const nextViewId = validViewId(viewId);
   for (const button of tabButtons) {
-    const selected = button.dataset.view === viewId;
+    const selected = button.dataset.view === nextViewId;
     button.classList.toggle("active", selected);
     button.setAttribute("aria-selected", selected ? "true" : "false");
   }
   for (const view of views) {
-    const selected = view.id === viewId;
+    const selected = view.id === nextViewId;
     view.classList.toggle("active", selected);
     view.hidden = !selected;
+  }
+  if (updateHash && window.location.hash !== `#${nextViewId}`) {
+    window.history.replaceState(null, "", `#${nextViewId}`);
   }
 }
 
@@ -225,7 +234,14 @@ async function refresh() {
   renderDeduced(data);
 }
 
-for (const button of tabButtons) button.addEventListener("click", () => switchView(button.dataset.view));
+tabbar.addEventListener("click", (event) => {
+  const button = event.target.closest(".tab-button");
+  if (!button || !tabbar.contains(button)) return;
+  switchView(button.dataset.view);
+});
+
+window.addEventListener("hashchange", () => switchView(window.location.hash.slice(1), false));
+switchView(window.location.hash.slice(1) || "overviewView", false);
 
 refresh().catch((error) => {
   statusStrip.innerHTML = `<span>${safeText(error.message)}</span>`;
