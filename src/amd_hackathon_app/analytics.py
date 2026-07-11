@@ -62,6 +62,11 @@ WORK_SCOPES = [
     "TOKEN_BUDGETING",
 ]
 
+VERSION6_STAGING_CALIBRATION_PATHS = [
+    ROOT / "docs/version6_staging_calibration.json",
+    ROOT / "src/amd_hackathon_app/authorization/version6_staging_authorizations.json",
+]
+
 
 def load_result_files(results_dir: Path) -> list[tuple[Path, dict[str, Any]]]:
     payloads: list[tuple[Path, dict[str, Any]]] = []
@@ -70,6 +75,31 @@ def load_result_files(results_dir: Path) -> list[tuple[Path, dict[str, Any]]]:
         if payload.get("schema") == "amd_hackathon.qualification_results.v1":
             payloads.append((path, payload))
     return payloads
+
+
+def load_version6_staging_calibration() -> dict[str, Any]:
+    for path in VERSION6_STAGING_CALIBRATION_PATHS:
+        if path.is_file():
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            return {
+                "status": "available",
+                "source_path": str(path),
+                **payload,
+            }
+    return {
+        "status": "not_available",
+        "source_path": None,
+        "summary": "No gated Version 6 staging calibration artifact has been generated yet.",
+        "winner_by_category": {},
+        "runner_up_by_category": {},
+        "winner_by_work_scope": {},
+        "runner_up_by_work_scope": {},
+        "authorization_decisions": [],
+        "failed_gates": [],
+        "models_ranked": [],
+        "official_fireworks_token_score": "NOT_MEASURED",
+        "production_token_score_status": "NOT_MEASURED_STAGING_ONLY",
+    }
 
 
 def numeric_value(value: Any, default: int = 0) -> int:
@@ -450,6 +480,7 @@ def write_version5_analytics(results_dir: Path, output_path: Path) -> dict[str, 
 
 def build_version6_analytics(results_dir: Path = ROOT / "qualification/results") -> dict[str, Any]:
     evidence = build_version5_analytics(results_dir)
+    calibration = load_version6_staging_calibration()
     metrics = evidence["per_model_overall_metrics"]
     staging_rows = [row for row in metrics if row["evidence_class"] == "staging_only"]
     local_rows = [row for row in metrics if row["provider"] in {"version6-ollama", "version5-ollama", "ollama-demo"}]
@@ -532,6 +563,7 @@ def build_version6_analytics(results_dir: Path = ROOT / "qualification/results")
         },
         "local_nemotron_evidence": local_rows,
         "staging_ollama_cloud_evidence": staging_rows,
+        "staging_calibration": calibration,
         "staging_vs_production_readiness": {
             "same_code_path_required": True,
             "only_remote_fallback_differs": True,

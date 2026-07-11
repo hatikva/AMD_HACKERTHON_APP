@@ -12,6 +12,7 @@ const nodes = {
   readiness: document.querySelector("#readiness"),
   failures: document.querySelector("#failures"),
   compliance: document.querySelector("#compliance"),
+  calibration: document.querySelector("#calibration"),
   deduced: document.querySelector("#deduced"),
 };
 
@@ -33,8 +34,8 @@ function percent(value) {
 function statusClass(value) {
   const text = String(value || "");
   if (text.includes("blocked") || text.includes("DENIED") || text.includes("False")) return "bad";
-  if (text.includes("PENDING") || text.includes("review") || text.includes("unavailable")) return "warn";
-  if (text.includes("CERTIFIED") || text.includes("True") || text.includes("completed")) return "ok";
+  if (text.includes("PENDING") || text.includes("review") || text.includes("unavailable") || text.includes("not_available")) return "warn";
+  if (text.includes("AUTHORIZED") || text.includes("GRADUATED") || text.includes("CERTIFIED") || text.includes("COMPLETE") || text.includes("available") || text.includes("True") || text.includes("completed")) return "ok";
   return "";
 }
 
@@ -68,6 +69,50 @@ function table(headers, rows) {
       </table>
     </div>
   `;
+}
+
+function asEntries(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map((item, index) => [item.category || item.work_scope || item.scope || item.id || index, item]);
+  if (typeof value === "object") return Object.entries(value);
+  return [];
+}
+
+function modelLabel(value) {
+  if (!value) return "-";
+  if (typeof value === "string") return value;
+  return value.display_name || value.model || value.model_alias || value.requested_model_alias || value.exact_api_model_id || value.id || JSON.stringify(value);
+}
+
+function decisionLabel(value) {
+  if (!value) return "-";
+  if (typeof value === "string") return value;
+  return value.decision || value.authorization_status || value.status || value.recommendation_status || "-";
+}
+
+function winnerRows(winners, runners) {
+  return asEntries(winners).map(([scope, winner]) => `
+    <tr>
+      <td>${safeText(scope)}</td>
+      <td><span class="${statusClass(decisionLabel(winner))}">${safeText(decisionLabel(winner))}</span></td>
+      <td>${safeText(modelLabel(winner))}</td>
+      <td>${safeText(modelLabel((runners || {})[scope]))}</td>
+      <td>${safeText(winner.accuracy ?? winner.score ?? winner.passed ?? "-")}</td>
+      <td>${safeText((winner.evidence || winner.source_result_files || []).join ? (winner.evidence || winner.source_result_files || []).join(", ") : winner.evidence_source)}</td>
+    </tr>
+  `);
+}
+
+function decisionRows(decisions) {
+  return asEntries(decisions).map(([key, row]) => `
+    <tr>
+      <td>${safeText(row.category || row.work_scope || row.scope || key)}</td>
+      <td>${safeText(modelLabel(row))}</td>
+      <td><span class="${statusClass(decisionLabel(row))}">${safeText(decisionLabel(row))}</span></td>
+      <td>${safeText(row.accuracy ?? row.score ?? "-")}</td>
+      <td>${safeText(row.failed_gate || row.failed_gates || row.reason || "-")}</td>
+    </tr>
+  `);
 }
 
 function renderPreflight(data) {
@@ -203,6 +248,38 @@ function renderCompliance(data) {
   `;
 }
 
+function renderCalibration(data) {
+  const calibration = data.staging_calibration || {};
+  const source = calibration.source_path || "pending calibration artifact";
+  const categoryRows = winnerRows(calibration.winner_by_category, calibration.runner_up_by_category);
+  const scopeRows = winnerRows(calibration.winner_by_work_scope, calibration.runner_up_by_work_scope);
+  const decisions = decisionRows(calibration.authorization_decisions);
+  const failedGates = asEntries(calibration.failed_gates).map(([key, row]) => `
+    <tr>
+      <td>${safeText(row.category || row.work_scope || row.scope || key)}</td>
+      <td>${safeText(modelLabel(row))}</td>
+      <td>${safeText(row.gate || row.failed_gate || row.reason || row)}</td>
+    </tr>
+  `);
+  nodes.calibration.innerHTML = `
+    <h3>Staging Calibration</h3>
+    <div class="summary-strip">
+      <span><span class="${statusClass(calibration.status)}">${safeText(calibration.status)}</span></span>
+      <span>${safeText(source)}</span>
+      <span>Fireworks Score ${safeText(calibration.official_fireworks_token_score)}</span>
+      <span>${safeText(calibration.production_token_score_status)}</span>
+    </div>
+    <h3>Graduated Winners By Category</h3>
+    ${table(["Category", "Decision", "Winner", "Runner Up", "Score", "Evidence"], categoryRows)}
+    <h3>Graduated Winners By Work Scope</h3>
+    ${table(["Work Scope", "Decision", "Winner", "Runner Up", "Score", "Evidence"], scopeRows)}
+    <h3>Authorization Decisions</h3>
+    ${table(["Scope", "Model", "Decision", "Score", "Gate Or Reason"], decisions)}
+    <h3>Failed Gates</h3>
+    ${table(["Scope", "Model", "Gate"], failedGates)}
+  `;
+}
+
 function renderDeduced(data) {
   const deduced = data.deduced_analytics || {};
   nodes.deduced.innerHTML = `
@@ -231,6 +308,7 @@ async function refresh() {
   renderReadiness(data);
   renderFailures(data);
   renderCompliance(data);
+  renderCalibration(data);
   renderDeduced(data);
 }
 
