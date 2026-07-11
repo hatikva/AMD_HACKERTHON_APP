@@ -34,8 +34,12 @@ python3 -m amd_hackathon_app.cli run-submission \
 python3 -m py_compile scripts/model-acquisition.py scripts/show-pipeline.py
 python3 -m py_compile src/amd_hackathon_app/ui.py
 python3 -m py_compile src/amd_hackathon_app/benchmarks.py
+python3 -m py_compile src/amd_hackathon_app/analytics.py
 bash -n scripts/benchmark-version-candidates.sh
 python3 -m amd_hackathon_app.cli validate-category-benchmark >"$tmp_root/category-benchmark.json"
+python3 -m amd_hackathon_app.cli build-version5-analytics \
+  --results-dir qualification/results \
+  --output "$tmp_root/version5_authority_analytics.json" >"$tmp_root/version5_authority_analytics.stdout.json"
 python3 -m amd_hackathon_app.cli benchmark-categories \
   --provider mock \
   --output "$tmp_root/mock-category-qualification.json" >"$tmp_root/mock-category-qualification.stdout.json"
@@ -71,6 +75,7 @@ grep -q 'ALLOWED_MODELS' docs/allowed-models.json
 grep -q '/input/tasks.json' docs/repo-structure.json
 grep -q 'version5_local_category_benchmarks_v2.json' benchmarks/categories/README.md
 grep -q 'version5_local_category_benchmarks_v2.json' docs/BENCHMARK_STATUS.md
+grep -q 'Categorization Risk' docs/CATEGORIZATION_RISK.md
 
 grep -q 'python:3.12-slim' Dockerfile.submission
 grep -q 'python:3.12-slim' Dockerfile.ui
@@ -96,13 +101,14 @@ assert payload == [{"answer": '{"label":"neutral","confidence":0.74}', "task_id"
 assert set(payload[0]) == {"task_id", "answer"}
 PY
 
-python3 - "$tmp_root/category-benchmark.json" "$tmp_root/mock-category-qualification.json" <<'PY'
+python3 - "$tmp_root/category-benchmark.json" "$tmp_root/mock-category-qualification.json" "$tmp_root/version5_authority_analytics.json" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 benchmark = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 qualification = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+analytics = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
 assert benchmark["benchmark_suite"] == "version5-category-benchmark-v2"
 assert benchmark["task_count"] == 40
 assert qualification["benchmark_suite"] == "version5-category-benchmark-v2"
@@ -111,6 +117,10 @@ assert len(qualification["results"]) == 40
 assert all("evaluation" not in row["model_visible_task"] for row in qualification["results"])
 assert all(set(row["model_visible_task"]) == {"task_id", "prompt"} for row in qualification["results"])
 assert qualification["production_path_used"] is True
+assert analytics["schema"] == "amd_hackathon.version5_authority_analytics.v1"
+assert analytics["authorization_registry_mutated"] is False
+assert analytics["local_jurisdictions_promoted"] == []
+assert analytics["categorization_evaluation"]["official_shape_valid"] is True
 PY
 
 echo "app validation passed"

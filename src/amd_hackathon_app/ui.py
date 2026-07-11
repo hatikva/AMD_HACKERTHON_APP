@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from .analytics import build_version5_analytics
 from .env import load_dotenv
 from .pipeline import Task, parse_allowed_models, preflight, run_task, task_from_mapping
 
@@ -175,6 +176,9 @@ class UiHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/versions":
             self.send_json({"versions": VERSION_LABELS, "providers": VERSION_PROVIDERS})
+            return
+        if parsed.path == "/api/version5-analytics":
+            self.send_json(build_version5_analytics(ROOT / "qualification/results"))
             return
         self.serve_static(parsed.path)
 

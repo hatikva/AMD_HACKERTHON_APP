@@ -192,6 +192,8 @@ python3 -m amd_hackathon_app.cli ui --host 127.0.0.1 --port 18083
 
 Open `http://127.0.0.1:18083`. The UI accepts `/input/tasks.json`-style task payloads, shows outputs, token counts, validation state, latency, selected provider/model, and lightweight analytics for Version 3, Version 4, and Version 5 comparison. Version 3 uses the Ollama demo path. Version 4 requires Fireworks environment variables. Version 5 uses an Ollama-certified runtime path only after jurisdiction-specific authorization evidence exists.
 
+The same UI includes `Version 5 Results And Analytics` and `Internal Tooling Analysis` views. These views read local qualification result JSONs and reviewed-evidence analytics; they do not call Fireworks, start Ollama, mutate runtime authorization, or certify local jurisdictions.
+
 Run the same UI as a separate container:
 
 ```bash
@@ -286,6 +288,14 @@ Inspect environment:
 python3 -m amd_hackathon_app.cli preflight
 ```
 
+Build the Version 5 reviewed-evidence analytics artifact:
+
+```bash
+PYTHONPATH=src python3 -m amd_hackathon_app.cli build-version5-analytics \
+  --results-dir qualification/results \
+  --output docs/version5_authority_analytics.json
+```
+
 ## Public Docs
 
 Public JSON docs live under `docs/`:
@@ -294,6 +304,9 @@ Public JSON docs live under `docs/`:
 - `docs/algorithm.json`
 - `docs/allowed-models.json`
 - `docs/FIREWORKS_MODEL_RESOURCES.md`
+- `docs/BENCHMARK_STATUS.md`
+- `docs/CATEGORIZATION_RISK.md`
+- `docs/version5_authority_analytics.json`
 - `docs/repo-structure.json`
 
 These files describe operation and compliance without exposing private benchmark thresholds, private planning critique, or internal planning terminology.

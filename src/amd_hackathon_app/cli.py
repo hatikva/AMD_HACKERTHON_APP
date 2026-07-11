@@ -10,6 +10,7 @@ from .env import load_dotenv
 
 load_dotenv()
 
+from .analytics import write_version5_analytics
 from .benchmarks import CANONICAL_BENCHMARK_PATH, BENCHMARK_SUITE_ID, load_category_benchmark, run_category_benchmark
 from .pipeline import VERSION_5_LOCAL_PROVIDER, preflight, record_to_json, run_scenario, run_tasks_file
 from .ui import run as run_ui
@@ -97,6 +98,25 @@ def cmd_benchmark_categories(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_build_version5_analytics(args: argparse.Namespace) -> int:
+    payload = write_version5_analytics(results_dir=Path(args.results_dir), output_path=Path(args.output))
+    print(
+        record_to_json(
+            {
+                "schema": payload["schema"],
+                "benchmark_suite": payload["benchmark_suite"],
+                "benchmark_hash": payload["benchmark_hash"],
+                "source_result_files": payload["source_result_files"],
+                "output": args.output,
+                "authorization_registry_mutated": payload["authorization_registry_mutated"],
+                "local_jurisdictions_promoted": payload["local_jurisdictions_promoted"],
+                "status": "completed",
+            }
+        )
+    )
+    return 0
+
+
 def cmd_ui(args: argparse.Namespace) -> int:
     run_ui(host=args.host, port=args.port)
     return 0
@@ -140,6 +160,11 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark_parser.add_argument("--output", default=None)
     benchmark_parser.add_argument("--suite-id", default=BENCHMARK_SUITE_ID, help="Expected suite identifier for operator clarity.")
     benchmark_parser.set_defaults(func=cmd_benchmark_categories)
+
+    analytics_parser = subcommands.add_parser("build-version5-analytics")
+    analytics_parser.add_argument("--results-dir", default="qualification/results")
+    analytics_parser.add_argument("--output", default="docs/version5_authority_analytics.json")
+    analytics_parser.set_defaults(func=cmd_build_version5_analytics)
 
     ui_parser = subcommands.add_parser("ui")
     ui_parser.add_argument("--host", default=os.environ.get("UI_HOST", "127.0.0.1"))

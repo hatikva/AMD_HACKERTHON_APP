@@ -21,6 +21,10 @@ Current evaluator status:
 
 Mock benchmark runs validate wiring only and are not model qualification evidence.
 
+Categorization risk is tracked in `docs/CATEGORIZATION_RISK.md`. The categorizer must be evaluated with official-shape tasks containing only `task_id` and `prompt`; expected categories and evaluator metadata remain evaluator-only data joined by `task_id`.
+
+Current reviewed-evidence analytics are generated at `docs/version5_authority_analytics.json`. That artifact does not mutate runtime authorization and does not promote local jurisdictions.
+
 ## Version 5 Selected Local Model
 
 Selected model: `nemotron-3-nano:4b`

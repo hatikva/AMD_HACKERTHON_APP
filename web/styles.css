@@ -76,15 +76,50 @@ h2 {
 }
 
 .layout {
-  display: grid;
-  grid-template-columns: minmax(360px, 38%) minmax(0, 1fr);
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px;
   height: calc(100vh - 72px);
 }
 
+.tabbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tab-button {
+  min-width: 0;
+  border-color: var(--line);
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.tab-button.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.view {
+  display: none;
+  min-height: 0;
+  flex: 1;
+}
+
+.view.active {
+  display: grid;
+}
+
+#runnerView.active {
+  grid-template-columns: minmax(360px, 38%) minmax(0, 1fr);
+  gap: 16px;
+}
+
 .input-pane,
-.output-pane {
+.output-pane,
+.review-view {
   min-width: 0;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -93,6 +128,11 @@ h2 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.review-view.active {
+  display: flex;
+  flex-direction: column;
 }
 
 .pane-head {
@@ -187,10 +227,43 @@ button:disabled {
   flex: 1;
 }
 
+.review-content {
+  overflow: auto;
+  padding: 12px;
+}
+
+.review-content h3 {
+  margin: 14px 0 8px;
+  font-size: 14px;
+}
+
+.review-content h3:first-child {
+  margin-top: 0;
+}
+
+.table-scroll {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   min-width: 940px;
+}
+
+.review-table {
+  min-width: 1120px;
+}
+
+.category-table {
+  min-width: 1240px;
+}
+
+.matrix-table {
+  min-width: 980px;
 }
 
 th,
@@ -242,6 +315,34 @@ td.output-cell {
   padding: 32px;
 }
 
+.summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.summary-strip span,
+.scope-line span {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f9fbfd;
+  padding: 4px 6px;
+}
+
+.scope-line {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(130px, auto) minmax(160px, auto) minmax(260px, 2fr);
+  gap: 6px;
+  align-items: start;
+  margin-bottom: 6px;
+}
+
+.risk-note {
+  color: var(--bad);
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .topbar {
     align-items: flex-start;
@@ -254,8 +355,15 @@ td.output-cell {
   }
 
   .layout {
-    grid-template-columns: 1fr;
     height: auto;
+  }
+
+  #runnerView.active {
+    grid-template-columns: 1fr;
+  }
+
+  .scope-line {
+    grid-template-columns: 1fr;
   }
 
   .input-pane,

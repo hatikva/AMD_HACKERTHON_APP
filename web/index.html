@@ -18,6 +18,13 @@
     </header>
 
     <main class="layout">
+      <nav class="tabbar" aria-label="UI sections">
+        <button class="tab-button active" type="button" data-view="runnerView">Runner</button>
+        <button class="tab-button" type="button" data-view="analyticsView">Version 5 Results And Analytics</button>
+        <button class="tab-button" type="button" data-view="toolingView">Internal Tooling Analysis</button>
+      </nav>
+
+      <section class="view active" id="runnerView">
       <section class="input-pane" aria-label="Task input">
         <div class="pane-head">
           <h2>Tasks</h2>
@@ -71,6 +78,23 @@
             </tbody>
           </table>
         </div>
+      </section>
+      </section>
+
+      <section class="view review-view" id="analyticsView" aria-label="Version 5 Results And Analytics">
+        <div class="pane-head">
+          <h2>Version 5 Results And Analytics</h2>
+          <span id="analyticsState" class="muted">Loading</span>
+        </div>
+        <div class="review-content" id="version5Analytics"></div>
+      </section>
+
+      <section class="view review-view" id="toolingView" aria-label="Internal Tooling Analysis">
+        <div class="pane-head">
+          <h2>Internal Tooling Analysis</h2>
+          <span class="muted">Reviewed evidence only</span>
+        </div>
+        <div class="review-content" id="toolingAnalysis"></div>
       </section>
     </main>
 
