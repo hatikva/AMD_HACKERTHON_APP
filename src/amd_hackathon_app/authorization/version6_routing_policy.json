@@ -1,0 +1,62 @@
+{
+  "allowed_model_source": "ALLOWED_MODELS",
+  "category_routes": {
+    "CODE_DEBUGGING": {
+      "authorization_status": "fallback_only",
+      "fallback_policy": "production_fireworks_allowed_models_first",
+      "required_gates_passed": false,
+      "runner_up_model": "$ALLOWED_MODELS_FIRST",
+      "runner_up_provider": "fireworks",
+      "selected_model": "$ALLOWED_MODELS_FIRST",
+      "selected_provider": "fireworks"
+    },
+    "MATHEMATICAL_REASONING": {
+      "authorization_status": "fallback_only",
+      "fallback_policy": "production_fireworks_allowed_models_first",
+      "required_gates_passed": false,
+      "runner_up_model": "$ALLOWED_MODELS_FIRST",
+      "runner_up_provider": "fireworks",
+      "selected_model": "$ALLOWED_MODELS_FIRST",
+      "selected_provider": "fireworks"
+    },
+    "SENTIMENT_CLASSIFICATION": {
+      "authorization_status": "fallback_only",
+      "fallback_policy": "production_fireworks_allowed_models_first",
+      "required_gates_passed": false,
+      "runner_up_model": "$ALLOWED_MODELS_FIRST",
+      "runner_up_provider": "fireworks",
+      "selected_model": "$ALLOWED_MODELS_FIRST",
+      "selected_provider": "fireworks"
+    }
+  },
+  "failed_or_denied_routes": {},
+  "fallback_routes": {
+    "default": {
+      "authorization_status": "fallback",
+      "fallback_policy": "production_fireworks_allowed_models_first",
+      "required_gates_passed": true,
+      "runner_up_model": "$ALLOWED_MODELS_FIRST",
+      "runner_up_provider": "fireworks",
+      "selected_model": "$ALLOWED_MODELS_FIRST",
+      "selected_provider": "fireworks"
+    },
+    "production_fireworks_allowed_models_first": {
+      "authorization_status": "fallback",
+      "fallback_policy": "production_fireworks_allowed_models_first",
+      "required_gates_passed": true,
+      "runner_up_model": "$ALLOWED_MODELS_FIRST",
+      "runner_up_provider": "fireworks",
+      "selected_model": "$ALLOWED_MODELS_FIRST",
+      "selected_provider": "fireworks"
+    }
+  },
+  "generated_at": "2026-07-11T00:00:00Z",
+  "official_fireworks_token_score_status": "NOT_MEASURED",
+  "policy_id": "version6-production-fallback-policy-calibration-pending",
+  "policy_mode": "production",
+  "provider_boundary": "production_fireworks_only_via_FIREWORKS_BASE_URL",
+  "schema": "amd_hackathon.version6.routing_policy.v1",
+  "source_calibration_artifact_hash": "sha256:calibration-pending-no-authorized-category-routes",
+  "threshold_config_hash": "sha256:thresholds-pending-no-authorized-category-routes",
+  "work_scope_routes": {}
+}

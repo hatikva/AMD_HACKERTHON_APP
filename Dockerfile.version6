@@ -38,6 +38,8 @@ RUN rm -rf src/amd_hackathon_app/__pycache__ \
     && test -x /usr/local/bin/ollama \
     && test -x /app/bin/version6-entrypoint.sh \
     && test -s /app/ollama-models/blobs/sha256-527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970 \
+    && test -s /app/src/amd_hackathon_app/authorization/version6_routing_policy.json \
+    && test -s /app/src/amd_hackathon_app/authorization/version6_staging_authorizations.json \
     && test ! -e /app/web \
     && test ! -e /app/benchmarks \
     && test ! -e /app/qualification \

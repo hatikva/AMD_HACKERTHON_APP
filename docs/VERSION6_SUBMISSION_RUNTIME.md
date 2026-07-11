@@ -17,6 +17,35 @@ The two submission targets share the same code path and bundled local runtime:
 - `version6-staging`: production-shaped development target with a visibly separate Ollama Cloud staging fallback. It is `NOT_FOR_SUBMISSION`.
 - `version6-production`: official submission target with Fireworks fallback only.
 
+## Policy-Baked Image Gate
+
+Version 6 staging and production images are now policy-required. A valid image must contain only the compact routing policy, threshold identifiers, schema version, route table, production-safe fallback table, policy source hash or receipt ID, and deterministic router code.
+
+The following previously published Version 6 images are superseded because they were built before the compact policy gate:
+
+```text
+previous_version6_images_status=superseded_policy_missing
+do_not_submit_previous_images=true
+```
+
+Do not delete remote GHCR package images from this repository workflow. After policy-baked staging and production images are published and anonymously pull-tested, remove or deprecate previous policy-missing images so only policy-baked images remain valid for use.
+
+The local gate is `scripts/verify-version6-images.sh`. It must fail unless:
+
+```text
+compact_policy_present=true
+policy_schema_valid=true
+policy_mode_matches_image=true
+runtime_policy_smoke_passed=true
+official_output_contract_passed=true
+raw_benchmark_evidence_absent=true
+expected_answers_absent=true
+evaluator_metadata_absent=true
+secrets_absent=true
+production_provider_boundary_valid=true
+image_push_allowed=true
+```
+
 Both targets bundle CPU-only Ollama and `nemotron-3-nano:4b`. Local inference inside the container counts as zero judged Fireworks tokens. Any production fallback must use `FIREWORKS_BASE_URL`, `FIREWORKS_API_KEY`, and `ALLOWED_MODELS` from the runtime environment.
 
 The production image must not contain UI assets, benchmark answer files, evaluator fixtures, grading keys, qualification reports, or a production `.env` file.

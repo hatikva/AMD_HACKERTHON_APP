@@ -1,0 +1,62 @@
+{
+  "allowed_model_source": "STAGING_ALLOWED_MODELS",
+  "category_routes": {
+    "CODE_DEBUGGING": {
+      "authorization_status": "authorized",
+      "fallback_policy": "staging_minimax_fallback",
+      "required_gates_passed": true,
+      "runner_up_model": "minimax-m3:cloud",
+      "runner_up_provider": "version6-staging",
+      "selected_model": "minimax-m3:cloud",
+      "selected_provider": "version6-staging"
+    },
+    "MATHEMATICAL_REASONING": {
+      "authorization_status": "authorized",
+      "fallback_policy": "staging_minimax_fallback",
+      "required_gates_passed": true,
+      "runner_up_model": "minimax-m3:cloud",
+      "runner_up_provider": "version6-staging",
+      "selected_model": "gpt-oss:20b-cloud",
+      "selected_provider": "version6-staging"
+    },
+    "SENTIMENT_CLASSIFICATION": {
+      "authorization_status": "authorized",
+      "fallback_policy": "staging_minimax_fallback",
+      "required_gates_passed": true,
+      "runner_up_model": "minimax-m3:cloud",
+      "runner_up_provider": "version6-staging",
+      "selected_model": "gemma4:31b-cloud",
+      "selected_provider": "version6-staging"
+    }
+  },
+  "failed_or_denied_routes": {},
+  "fallback_routes": {
+    "default": {
+      "authorization_status": "fallback",
+      "fallback_policy": "staging_minimax_fallback",
+      "required_gates_passed": true,
+      "runner_up_model": "minimax-m3:cloud",
+      "runner_up_provider": "version6-staging",
+      "selected_model": "minimax-m3:cloud",
+      "selected_provider": "version6-staging"
+    },
+    "staging_minimax_fallback": {
+      "authorization_status": "fallback",
+      "fallback_policy": "staging_minimax_fallback",
+      "required_gates_passed": true,
+      "runner_up_model": "minimax-m3:cloud",
+      "runner_up_provider": "version6-staging",
+      "selected_model": "minimax-m3:cloud",
+      "selected_provider": "version6-staging"
+    }
+  },
+  "generated_at": "2026-07-11T00:00:00Z",
+  "official_fireworks_token_score_status": "NOT_APPLICABLE_STAGING_PROVIDER",
+  "policy_id": "version6-staging-ollama-cloud-compact-policy",
+  "policy_mode": "staging",
+  "provider_boundary": "staging_ollama_cloud_NOT_FOR_SUBMISSION",
+  "schema": "amd_hackathon.version6.routing_policy.v1",
+  "source_calibration_artifact_hash": "sha256:staging-authorizations-derived-from-version6-operator-staging-evidence",
+  "threshold_config_hash": "sha256:version6-staging-threshold-identifiers",
+  "work_scope_routes": {}
+}

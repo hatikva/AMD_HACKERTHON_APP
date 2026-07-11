@@ -36,6 +36,7 @@ from amd_hackathon_app.pipeline import (
     parse_allowed_models,
     parse_staging_allowed_models,
     provider_for,
+    load_version6_policy,
     resolve_ollama_cloud_model,
     route_task,
     run_task,
@@ -497,8 +498,10 @@ class PipelineTests(unittest.TestCase):
 
         self.assertEqual(decision.candidate_version, "version_6")
         self.assertEqual(decision.provider, "fireworks")
-        self.assertEqual(decision.selected_path, "fireworks")
+        self.assertEqual(decision.selected_path, "policy_fallback")
         self.assertEqual(decision.model, "allowed-fireworks-model")
+        self.assertEqual(decision.reason, "version_6_compact_policy")
+        self.assertEqual(decision.policy["policy_mode"], "production")
 
     def test_version6_staging_fallback_is_distinct_from_production(self) -> None:
         old_allowed = os.environ.get("STAGING_ALLOWED_MODELS")
@@ -524,9 +527,120 @@ class PipelineTests(unittest.TestCase):
 
         self.assertEqual(decision.candidate_version, "version_6")
         self.assertEqual(decision.provider, VERSION_6_STAGING_PROVIDER)
-        self.assertEqual(decision.selected_path, "staging_remote_fallback")
-        self.assertEqual(decision.model, "minimax-m3")
+        self.assertEqual(decision.selected_path, "policy_authorized")
+        self.assertEqual(decision.model, "gemma4:31b")
         self.assertFalse(decision.final_mode_compliant)
+        self.assertEqual(decision.policy["policy_mode"], "staging")
+
+    def test_version6_router_loads_compact_policy(self) -> None:
+        policy = load_version6_policy(VERSION_6_PRODUCTION_PROVIDER)
+
+        self.assertEqual(policy["schema"], "amd_hackathon.version6.routing_policy.v1")
+        self.assertEqual(policy["policy_mode"], "production")
+        self.assertEqual(policy["fallback_routes"]["default"]["selected_provider"], "fireworks")
+
+    def test_version6_policy_selects_known_category_model(self) -> None:
+        old_allowed = os.environ.get("STAGING_ALLOWED_MODELS")
+        try:
+            os.environ["STAGING_ALLOWED_MODELS"] = "gpt-oss:20b-cloud,minimax-m3:cloud"
+            decision = route_task(
+                task_family="math_reasoning",
+                jurisdiction="MATH_LIGHT",
+                provider_override=VERSION_6_STAGING_PROVIDER,
+                allowed_models=[],
+            )
+        finally:
+            if old_allowed is None:
+                os.environ.pop("STAGING_ALLOWED_MODELS", None)
+            else:
+                os.environ["STAGING_ALLOWED_MODELS"] = old_allowed
+
+        self.assertEqual(decision.provider, VERSION_6_STAGING_PROVIDER)
+        self.assertEqual(decision.model, "gpt-oss:20b")
+        self.assertEqual(decision.selected_path, "policy_authorized")
+
+    def test_version6_policy_falls_back_when_route_is_not_authorized(self) -> None:
+        decision = route_task(
+            task_family="code_generation",
+            jurisdiction="CODE_GENERATION_SMALL",
+            provider_override=VERSION_6_PRODUCTION_PROVIDER,
+            allowed_models=["accounts/fireworks/models/minimax-m3"],
+        )
+
+        self.assertEqual(decision.provider, "fireworks")
+        self.assertEqual(decision.model, "accounts/fireworks/models/minimax-m3")
+        self.assertEqual(decision.selected_path, "policy_fallback")
+
+    def test_version6_policy_details_do_not_leak_to_results_json(self) -> None:
+        policy = {
+            "allowed_model_source": "test",
+            "category_routes": {
+                "SENTIMENT_CLASSIFICATION": {
+                    "authorization_status": "authorized",
+                    "fallback_policy": "default",
+                    "required_gates_passed": True,
+                    "runner_up_model": "mock-runner-up",
+                    "runner_up_provider": "mock",
+                    "selected_model": "mock-policy-model",
+                    "selected_provider": "mock",
+                }
+            },
+            "failed_or_denied_routes": {},
+            "fallback_routes": {
+                "default": {
+                    "authorization_status": "fallback",
+                    "fallback_policy": "default",
+                    "required_gates_passed": True,
+                    "runner_up_model": "mock-model",
+                    "runner_up_provider": "mock",
+                    "selected_model": "mock-model",
+                    "selected_provider": "mock",
+                }
+            },
+            "generated_at": "2026-07-11T00:00:00Z",
+            "official_fireworks_token_score_status": "NOT_MEASURED_TEST",
+            "policy_id": "test-policy",
+            "policy_mode": "staging",
+            "provider_boundary": "test_mock_only",
+            "schema": "amd_hackathon.version6.routing_policy.v1",
+            "source_calibration_artifact_hash": "sha256:test",
+            "threshold_config_hash": "sha256:test",
+            "work_scope_routes": {},
+        }
+        env_keys = ["VERSION6_STAGING_POLICY_PATH", "AMD_POLICY_TEST_ALLOW_MOCK"]
+        old_values = {key: os.environ.get(key) for key in env_keys}
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                policy_path = root / "policy.json"
+                input_path = root / "input" / "tasks.json"
+                output_path = root / "output" / "results.json"
+                input_path.parent.mkdir()
+                policy_path.write_text(json.dumps(policy), encoding="utf-8")
+                input_path.write_text(
+                    json.dumps([{"task_id": "sentiment-1", "prompt": "Classify sentiment: fine"}]),
+                    encoding="utf-8",
+                )
+                os.environ["VERSION6_STAGING_POLICY_PATH"] = str(policy_path)
+                os.environ["AMD_POLICY_TEST_ALLOW_MOCK"] = "1"
+
+                payload = run_tasks_file(
+                    input_path=input_path,
+                    output_path=output_path,
+                    provider_override=VERSION_6_STAGING_PROVIDER,
+                )
+                public_results = json.loads(output_path.read_text(encoding="utf-8"))
+        finally:
+            for key, value in old_values.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+        self.assertEqual(set(public_results[0]), {"task_id", "answer"})
+        self.assertNotIn("policy", json.dumps(public_results))
+        self.assertNotIn("mock-policy-model", json.dumps(public_results))
+        self.assertEqual(payload["audit_records"][0]["routing_policy"]["policy_id"], "test-policy")
 
     def test_version6_direct_ollama_records_zero_fireworks_tokens(self) -> None:
         decision = route_task(
@@ -656,7 +770,7 @@ class PipelineTests(unittest.TestCase):
 
         self.assertEqual(decision.provider, "fireworks")
         self.assertEqual(decision.model, "accounts/fireworks/models/minimax-m3")
-        self.assertEqual(decision.selected_path, "fireworks")
+        self.assertEqual(decision.selected_path, "policy_fallback")
 
     def test_grading_join_fails_duplicate_missing_and_unknown_results(self) -> None:
         expected = {"one", "two"}

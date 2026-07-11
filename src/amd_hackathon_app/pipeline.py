@@ -7,6 +7,7 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -61,6 +62,12 @@ VERSION_6_LOCAL_PROVIDER = "version6-ollama"
 VERSION_6_PRODUCTION_PROVIDER = "version6-production"
 VERSION_6_STAGING_PROVIDER = "version6-staging"
 VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER = "version6-staging-remote-baseline"
+VERSION_6_POLICY_SCHEMA = "amd_hackathon.version6.routing_policy.v1"
+VERSION_6_POLICY_REQUIRED_PROVIDERS = {VERSION_6_PRODUCTION_PROVIDER, VERSION_6_STAGING_PROVIDER}
+VERSION_6_DEFAULT_POLICY_FILES = {
+    VERSION_6_PRODUCTION_PROVIDER: "version6_routing_policy.json",
+    VERSION_6_STAGING_PROVIDER: "version6_staging_authorizations.json",
+}
 VERSION_5_LOCAL_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, "llama-cpp"}
 VERSION_6_PROVIDERS = {VERSION_6_PRODUCTION_PROVIDER, VERSION_6_STAGING_PROVIDER}
 LOCAL_OLLAMA_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, VERSION_6_LOCAL_PROVIDER}
@@ -262,6 +269,7 @@ class RouteDecision:
     candidate_version: str = "version_3"
     selected_path: str = "fireworks"
     local_certification: dict[str, Any] | None = None
+    policy: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -317,6 +325,187 @@ def resolve_ollama_cloud_model(supplied_id: str, allowed_models: list[str]) -> s
     if not mapping or mapping.get("mapping_status") != "VERIFIED_FROM_API_TAGS":
         raise RuntimeError(f"Ollama Cloud model {supplied_id} has not been verified through /api/tags")
     return str(mapping["api_model_id"])
+
+
+def version6_policy_mode(provider_name: str) -> str:
+    if provider_name == VERSION_6_PRODUCTION_PROVIDER:
+        return "production"
+    if provider_name == VERSION_6_STAGING_PROVIDER:
+        return "staging"
+    raise ValueError(f"provider does not require a Version 6 policy: {provider_name}")
+
+
+def policy_file_path(provider_name: str) -> Path:
+    env_name = "VERSION6_PRODUCTION_POLICY_PATH" if provider_name == VERSION_6_PRODUCTION_PROVIDER else "VERSION6_STAGING_POLICY_PATH"
+    explicit = os.environ.get(env_name) or os.environ.get("VERSION6_ROUTING_POLICY_PATH")
+    if explicit:
+        return Path(explicit)
+    filename = VERSION_6_DEFAULT_POLICY_FILES[provider_name]
+    try:
+        return Path(str(resources.files("amd_hackathon_app").joinpath("authorization", filename)))
+    except ModuleNotFoundError:
+        return ROOT / "src" / "amd_hackathon_app" / "authorization" / filename
+
+
+def _require_string(payload: dict[str, Any], field: str) -> str:
+    value = payload.get(field)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"version6 policy field {field} must be a non-empty string")
+    return value
+
+
+def validate_version6_policy(payload: dict[str, Any], expected_mode: str) -> dict[str, Any]:
+    required_fields = {
+        "schema",
+        "policy_id",
+        "generated_at",
+        "policy_mode",
+        "source_calibration_artifact_hash",
+        "threshold_config_hash",
+        "official_fireworks_token_score_status",
+        "category_routes",
+        "work_scope_routes",
+        "fallback_routes",
+        "failed_or_denied_routes",
+        "allowed_model_source",
+        "provider_boundary",
+    }
+    missing = sorted(required_fields - set(payload))
+    if missing:
+        raise ValueError(f"version6 policy missing required fields: {', '.join(missing)}")
+    if payload["schema"] != VERSION_6_POLICY_SCHEMA:
+        raise ValueError(f"unsupported version6 policy schema: {payload['schema']}")
+    if payload["policy_mode"] != expected_mode:
+        raise ValueError(f"version6 policy mode {payload['policy_mode']} does not match {expected_mode}")
+    _require_string(payload, "policy_id")
+    _require_string(payload, "generated_at")
+    _require_string(payload, "source_calibration_artifact_hash")
+    _require_string(payload, "threshold_config_hash")
+    _require_string(payload, "official_fireworks_token_score_status")
+    _require_string(payload, "allowed_model_source")
+    _require_string(payload, "provider_boundary")
+    for field in ["category_routes", "work_scope_routes", "fallback_routes", "failed_or_denied_routes"]:
+        if not isinstance(payload.get(field), dict):
+            raise ValueError(f"version6 policy field {field} must be an object")
+
+    for section in ["category_routes", "work_scope_routes"]:
+        for key, route in payload[section].items():
+            if not isinstance(route, dict):
+                raise ValueError(f"version6 policy {section}.{key} must be an object")
+            for field in [
+                "selected_provider",
+                "selected_model",
+                "runner_up_provider",
+                "runner_up_model",
+                "authorization_status",
+                "required_gates_passed",
+                "fallback_policy",
+            ]:
+                if field not in route:
+                    raise ValueError(f"version6 policy {section}.{key} missing {field}")
+            if route["authorization_status"] not in {"authorized", "fallback_only", "denied"}:
+                raise ValueError(f"version6 policy {section}.{key} has invalid authorization_status")
+            if not isinstance(route["required_gates_passed"], bool):
+                raise ValueError(f"version6 policy {section}.{key}.required_gates_passed must be boolean")
+    return payload
+
+
+def load_version6_policy(provider_name: str) -> dict[str, Any]:
+    if provider_name not in VERSION_6_POLICY_REQUIRED_PROVIDERS:
+        raise ValueError(f"provider does not require a Version 6 policy: {provider_name}")
+    path = policy_file_path(provider_name)
+    if not path.is_file():
+        raise RuntimeError(f"required Version 6 routing policy is missing for {provider_name}: {path}")
+    payload = load_json(path)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"Version 6 routing policy must be a JSON object: {path}")
+    try:
+        return validate_version6_policy(payload, version6_policy_mode(provider_name))
+    except ValueError as exc:
+        raise RuntimeError(f"Version 6 routing policy is invalid for {provider_name}: {exc}") from exc
+
+
+def category_for_task_family(task_family: str) -> str:
+    mapping = {
+        "factual_qa": "FACTUAL_KNOWLEDGE",
+        "math_reasoning": "MATHEMATICAL_REASONING",
+        "sentiment": "SENTIMENT_CLASSIFICATION",
+        "summarization": "TEXT_SUMMARISATION",
+        "named_entity_recognition": "NAMED_ENTITY_RECOGNITION",
+        "code_debugging": "CODE_DEBUGGING",
+        "logic_puzzles": "LOGICAL_DEDUCTIVE_REASONING",
+        "code_generation": "CODE_GENERATION",
+    }
+    return mapping.get(task_family, "FACTUAL_KNOWLEDGE")
+
+
+def _policy_route_authorized(route: dict[str, Any] | None) -> bool:
+    return bool(route and route.get("authorization_status") == "authorized" and route.get("required_gates_passed") is True)
+
+
+def _fallback_route(policy: dict[str, Any], route: dict[str, Any] | None, provider_name: str) -> dict[str, Any] | None:
+    fallback_id = str((route or {}).get("fallback_policy") or "default")
+    fallbacks = policy.get("fallback_routes") or {}
+    fallback = fallbacks.get(fallback_id) or fallbacks.get("default")
+    if isinstance(fallback, dict):
+        return fallback
+    if provider_name == VERSION_6_PRODUCTION_PROVIDER:
+        return {"selected_provider": "fireworks", "selected_model": "$ALLOWED_MODELS_FIRST"}
+    return None
+
+
+def _resolve_policy_model(provider_name: str, model: str, allowed_models: list[str]) -> str:
+    if provider_name == "fireworks":
+        if model == "$ALLOWED_MODELS_FIRST":
+            if not allowed_models:
+                raise RuntimeError("ALLOWED_MODELS is required for Version 6 production policy fallback")
+            return allowed_models[0]
+        if model not in allowed_models:
+            raise RuntimeError(f"Version 6 production policy selected model not present in ALLOWED_MODELS: {model}")
+        return model
+    if provider_name == VERSION_6_STAGING_PROVIDER:
+        return resolve_ollama_cloud_model(model, parse_staging_allowed_models())
+    return model
+
+
+def policy_route_decision(
+    provider_name: str,
+    task_family: str,
+    jurisdiction: str,
+    allowed_models: list[str],
+) -> tuple[str, str, str, dict[str, Any]]:
+    policy = load_version6_policy(provider_name)
+    category = category_for_task_family(task_family)
+    category_route = policy["category_routes"].get(category)
+    scope_route = policy["work_scope_routes"].get(jurisdiction)
+    selected_route = category_route if _policy_route_authorized(category_route) else scope_route
+    if not _policy_route_authorized(selected_route):
+        selected_route = _fallback_route(policy, category_route or scope_route, provider_name)
+    if not isinstance(selected_route, dict):
+        raise RuntimeError(f"Version 6 policy has no authorized or fallback route for {category}/{jurisdiction}")
+
+    selected_provider = str(selected_route.get("selected_provider", "")).strip()
+    selected_model = str(selected_route.get("selected_model", "")).strip()
+    if not selected_provider or not selected_model:
+        raise RuntimeError(f"Version 6 policy route is missing selected provider/model for {category}/{jurisdiction}")
+    if provider_name == VERSION_6_PRODUCTION_PROVIDER and selected_provider in {VERSION_6_STAGING_PROVIDER, VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER, STAGING_REMOTE_PROVIDER_OLLAMA_CLOUD}:
+        raise RuntimeError("Version 6 production policy cannot route to staging or Ollama Cloud providers")
+    if selected_provider == "mock" and os.environ.get("AMD_POLICY_TEST_ALLOW_MOCK") != "1":
+        raise RuntimeError("Version 6 policy cannot route to mock outside tests")
+    resolved_model = _resolve_policy_model(selected_provider, selected_model, allowed_models)
+    route_status = "policy_authorized" if _policy_route_authorized(selected_route) else "policy_fallback"
+    audit = {
+        "policy_id": policy["policy_id"],
+        "policy_mode": policy["policy_mode"],
+        "policy_schema": policy["schema"],
+        "policy_source_hash": policy["source_calibration_artifact_hash"],
+        "threshold_config_hash": policy["threshold_config_hash"],
+        "category": category,
+        "work_scope": jurisdiction,
+        "authorization_status": selected_route.get("authorization_status", "fallback"),
+        "route_status": route_status,
+    }
+    return selected_provider, resolved_model, route_status, audit
 
 
 def task_from_mapping(row: dict[str, Any], fallback_id: str) -> Task:
@@ -592,14 +781,25 @@ def route_task(
     elif provider_name in VERSION_6_PROVIDERS:
         candidate_version = "version_6"
         local_certification = local_certification_for(jurisdiction)
-        if local_certification["local_status"] == "LOCAL_CERTIFIED":
-            provider_name = VERSION_6_LOCAL_PROVIDER
-            selected_path = "local"
-        elif provider_name == VERSION_6_STAGING_PROVIDER:
-            selected_path = "staging_remote_fallback"
-        else:
-            provider_name = "fireworks"
-            selected_path = "fireworks"
+        provider_name, policy_model, selected_path, policy_audit = policy_route_decision(
+            provider_name,
+            task_family,
+            jurisdiction,
+            allowed,
+        )
+        model = policy_model
+        final_mode_compliant = provider_name in {"fireworks", VERSION_6_LOCAL_PROVIDER}
+        return RouteDecision(
+            provider=provider_name,
+            model=model,
+            jurisdiction=jurisdiction,
+            reason="version_6_compact_policy",
+            final_mode_compliant=final_mode_compliant,
+            candidate_version=candidate_version,
+            selected_path=selected_path,
+            local_certification=local_certification,
+            policy=policy_audit,
+        )
     elif provider_name == VERSION_6_LOCAL_PROVIDER:
         candidate_version = "version_6"
         local_certification = local_certification_for(jurisdiction)
@@ -1033,6 +1233,7 @@ def run_task(
         "local_failure": fallback_reason if local_attempted and fallback_reason else None,
         "fallback_reason": fallback_reason,
         "routing_reason": initial_decision.reason,
+        "routing_policy": initial_decision.policy,
         "final_mode_compliant": decision.final_mode_compliant,
         "validation_result": validation,
         "repair": repair,
@@ -1090,12 +1291,32 @@ def run_tasks_file(
 
 def preflight() -> dict[str, Any]:
     allowed_models = parse_allowed_models()
+    policy_status: dict[str, Any] = {}
+    for provider_name in sorted(VERSION_6_POLICY_REQUIRED_PROVIDERS):
+        try:
+            policy = load_version6_policy(provider_name)
+            policy_status[provider_name] = {
+                "compact_policy_present": True,
+                "policy_schema_valid": True,
+                "policy_mode_matches_image": True,
+                "policy_id": policy["policy_id"],
+                "policy_mode": policy["policy_mode"],
+                "provider_boundary": policy["provider_boundary"],
+            }
+        except RuntimeError as exc:
+            policy_status[provider_name] = {
+                "compact_policy_present": False,
+                "policy_schema_valid": False,
+                "policy_mode_matches_image": False,
+                "error": str(exc),
+            }
     return {
         "repo_root": str(ROOT),
         "doctrine": "version-6-confirmed-submission-runtime",
         "version_6": VERSION_6_MODE,
         "version_6_submission_providers": sorted(VERSION_6_PROVIDERS),
         "version_6_staging_remote_baseline_provider": VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
+        "version_6_policy_status": policy_status,
         "version_5_candidate_available": False,
         "version_5_local_model_status": "ollama_runtime_certified_jurisdictions_pending_benchmark_promotion",
         "version_5_local_model": VERSION_5_LOCAL_MODEL,
