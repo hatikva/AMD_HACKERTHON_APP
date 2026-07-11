@@ -129,6 +129,8 @@ Generate analytics:
 python3 -m amd_hackathon_app.cli build-version6-analytics
 ```
 
+The active analytics UI reads only `qualification/results/*.json`. Older Version 4/5 seed results used for UI smoke testing are archived outside the active display path under `qualification/archive/`; keep new Version 6 staging calibration results in `qualification/results/` only while they should be visible in the UI.
+
 Build and run the UI:
 
 ```bash

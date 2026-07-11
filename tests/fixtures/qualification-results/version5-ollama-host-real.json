@@ -1,0 +1,3300 @@
+{
+  "authorization_registry_mutated": false,
+  "benchmark_hash": "24e9981521b91173e70f17910f14740ca6c159c7165e7272196835fcc2b9d6e7",
+  "benchmark_path": "/home/user/repos/Hatikva/AMD_HACKERTHON_APP/benchmarks/categories/version5_local_category_benchmarks_v2.json",
+  "benchmark_suite": "version5-category-benchmark-v2",
+  "candidate": {
+    "base_url": "http://127.0.0.1:11434/v1",
+    "final_mode_compliant": false,
+    "model": "nemotron-3-nano:4b",
+    "provider": "ollama-demo"
+  },
+  "model_visible_tasks_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/input/tasks.json",
+  "official_results_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/output/results.json",
+  "policy_thresholds": "blocked_until_final_thresholds_are_defined",
+  "production_path_used": true,
+  "qualification_status": "PENDING_POLICY_REVIEW",
+  "results": [
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "What is the largest ocean on Earth? Return only its name.",
+        "task_id": "v2-factual-knowledge-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nWhat is the largest ocean on Earth? Return only its name.",
+        "estimated_input_tokens": 74,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 1650
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "Pacific",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-factual-knowledge-01-1783696625.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-factual-knowledge-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 26,
+          "prompt_tokens": 107,
+          "total_tokens": 133
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "task_id": "v2-factual-knowledge-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "What process do green plants use to convert light energy into chemical energy? Return only the process name.",
+        "task_id": "v2-factual-knowledge-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: named_entity_recognition\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nWhat process do green plants use to convert light energy into chemical energy? Return only the process name.",
+        "estimated_input_tokens": 88,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 4658
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"process\":\"photosynthesis\"}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-factual-knowledge-02-1783696629.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "named_entity_recognition",
+        "task_id": "v2-factual-knowledge-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 106,
+          "prompt_tokens": 121,
+          "total_tokens": 227
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "task_id": "v2-factual-knowledge-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Read the passage and answer the question.\n\nPassage: The Ardent observatory uses a 4.2-metre primary mirror. Its infrared camera is cooled to reduce thermal noise, while its spectrograph separates light into wavelengths for chemical analysis.\n\nQuestion: Which instrument is used for chemical analysis? Return only the instrument name.",
+        "task_id": "v2-factual-knowledge-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nRead the passage and answer the question.\n\nPassage: The Ardent observatory uses a 4.2-metre primary mirror. Its infrared camera is cooled to reduce thermal noise, while its spectrograph separates light into wavelengths for chemical analysis.\n\nQuestion: Which instrument is used for chemical analysis? Return only the instrument name.",
+        "estimated_input_tokens": 129,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 2613
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "spectrograph",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-factual-knowledge-03-1783696632.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-factual-knowledge-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 50,
+          "prompt_tokens": 165,
+          "total_tokens": 215
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "task_id": "v2-factual-knowledge-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Read the project note and answer in valid JSON with keys \"service\", \"region\", and \"retention_days\".\n\nProject note: The Atlas team runs the billing archive in the eu-west region. The archive keeps encrypted records for 45 days. The analytics cache, which runs in us-central, retains data for only 7 days.\n\nQuestion: Identify the service, region, and retention period of the billing archive.",
+        "task_id": "v2-factual-knowledge-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nRead the project note and answer in valid JSON with keys \"service\", \"region\", and \"retention_days\".\n\nProject note: The Atlas team runs the billing archive in the eu-west region. The archive keeps encrypted records for 45 days. The analytics cache, which runs in us-central, retains data for only 7 days.\n\nQuestion: Identify the service, region, and retention period of the billing archive.",
+        "estimated_input_tokens": 145,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3692
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\n  \"service\": \"billing archive\",\n  \"region\": \"eu-west\",\n  \"retention_days\": 45\n}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-factual-knowledge-04-1783696636.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-factual-knowledge-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 79,
+          "prompt_tokens": 189,
+          "total_tokens": 268
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "task_id": "v2-factual-knowledge-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Use only the records below. Return valid JSON with keys \"selected_probe\", \"launch_year\", and \"destination\".\n\nRecord A: Probe Meridian launched in 2031 and is travelling to Europa. It carries a radar sounder but no atmospheric sampler.\nRecord B: Probe Solace launched in 2029 and is travelling to Titan. It carries both an atmospheric sampler and a surface imager.\nRecord C: Probe Vantage launched in 2030 and is travelling to Enceladus. It carries a surface imager but no atmospheric sampler.\n\nQuestion: Which probe both carries an atmospheric sampler and launched before 2030?",
+        "task_id": "v2-factual-knowledge-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nUse only the records below. Return valid JSON with keys \"selected_probe\", \"launch_year\", and \"destination\".\n\nRecord A: Probe Meridian launched in 2031 and is travelling to Europa. It carries a radar sounder but no atmospheric sampler.\nRecord B: Probe Solace launched in 2029 and is travelling to Titan. It carries both an atmospheric sampler and a surface imager.\nRecord C: Probe Vantage launched in 2030 and is travelling to Enceladus. It carries a surface imager but no atmospheric sampler.\n\nQuestion: Which probe both carries an atmospheric sampler and launched before 2030?",
+        "estimated_input_tokens": 186,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 4712
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"selected_probe\":\"Solace\",\"launch_year\":2029,\"destination\":\"Titan\"}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-factual-knowledge-05-1783696640.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-factual-knowledge-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 104,
+          "prompt_tokens": 239,
+          "total_tokens": 343
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "FACTUAL_KNOWLEDGE",
+      "task_family": "factual_qa",
+      "task_id": "v2-factual-knowledge-05"
+    },
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "numeric_exact_match"
+      },
+      "evaluator": {
+        "type": "numeric_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Calculate 9 \u00d7 7. Return only the number.",
+        "task_id": "v2-mathematical-reasoning-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: math_reasoning\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nCalculate 9 \u00d7 7. Return only the number.",
+        "estimated_input_tokens": 70,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 1249
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "63",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-mathematical-reasoning-01-1783696641.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "math_reasoning",
+        "task_id": "v2-mathematical-reasoning-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 17,
+          "prompt_tokens": 107,
+          "total_tokens": 124
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "task_id": "v2-mathematical-reasoning-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "numeric_exact_match"
+      },
+      "evaluator": {
+        "type": "numeric_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "A \u00a3240 subscription is increased by 15%, then the increased price is discounted by 10%. What is the final price in pounds? Return only the number.",
+        "task_id": "v2-mathematical-reasoning-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nA \u00a3240 subscription is increased by 15%, then the increased price is discounted by 10%. What is the final price in pounds? Return only the number.",
+        "estimated_input_tokens": 95,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 4411
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "248.4",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-mathematical-reasoning-02-1783696646.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-mathematical-reasoning-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 95,
+          "prompt_tokens": 131,
+          "total_tokens": 226
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "task_id": "v2-mathematical-reasoning-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "numeric_exact_match"
+      },
+      "evaluator": {
+        "type": "numeric_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Three identical machines produce 180 parts in 4 hours. At the same constant rate, how many parts will five machines produce in 6 hours? Return only the number.",
+        "task_id": "v2-mathematical-reasoning-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nThree identical machines produce 180 parts in 4 hours. At the same constant rate, how many parts will five machines produce in 6 hours? Return only the number.",
+        "estimated_input_tokens": 98,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 6254
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "450",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-mathematical-reasoning-03-1783696652.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-mathematical-reasoning-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 148,
+          "prompt_tokens": 131,
+          "total_tokens": 279
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "task_id": "v2-mathematical-reasoning-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "A bag contains 5 red balls and 3 blue balls. Two balls are drawn without replacement. What is the probability that both are red? Return a simplified fraction.",
+        "task_id": "v2-mathematical-reasoning-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nA bag contains 5 red balls and 3 blue balls. Two balls are drawn without replacement. What is the probability that both are red? Return a simplified fraction.",
+        "estimated_input_tokens": 98,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3760
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "5/14",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-mathematical-reasoning-04-1783696656.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-mathematical-reasoning-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 81,
+          "prompt_tokens": 128,
+          "total_tokens": 209
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "task_id": "v2-mathematical-reasoning-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "A tank contains 30 litres of a solution that is 20% solute. How many litres of pure solute must be added to make the resulting mixture 35% solute? Return the exact answer as a simplified fraction.",
+        "task_id": "v2-mathematical-reasoning-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nA tank contains 30 litres of a solution that is 20% solute. How many litres of pure solute must be added to make the resulting mixture 35% solute? Return the exact answer as a simplified fraction.",
+        "estimated_input_tokens": 108,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 9173
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "90/13",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-mathematical-reasoning-05-1783696665.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-mathematical-reasoning-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 224,
+          "prompt_tokens": 141,
+          "total_tokens": 365
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "MATHEMATICAL_REASONING",
+      "task_family": "math_reasoning",
+      "task_id": "v2-mathematical-reasoning-05"
+    },
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "label_exact_match"
+      },
+      "evaluator": {
+        "type": "label_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Classify the sentiment as positive, negative, or neutral.\nText: The new dashboard is clear, fast, and genuinely useful.\nReturn only the label.",
+        "task_id": "v2-sentiment-classification-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: sentiment\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nClassify the sentiment as positive, negative, or neutral.\nText: The new dashboard is clear, fast, and genuinely useful.\nReturn only the label.",
+        "estimated_input_tokens": 93,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3028
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"label\":\"positive\"}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-sentiment-classification-01-1783696668.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "sentiment",
+        "task_id": "v2-sentiment-classification-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 62,
+          "prompt_tokens": 129,
+          "total_tokens": 191
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "task_id": "v2-sentiment-classification-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "label_exact_match"
+      },
+      "evaluator": {
+        "type": "label_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Classify the sentiment as positive, negative, or neutral.\nText: The package contains one adapter, two cables, and a printed guide.\nReturn only the label.",
+        "task_id": "v2-sentiment-classification-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: sentiment\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nClassify the sentiment as positive, negative, or neutral.\nText: The package contains one adapter, two cables, and a printed guide.\nReturn only the label.",
+        "estimated_input_tokens": 96,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 4825
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"label\":\"neutral\"}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-sentiment-classification-02-1783696673.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "sentiment",
+        "task_id": "v2-sentiment-classification-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 112,
+          "prompt_tokens": 131,
+          "total_tokens": 243
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "task_id": "v2-sentiment-classification-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "label_exact_match"
+      },
+      "evaluator": {
+        "type": "label_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Classify the overall sentiment as positive, negative, or neutral.\nText: The interface is plain, but it loads instantly and has never lost my work.\nReturn only the label.",
+        "task_id": "v2-sentiment-classification-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: sentiment\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nClassify the overall sentiment as positive, negative, or neutral.\nText: The interface is plain, but it loads instantly and has never lost my work.\nReturn only the label.",
+        "estimated_input_tokens": 101,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3412
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"label\":\"positive\"}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-sentiment-classification-03-1783696676.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "sentiment",
+        "task_id": "v2-sentiment-classification-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 72,
+          "prompt_tokens": 134,
+          "total_tokens": 206
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "task_id": "v2-sentiment-classification-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "label_exact_match"
+      },
+      "evaluator": {
+        "type": "label_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Classify the overall sentiment as positive, negative, or neutral.\nText: Impressive\u2014another update that replaces one working feature with three new crashes.\nReturn only the label.",
+        "task_id": "v2-sentiment-classification-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: sentiment\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nClassify the overall sentiment as positive, negative, or neutral.\nText: Impressive\u2014another update that replaces one working feature with three new crashes.\nReturn only the label.",
+        "estimated_input_tokens": 99,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3604
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"label\":\"negative\"}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-sentiment-classification-04-1783696680.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "sentiment",
+        "task_id": "v2-sentiment-classification-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 79,
+          "prompt_tokens": 133,
+          "total_tokens": 212
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "task_id": "v2-sentiment-classification-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "label_exact_match"
+      },
+      "evaluator": {
+        "type": "label_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Classify the overall sentiment as positive, negative, or neutral.\nText: The migration reduced hosting costs and improved uptime, but it also erased a week of audit logs; for a compliance system, that failure outweighs every gain.\nReturn only the label.",
+        "task_id": "v2-sentiment-classification-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: sentiment\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nClassify the overall sentiment as positive, negative, or neutral.\nText: The migration reduced hosting costs and improved uptime, but it also erased a week of audit logs; for a compliance system, that failure outweighs every gain.\nReturn only the label.",
+        "estimated_input_tokens": 118,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 4352
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"label\":\"negative\"}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-sentiment-classification-05-1783696684.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "sentiment",
+        "task_id": "v2-sentiment-classification-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 93,
+          "prompt_tokens": 151,
+          "total_tokens": 244
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "SENTIMENT_CLASSIFICATION",
+      "task_family": "sentiment",
+      "task_id": "v2-sentiment-classification-05"
+    },
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "implemented": true,
+        "max_words": 12,
+        "passed": false,
+        "required_facts_found": 0,
+        "required_facts_total": 3,
+        "type": "summary_rubric",
+        "word_count": 7
+      },
+      "evaluator": {
+        "type": "summary_rubric",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Summarise the passage in no more than 12 words.\n\nPassage: The library will close at 6 p.m. on Friday for electrical maintenance and reopen at 9 a.m. on Saturday.",
+        "task_id": "v2-text-summarisation-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: math_reasoning\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nSummarise the passage in no more than 12 words.\n\nPassage: The library will close at 6 p.m. on Friday for electrical maintenance and reopen at 9 a.m. on Saturday.",
+        "estimated_input_tokens": 99,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 5315
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "Library closes Friday 6pm, opens Saturday 9am.",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-text-summarisation-01-1783696690.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "math_reasoning",
+        "task_id": "v2-text-summarisation-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 118,
+          "prompt_tokens": 143,
+          "total_tokens": 261
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "task_id": "v2-text-summarisation-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "implemented": true,
+        "max_words": 20,
+        "passed": false,
+        "required_facts_found": 0,
+        "required_facts_total": 3,
+        "type": "summary_rubric",
+        "word_count": 10
+      },
+      "evaluator": {
+        "type": "summary_rubric",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Summarise the passage in one sentence of no more than 20 words.\n\nPassage: The school added breakfast service before classes. Attendance improved, and teachers reported that pupils were more attentive during the first lesson.",
+        "task_id": "v2-text-summarisation-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nSummarise the passage in one sentence of no more than 20 words.\n\nPassage: The school added breakfast service before classes. Attendance improved, and teachers reported that pupils were more attentive during the first lesson.",
+        "estimated_input_tokens": 108,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 5622
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "Breakfast before class boosted attendance and made pupils more attentive.",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-text-summarisation-02-1783696695.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-text-summarisation-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 126,
+          "prompt_tokens": 142,
+          "total_tokens": 268
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "task_id": "v2-text-summarisation-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "implemented": true,
+        "max_words": 28,
+        "passed": false,
+        "required_facts_found": 0,
+        "required_facts_total": 4,
+        "type": "summary_rubric",
+        "word_count": 12
+      },
+      "evaluator": {
+        "type": "summary_rubric",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Summarise the passage in no more than 28 words, preserving the main trade-off.\n\nPassage: The bank shortened its online loan application from twelve pages to four. Completion rates increased sharply, but fraud-review staff received fewer supporting documents and had to request additional evidence more often.",
+        "task_id": "v2-text-summarisation-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: math_reasoning\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nSummarise the passage in no more than 28 words, preserving the main trade-off.\n\nPassage: The bank shortened its online loan application from twelve pages to four. Completion rates increased sharply, but fraud-review staff received fewer supporting documents and had to request additional evidence more often.",
+        "estimated_input_tokens": 124,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 7347
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "Shorter loan apps boost completions but strain fraud reviewers with fewer documents.",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-text-summarisation-03-1783696703.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "math_reasoning",
+        "task_id": "v2-text-summarisation-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 163,
+          "prompt_tokens": 158,
+          "total_tokens": 321
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "task_id": "v2-text-summarisation-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "implemented": true,
+        "max_words": 35,
+        "passed": false,
+        "required_facts_found": 1,
+        "required_facts_total": 5,
+        "type": "summary_rubric",
+        "word_count": 24
+      },
+      "evaluator": {
+        "type": "summary_rubric",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Summarise the passage in no more than 35 words. Preserve the causal sequence and the different effects on customers and staff.\n\nPassage: A payment outage prevented card transactions for 47 minutes. Customers abandoned some purchases, while support calls tripled. Engineers restored service by disabling a faulty rules update, then began reviewing why automated rollback had not started.",
+        "task_id": "v2-text-summarisation-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: math_reasoning\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nSummarise the passage in no more than 35 words. Preserve the causal sequence and the different effects on customers and staff.\n\nPassage: A payment outage prevented card transactions for 47 minutes. Customers abandoned some purchases, while support calls tripled. Engineers restored service by disabling a faulty rules update, then began reviewing why automated rollback had not started.",
+        "estimated_input_tokens": 141,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 10271
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "Payment outage halted cards 47\u202fmin; customers abandoned purchases, staff calls tripled. Engineers fixed it by disabling faulty rule update and investigating missing rollback.",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-text-summarisation-04-1783696713.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "math_reasoning",
+        "task_id": "v2-text-summarisation-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 239,
+          "prompt_tokens": 173,
+          "total_tokens": 412
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "task_id": "v2-text-summarisation-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "implemented": true,
+        "max_words": 45,
+        "passed": false,
+        "required_facts_found": 0,
+        "required_facts_total": 5,
+        "type": "summary_rubric",
+        "word_count": 36
+      },
+      "evaluator": {
+        "type": "summary_rubric",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Summarise the passage in no more than 45 words. Retain the deployment condition, the measured benefit, the unresolved risk, and the decision.\n\nPassage: During a six-week trial, the company routed low-risk document classification to a small local model only when a deterministic validator could verify the output schema. Fireworks token use fell by 41 percent, and median latency improved. However, accuracy dropped on multilingual documents because the local qualification set contained too few non-English examples. The team approved local routing for English documents but kept multilingual documents on the hosted model pending a broader audit.",
+        "task_id": "v2-text-summarisation-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nSummarise the passage in no more than 45 words. Retain the deployment condition, the measured benefit, the unresolved risk, and the decision.\n\nPassage: During a six-week trial, the company routed low-risk document classification to a small local model only when a deterministic validator could verify the output schema. Fireworks token use fell by 41 percent, and median latency improved. However, accuracy dropped on multilingual documents because the local qualification set contained too few non-English examples. The team approved local routing for English documents but kept multilingual documents on the hosted model pending a broader audit.",
+        "estimated_input_tokens": 195,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 14624
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "Local model used only when validator confirmed schema; token use down 41%, latency improved. Risk: accuracy fell on multilingual docs due to few non\u2011English examples. Decision: local routing for English only; multilingual kept hosted pending audit.",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-text-summarisation-05-1783696727.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-text-summarisation-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 331,
+          "prompt_tokens": 224,
+          "total_tokens": 555
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "TEXT_SUMMARISATION",
+      "task_family": "summarization",
+      "task_id": "v2-text-summarisation-05"
+    },
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Extract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: Priya Shah visited Rome on 6 May 2024.",
+        "task_id": "v2-named-entity-recognition-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: named_entity_recognition\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nExtract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: Priya Shah visited Rome on 6 May 2024.",
+        "estimated_input_tokens": 102,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 7720
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\n  \"persons\": [\"Priya Shah\"],\n  \"organizations\": [],\n  \"locations\": [\"Rome\"],\n  \"dates\": [\"6 May 2024\"]\n}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-named-entity-recognition-01-1783696735.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "named_entity_recognition",
+        "task_id": "v2-named-entity-recognition-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 165,
+          "prompt_tokens": 155,
+          "total_tokens": 320
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "task_id": "v2-named-entity-recognition-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Extract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: Omar Diallo joined Horizon Robotics in Paris in January 2025.",
+        "task_id": "v2-named-entity-recognition-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: named_entity_recognition\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nExtract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: Omar Diallo joined Horizon Robotics in Paris in January 2025.",
+        "estimated_input_tokens": 106,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 10079
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\n  \"persons\": [\"Omar Diallo\"],\n  \"organizations\": [\"Horizon Robotics\"],\n  \"locations\": [\"Paris\"],\n  \"dates\": [\"January 2025\"]\n}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-named-entity-recognition-02-1783696745.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "named_entity_recognition",
+        "task_id": "v2-named-entity-recognition-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 216,
+          "prompt_tokens": 157,
+          "total_tokens": 373
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "task_id": "v2-named-entity-recognition-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Extract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: On 14 August 2026, Dr. Laila Mensah spoke for the African Climate Institute at a conference in Accra.",
+        "task_id": "v2-named-entity-recognition-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: named_entity_recognition\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nExtract named entities. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array.\n\nSentence: On 14 August 2026, Dr. Laila Mensah spoke for the African Climate Institute at a conference in Accra.",
+        "estimated_input_tokens": 116,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 10712
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\n  \"persons\": [\"Dr. Laila Mensah\"],\n  \"organizations\": [\"African Climate Institute\"],\n  \"locations\": [\"Accra\"],\n  \"dates\": [\"14 August 2026\"]\n}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-named-entity-recognition-03-1783696756.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "named_entity_recognition",
+        "task_id": "v2-named-entity-recognition-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 228,
+          "prompt_tokens": 170,
+          "total_tokens": 398
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "task_id": "v2-named-entity-recognition-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Extract named entities from both sentences. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array. Do not duplicate repeated entities.\n\nText: Sofia Petrov met Arctic Grid executives in Helsinki on 2 February 2025. Later that month, Arctic Grid appointed Petrov to lead its Oslo office.",
+        "task_id": "v2-named-entity-recognition-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: named_entity_recognition\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nExtract named entities from both sentences. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array. Do not duplicate repeated entities.\n\nText: Sofia Petrov met Arctic Grid executives in Helsinki on 2 February 2025. Later that month, Arctic Grid appointed Petrov to lead its Oslo office.",
+        "estimated_input_tokens": 136,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 14634
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\"persons\":[\"Sofia Petrov\"],\"organizations\":[\"Arctic Grid\"],\"locations\":[\"Helsinki\",\"Oslo\"],\"dates\":[\"2 February 2025\"]}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-named-entity-recognition-04-1783696771.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "named_entity_recognition",
+        "task_id": "v2-named-entity-recognition-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 320,
+          "prompt_tokens": 180,
+          "total_tokens": 500
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "task_id": "v2-named-entity-recognition-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": false,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Extract named entities from the text. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array. Preserve first-appearance order and do not duplicate entities.\n\nText: On 11 November 2024, Director Amara Ndlovu of Cape Meridian Bank met Luis Ortega at the United Nations Office in Geneva. Ortega later represented Solis Energy during a 13 November session in Zurich.",
+        "task_id": "v2-named-entity-recognition-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: named_entity_recognition\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nExtract named entities from the text. Return only valid JSON with keys \"persons\", \"organizations\", \"locations\", and \"dates\", each containing an array. Preserve first-appearance order and do not duplicate entities.\n\nText: On 11 November 2024, Director Amara Ndlovu of Cape Meridian Bank met Luis Ortega at the United Nations Office in Geneva. Ortega later represented Solis Energy during a 13 November session in Zurich.",
+        "estimated_input_tokens": 153,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 21994
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\n  \"persons\": [\n    \"Amara Ndlovu\",\n    \"Luis Ortega\"\n  ],\n  \"organizations\": [\n    \"Cape Meridian Bank\",\n    \"United Nations Office\",\n    \"Solis Energy\"\n  ],\n  \"locations\": [\n    \"Geneva\",\n    \"Zurich\"\n  ],\n  \"dates\": [\n    \"11 November 2024\",\n    \"13 November\"\n  ]\n}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-named-entity-recognition-05-1783696793.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "named_entity_recognition",
+        "task_id": "v2-named-entity-recognition-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 488,
+          "prompt_tokens": 204,
+          "total_tokens": 692
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "NAMED_ENTITY_RECOGNITION",
+      "task_family": "named_entity_recognition",
+      "task_id": "v2-named-entity-recognition-05"
+    },
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 4,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests"
+      },
+      "evaluator": {
+        "type": "python_unit_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Fix the Python function so it returns True for even integers and False for odd integers. Return only the corrected function.\n\ndef is_even(number):\n    return number % 2 == 1",
+        "task_id": "v2-code-debugging-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nFix the Python function so it returns True for even integers and False for odd integers. Return only the corrected function.\n\ndef is_even(number):\n    return number % 2 == 1",
+        "estimated_input_tokens": 100,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 5110
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def is_even(number):\n    return number % 2 == 0",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-debugging-01-1783696798.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-debugging-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 98,
+          "prompt_tokens": 139,
+          "total_tokens": 237
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "task_id": "v2-code-debugging-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 3,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests"
+      },
+      "evaluator": {
+        "type": "python_unit_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Fix the Python function so it counts all values without raising KeyError. Return only the corrected function.\n\ndef count_occurrences(values):\n    counts = {}\n    for value in values:\n        counts[value] += 1\n    return counts",
+        "task_id": "v2-code-debugging-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nFix the Python function so it counts all values without raising KeyError. Return only the corrected function.\n\ndef count_occurrences(values):\n    counts = {}\n    for value in values:\n        counts[value] += 1\n    return counts",
+        "estimated_input_tokens": 105,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 8354
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def count_occurrences(values):\n    counts = {}\n    for value in values:\n        counts[value] += 1\n    return counts",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-debugging-02-1783696806.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-debugging-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 168,
+          "prompt_tokens": 154,
+          "total_tokens": 322
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "task_id": "v2-code-debugging-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "function_exists": false,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 4,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests_with_exceptions"
+      },
+      "evaluator": {
+        "type": "python_unit_tests_with_exceptions",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Fix the Python function so factorial(0) returns 1, positive inputs work, and negative inputs raise ValueError. Return only the corrected function.\n\ndef factorial(n):\n    if n == 1:\n        return 1\n    return n * factorial(n - 1)",
+        "task_id": "v2-code-debugging-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "json",
+          "instruction": "Return only valid JSON. Do not include markdown fences."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: sentiment\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return only valid JSON. Do not include markdown fences.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nFix the Python function so factorial(0) returns 1, positive inputs work, and negative inputs raise ValueError. Return only the corrected function.\n\ndef factorial(n):\n    if n == 1:\n        return 1\n    return n * factorial(n - 1)",
+        "estimated_input_tokens": 112,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 15975
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\n  \"factorial\": \"def factorial(n):\\n    if n == 0:\\n        return 1\\n    if n < 0:\\n        raise ValueError('negative input')\\n    result = 1\\n    for i in range(2, n+1):\\n        result *= i\\n    return result\"\n}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-debugging-03-1783696822.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "sentiment",
+        "task_id": "v2-code-debugging-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 336,
+          "prompt_tokens": 161,
+          "total_tokens": 497
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "task_id": "v2-code-debugging-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 4,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests"
+      },
+      "evaluator": {
+        "type": "python_unit_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Fix the Python function so it merges two already sorted lists without losing remaining items from either list. Return only the corrected function.\n\ndef merge_sorted(left, right):\n    result = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i])\n            i += 1\n        else:\n            result.append(right[j])\n            j += 1\n    return result",
+        "task_id": "v2-code-debugging-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nFix the Python function so it merges two already sorted lists without losing remaining items from either list. Return only the corrected function.\n\ndef merge_sorted(left, right):\n    result = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i])\n            i += 1\n        else:\n            result.append(right[j])\n            j += 1\n    return result",
+        "estimated_input_tokens": 144,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 14421
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def merge_sorted(left, right):\n    result = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            result.append(left[i])\n            i += 1\n        else:\n            result.append(right[j])\n            j += 1\n    result.extend(left[i:])\n    result.extend(right[j:])\n    return result",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-debugging-04-1783696836.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-debugging-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 302,
+          "prompt_tokens": 222,
+          "total_tokens": 524
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "task_id": "v2-code-debugging-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 3,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_behavioral_tests"
+      },
+      "evaluator": {
+        "type": "python_behavioral_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Fix the Python function so it returns a shortest path from start to goal in an unweighted directed graph. Return an empty list when no path exists. Return only the corrected function.\n\ndef shortest_path(graph, start, goal):\n    queue = [(start, [start])]\n    visited = set()\n    while queue:\n        node, path = queue.pop()\n        if node == goal:\n            return path\n        if node in visited:\n            continue\n        visited.add(node)\n        for neighbour in graph.get(node, []):\n            queue.append((neighbour, path + [neighbour]))\n    return []",
+        "task_id": "v2-code-debugging-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nFix the Python function so it returns a shortest path from start to goal in an unweighted directed graph. Return an empty list when no path exists. Return only the corrected function.\n\ndef shortest_path(graph, start, goal):\n    queue = [(start, [start])]\n    visited = set()\n    while queue:\n        node, path = queue.pop()\n        if node == goal:\n            return path\n        if node in visited:\n            continue\n        visited.add(node)\n        for neighbour in graph.get(node, []):\n            queue.append((neighbour, path + [neighbour]))\n    return []",
+        "estimated_input_tokens": 167,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 15157
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def shortest_path(graph, start, goal):\n    from collections import deque\n    q = deque([start])\n    visited = {start}\n    parent = {}\n    while q:\n        node = q.popleft()\n        if node == goal:\n            path = []\n            while node != start:\n                path.append(node)\n                node = parent[node]\n            path.append(start)\n            return list(reversed(path))\n        for n in graph.get(node, []):\n            if n not in visited:\n                visited.add(n)\n                parent[n] = node\n                q.append(n)\n    return []",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-debugging-05-1783696852.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-debugging-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 312,
+          "prompt_tokens": 250,
+          "total_tokens": 562
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_DEBUGGING",
+      "task_family": "code_debugging",
+      "task_id": "v2-code-debugging-05"
+    },
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "All copper objects conduct electricity. This wire is made of copper. Does the wire conduct electricity? Return only yes or no.",
+        "task_id": "v2-logical-deductive-reasoning-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nAll copper objects conduct electricity. This wire is made of copper. Does the wire conduct electricity? Return only yes or no.",
+        "estimated_input_tokens": 89,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3636
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "yes",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-logical-deductive-reasoning-01-1783696855.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-logical-deductive-reasoning-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 53,
+          "prompt_tokens": 119,
+          "total_tokens": 172
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "task_id": "v2-logical-deductive-reasoning-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Nia arrived before Omar. Omar arrived before Pavel. Who arrived second? Return only the person's name.",
+        "task_id": "v2-logical-deductive-reasoning-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nNia arrived before Omar. Omar arrived before Pavel. Who arrived second? Return only the person's name.",
+        "estimated_input_tokens": 82,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3331
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "Omar",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-logical-deductive-reasoning-02-1783696859.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-logical-deductive-reasoning-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 56,
+          "prompt_tokens": 117,
+          "total_tokens": 173
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "task_id": "v2-logical-deductive-reasoning-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "normalized_exact_match"
+      },
+      "evaluator": {
+        "type": "normalized_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Exactly one of A, B, and C is selected. If C is not selected, then B is selected. B is not selected. Which option is selected? Return only A, B, or C.",
+        "task_id": "v2-logical-deductive-reasoning-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nExactly one of A, B, and C is selected. If C is not selected, then B is selected. B is not selected. Which option is selected? Return only A, B, or C.",
+        "estimated_input_tokens": 101,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 13170
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "C",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-logical-deductive-reasoning-03-1783696872.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-logical-deductive-reasoning-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 281,
+          "prompt_tokens": 137,
+          "total_tokens": 418
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "task_id": "v2-logical-deductive-reasoning-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "ordered_list_match"
+      },
+      "evaluator": {
+        "type": "ordered_list_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Four presentations\u2014L, M, N, and O\u2014must occupy slots 1 through 4, one per slot. L is before M. N is immediately after L. M is not in slot 4. O is after M. Return the unique order as comma-separated letters.",
+        "task_id": "v2-logical-deductive-reasoning-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nFour presentations\u2014L, M, N, and O\u2014must occupy slots 1 through 4, one per slot. L is before M. N is immediately after L. M is not in slot 4. O is after M. Return the unique order as comma-separated letters.",
+        "estimated_input_tokens": 113,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 20943
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "L,N,M,O",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-logical-deductive-reasoning-04-1783696893.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-logical-deductive-reasoning-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 453,
+          "prompt_tokens": 154,
+          "total_tokens": 607
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "task_id": "v2-logical-deductive-reasoning-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "implemented": true,
+        "passed": true,
+        "type": "json_deep_exact_match"
+      },
+      "evaluator": {
+        "type": "json_deep_exact_match",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Ada, Ben, and Chen each handle one different task\u2014database, network, or UI\u2014and work on one different day\u2014Monday, Tuesday, or Wednesday.\nClues:\n1. Ada does not handle the database task.\n2. Ada works before Ben.\n3. The network task is performed on Tuesday.\n4. Chen works on Wednesday.\n5. Ben does not handle the UI task.\nReturn only valid JSON mapping each person to an object with keys \"task\" and \"day\".",
+        "task_id": "v2-logical-deductive-reasoning-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: factual_qa\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nAda, Ben, and Chen each handle one different task\u2014database, network, or UI\u2014and work on one different day\u2014Monday, Tuesday, or Wednesday.\nClues:\n1. Ada does not handle the database task.\n2. Ada works before Ben.\n3. The network task is performed on Tuesday.\n4. Chen works on Wednesday.\n5. Ben does not handle the UI task.\nReturn only valid JSON mapping each person to an object with keys \"task\" and \"day\".",
+        "estimated_input_tokens": 155,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 20226
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "{\n  \"Ada\": {\"task\": \"UI\", \"day\": \"Monday\"},\n  \"Ben\": {\"task\": \"network\", \"day\": \"Tuesday\"},\n  \"Chen\": {\"task\": \"database\", \"day\": \"Wednesday\"}\n}",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-logical-deductive-reasoning-05-1783696913.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "factual_qa",
+        "task_id": "v2-logical-deductive-reasoning-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 431,
+          "prompt_tokens": 203,
+          "total_tokens": 634
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "LOGICAL_DEDUCTIVE_REASONING",
+      "task_family": "logic_puzzles",
+      "task_id": "v2-logical-deductive-reasoning-05"
+    },
+    {
+      "difficulty_hint": 1,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 3,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests"
+      },
+      "evaluator": {
+        "type": "python_unit_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Write a Python function clamp(value, minimum, maximum) that returns value limited to the inclusive range [minimum, maximum]. Assume minimum <= maximum. Return only the function.",
+        "task_id": "v2-code-generation-01"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nWrite a Python function clamp(value, minimum, maximum) that returns value limited to the inclusive range [minimum, maximum]. Assume minimum <= maximum. Return only the function.",
+        "estimated_input_tokens": 96,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 3884
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def clamp(value, minimum, maximum):\n    return max(minimum, min(value, maximum))",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-generation-01-1783696917.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-generation-01",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 63,
+          "prompt_tokens": 132,
+          "total_tokens": 195
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "task_id": "v2-code-generation-01"
+    },
+    {
+      "difficulty_hint": 2,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 4,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests"
+      },
+      "evaluator": {
+        "type": "python_unit_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Write a Python function rotate_right(items, steps) that returns a new list rotated right by steps positions. It must handle empty lists and steps larger than the list. Do not mutate the input. Return only the function.",
+        "task_id": "v2-code-generation-02"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nWrite a Python function rotate_right(items, steps) that returns a new list rotated right by steps positions. It must handle empty lists and steps larger than the list. Do not mutate the input. Return only the function.",
+        "estimated_input_tokens": 110,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 5351
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def rotate_right(items, steps):\n    if not items:\n        return []\n    n = len(items)\n    steps %= n\n    return items[-steps:] + items[:-steps]",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-generation-02-1783696922.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-generation-02",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 97,
+          "prompt_tokens": 141,
+          "total_tokens": 238
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "task_id": "v2-code-generation-02"
+    },
+    {
+      "difficulty_hint": 3,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 3,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests"
+      },
+      "evaluator": {
+        "type": "python_unit_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Write a Python function flatten_dict(data) that flattens nested dictionaries using dot-separated keys. Values that are not dictionaries remain unchanged. An empty nested dictionary should produce no output key. Return only the function.",
+        "task_id": "v2-code-generation-03"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nWrite a Python function flatten_dict(data) that flattens nested dictionaries using dot-separated keys. Values that are not dictionaries remain unchanged. An empty nested dictionary should produce no output key. Return only the function.",
+        "estimated_input_tokens": 107,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 10043
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def flatten_dict(data):\n    result = {}\n    for k, v in data.items():\n        if isinstance(v, dict) and v:\n            for sub_k, sub_v in v.items():\n                result[f\"{k}.{sub_k}\"] = sub_v\n        else:\n            result[k] = v\n    return result",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-generation-03-1783696932.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-generation-03",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 199,
+          "prompt_tokens": 141,
+          "total_tokens": 340
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "task_id": "v2-code-generation-03"
+    },
+    {
+      "difficulty_hint": 4,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 4,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests_with_exceptions"
+      },
+      "evaluator": {
+        "type": "python_unit_tests_with_exceptions",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Write a Python function topological_sort(dependencies) where dependencies maps each node to a list of its prerequisite nodes. Return a valid ordering containing every referenced node exactly once. When multiple nodes are available, choose the lexicographically smallest. Raise ValueError if a cycle exists. Return only the function.",
+        "task_id": "v2-code-generation-04"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nWrite a Python function topological_sort(dependencies) where dependencies maps each node to a list of its prerequisite nodes. Return a valid ordering containing every referenced node exactly once. When multiple nodes are available, choose the lexicographically smallest. Raise ValueError if a cycle exists. Return only the function.",
+        "estimated_input_tokens": 127,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 28625
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def topological_sort(dependencies):\n    import heapq\n    adj = {}\n    indeg = {}\n    nodes = set()\n    for u, prereqs in dependencies.items():\n        nodes.add(u)\n        for v in prereqs:\n            nodes.add(v)\n            if v not in adj: adj[v]=[]\n            adj[u].append(v)\n            indeg.setdefault(u, 0)\n            indeg[u] += 1\n    for n in nodes:\n        if n not in indeg: indeg[n] = 0\n\n    heap = [n for n in nodes if indeg[n] == 0]\n    heapq.heapify(heap)\n    order = []\n    while heap:\n        v = heapq.heappop(heap)\n        order.append(v)\n        for w in adj.get(v, []):\n            indeg[w] -= 1\n            if indeg[w] == 0:\n                heapq.heappush(heap, w)\n\n    if len(order) != len(nodes):\n        raise ValueError(\"Cycle detected\")\n    return order",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-generation-04-1783696961.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-generation-04",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 603,
+          "prompt_tokens": 156,
+          "total_tokens": 759
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "task_id": "v2-code-generation-04"
+    },
+    {
+      "difficulty_hint": 5,
+      "evaluation_result": {
+        "function_exists": true,
+        "implemented": false,
+        "passed": false,
+        "reason": "code_execution_evaluator_requires_isolated_sandbox",
+        "runtime_error": null,
+        "status": "blocked",
+        "syntax_error": null,
+        "syntax_valid": true,
+        "test_failure_count": 5,
+        "test_pass_count": 0,
+        "timeout": false,
+        "type": "python_unit_tests"
+      },
+      "evaluator": {
+        "type": "python_unit_tests",
+        "withheld_from_model": true
+      },
+      "judged_fireworks_tokens": 0,
+      "local_estimated_input_tokens": 0,
+      "local_estimated_output_tokens": 0,
+      "model_visible_task": {
+        "prompt": "Write a Python function smallest_covering_window(text, required) that returns the shortest substring of text containing every character from required with at least the required multiplicity. Return an empty string when no such window exists. If multiple shortest windows exist, return the earliest. Return only the function.",
+        "task_id": "v2-code-generation-05"
+      },
+      "route_record": {
+        "allowed_models_source": "not_required_for_provider",
+        "answer_schema": {
+          "format": "text",
+          "instruction": "Return a concise answer with no preamble."
+        },
+        "candidate_version": "version_3",
+        "compiled_prompt": "You are solving an AMD Developer Hackathon Track 1 task.\nFollow the task contract exactly and minimize unnecessary output tokens.\n\nTask family: code_generation\nWork jurisdiction: DEMO_LOCAL_MODEL_EXECUTION\nAnswer schema: Return a concise answer with no preamble.\n\nEvidence:\nNo external evidence supplied.\n\nTask:\nWrite a Python function smallest_covering_window(text, required) that returns the shortest substring of text containing every character from required with at least the required multiplicity. Return an empty string when no such window exists. If multiple shortest windows exist, return the earliest. Return only the function.",
+        "estimated_input_tokens": 125,
+        "fallback_reason": null,
+        "final_mode_compliant": false,
+        "fireworks_token_usage": {
+          "completion_tokens": 0,
+          "prompt_tokens": 0,
+          "total_tokens": 0
+        },
+        "latency": {
+          "milliseconds": 24102
+        },
+        "local_attempted": false,
+        "local_certification": null,
+        "local_failure": null,
+        "local_success": false,
+        "memory_estimate": null,
+        "omitted_context_reason": "no_external_evidence",
+        "output": "def smallest_covering_window(text, required):\n    from collections import Counter\n    need = Counter(required)\n    have = {}\n    l = 0\n    best_len = len(text) + 1\n    best_start = None\n    for r, ch in enumerate(text):\n        have[ch] = have.get(ch, 0) + 1\n        while all(have[c] >= need[c] for c in need):\n            if r - l + 1 < best_len:\n                best_len = r - l + 1\n                best_start = l\n            have[text[l]] -= 1\n            l += 1\n    return text[best_start:best_start + best_len] if best_start is not None else \"\"",
+        "record_path": "qualification/results/version5-category-benchmark-v2-ollama-demo-1783696623-run/audit/v2-code-generation-05-1783696985.json",
+        "repair": {
+          "attempted": false,
+          "reason": "ok"
+        },
+        "retry_count": 0,
+        "routing_reason": "demo_local_model_execution",
+        "selected_evidence_refs": [],
+        "selected_model": "nemotron-3-nano:4b",
+        "selected_path": "ollama-demo",
+        "selected_provider": "ollama-demo",
+        "task_family": "code_generation",
+        "task_id": "v2-code-generation-05",
+        "token_budget": {
+          "max_completion_tokens": 512,
+          "preferred_context_tokens": 2048
+        },
+        "token_usage": {
+          "completion_tokens": 497,
+          "prompt_tokens": 154,
+          "total_tokens": 651
+        },
+        "validation_result": {
+          "passed": true,
+          "reason": "ok"
+        },
+        "work_jurisdiction": "DEMO_LOCAL_MODEL_EXECUTION"
+      },
+      "task_category": "CODE_GENERATION",
+      "task_family": "code_generation",
+      "task_id": "v2-code-generation-05"
+    }
+  ],
+  "run_id": "version5-category-benchmark-v2-ollama-demo-1783696623",
+  "schema": "amd_hackathon.qualification_results.v1",
+  "summary": {
+    "by_category": {
+      "CODE_DEBUGGING": {
+        "accuracy": 0.0,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 59017,
+        "passed": 0,
+        "tasks": 5,
+        "validation_failures": 0
+      },
+      "CODE_GENERATION": {
+        "accuracy": 0.0,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 72005,
+        "passed": 0,
+        "tasks": 5,
+        "validation_failures": 0
+      },
+      "FACTUAL_KNOWLEDGE": {
+        "accuracy": 0.8,
+        "evaluator_failures": 1,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 17325,
+        "passed": 4,
+        "tasks": 5,
+        "validation_failures": 0
+      },
+      "LOGICAL_DEDUCTIVE_REASONING": {
+        "accuracy": 1.0,
+        "evaluator_failures": 0,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 61306,
+        "passed": 5,
+        "tasks": 5,
+        "validation_failures": 0
+      },
+      "MATHEMATICAL_REASONING": {
+        "accuracy": 1.0,
+        "evaluator_failures": 0,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 24847,
+        "passed": 5,
+        "tasks": 5,
+        "validation_failures": 0
+      },
+      "NAMED_ENTITY_RECOGNITION": {
+        "accuracy": 0.4,
+        "evaluator_failures": 3,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 65139,
+        "passed": 2,
+        "tasks": 5,
+        "validation_failures": 0
+      },
+      "SENTIMENT_CLASSIFICATION": {
+        "accuracy": 0.0,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 19221,
+        "passed": 0,
+        "tasks": 5,
+        "validation_failures": 0
+      },
+      "TEXT_SUMMARISATION": {
+        "accuracy": 0.0,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 43179,
+        "passed": 0,
+        "tasks": 5,
+        "validation_failures": 0
+      }
+    },
+    "by_difficulty": {
+      "1": {
+        "accuracy": 0.5,
+        "evaluator_failures": 4,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 31592,
+        "passed": 4,
+        "tasks": 8,
+        "validation_failures": 0
+      },
+      "2": {
+        "accuracy": 0.375,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 46631,
+        "passed": 3,
+        "tasks": 8,
+        "validation_failures": 0
+      },
+      "3": {
+        "accuracy": 0.375,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 69526,
+        "passed": 3,
+        "tasks": 8,
+        "validation_failures": 0
+      },
+      "4": {
+        "accuracy": 0.375,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 99950,
+        "passed": 3,
+        "tasks": 8,
+        "validation_failures": 0
+      },
+      "5": {
+        "accuracy": 0.375,
+        "evaluator_failures": 5,
+        "judged_fireworks_tokens": 0,
+        "latency_ms": 114340,
+        "passed": 3,
+        "tasks": 8,
+        "validation_failures": 0
+      }
+    },
+    "evaluator_failures": 24,
+    "overall_accuracy": 0.4,
+    "overall_passed": 16,
+    "overall_tasks": 40,
+    "runtime_failures": 0,
+    "validation_failures": 0
+  }
+}

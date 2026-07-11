@@ -13,11 +13,14 @@ from amd_hackathon_app.analytics import (
 )
 
 
+FIXTURE_RESULTS = Path("tests/fixtures/qualification-results")
+
+
 class AnalyticsTests(unittest.TestCase):
     def test_build_version5_analytics_generates_review_artifact(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "version5_authority_analytics.json"
-            payload = write_version5_analytics(Path("qualification/results"), output)
+            payload = write_version5_analytics(FIXTURE_RESULTS, output)
 
             self.assertTrue(output.exists())
             self.assertEqual(payload["schema"], "amd_hackathon.version5_authority_analytics.v1")
@@ -38,7 +41,7 @@ class AnalyticsTests(unittest.TestCase):
         self.assertEqual([row["id"] for row in ranked], ["d", "a", "b", "c"])
 
     def test_avoid_lists_include_zero_pass_and_qualification_only_evidence(self) -> None:
-        payload = build_version5_analytics(Path("qualification/results"))
+        payload = build_version5_analytics(FIXTURE_RESULTS)
 
         code_generation_avoid = payload["avoid_list_per_category"]["CODE_GENERATION"]
         avoid_names = {row["model"] for row in code_generation_avoid}
@@ -47,7 +50,7 @@ class AnalyticsTests(unittest.TestCase):
         self.assertGreaterEqual(len(code_generation_avoid), 3)
 
     def test_qualification_only_evidence_is_blocked_from_promotion(self) -> None:
-        payload = build_version5_analytics(Path("qualification/results"))
+        payload = build_version5_analytics(FIXTURE_RESULTS)
 
         local_rows = [
             row

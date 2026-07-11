@@ -9,6 +9,8 @@ benchmarks/results/*
 !benchmarks/results/.gitkeep
 qualification/results/*
 !qualification/results/.gitkeep
+qualification/archive/*
+!qualification/archive/.gitkeep
 runs/*
 !runs/.gitkeep
 staging-runs/*
