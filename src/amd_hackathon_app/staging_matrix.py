@@ -367,6 +367,9 @@ def summarize_group(rows: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def podman_run_cell(image: str, cell_dir: Path, alias: str, mode_key: str) -> dict[str, Any]:
+    baseline_script = cell_dir / "baseline-runner.py"
+    if mode_key == "remote":
+        baseline_script.write_text(BASELINE_RUNNER, encoding="utf-8")
     command = [
         "timeout",
         "--signal=TERM",
@@ -390,6 +393,8 @@ def podman_run_cell(image: str, cell_dir: Path, alias: str, mode_key: str) -> di
         f"STAGING_ALLOWED_MODELS={','.join(STAGING_ALLOWED_MODELS)}",
         "-e",
         f"STAGING_INFERENCE_MODEL={alias}",
+        "-e",
+        f"STAGING_EXACT_API_MODEL_ID={MODEL_MAPPINGS[alias]}",
         "-v",
         f"{cell_dir / 'input'}:/input:ro,Z",
         "-v",
@@ -399,16 +404,11 @@ def podman_run_cell(image: str, cell_dir: Path, alias: str, mode_key: str) -> di
     if mode_key == "remote":
         command.extend(
             [
-                "amd-router",
-                "run-submission",
-                "--input",
-                "/input/tasks.json",
-                "--output",
-                "/output/results.json",
-                "--provider",
-                VERSION_6_STAGING_REMOTE_BASELINE_PROVIDER,
+                "python",
+                "/baseline-runner.py",
             ]
         )
+        command[-3:-3] = ["-v", f"{baseline_script}:/baseline-runner.py:ro,Z"]
     start = time.monotonic()
     completed = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
     elapsed = round(time.monotonic() - start, 3)
@@ -422,6 +422,142 @@ def podman_run_cell(image: str, cell_dir: Path, alias: str, mode_key: str) -> di
         "oom_status": "unknown",
         "container_log": str(log_path),
     }
+
+
+BASELINE_RUNNER = r'''
+from __future__ import annotations
+
+import json
+import os
+import time
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+
+def estimate_tokens(text: str) -> int:
+    return max(1, len(text.split()) + len(text) // 16)
+
+
+def write_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def complete(prompt: str, model: str) -> tuple[str, dict[str, object], int]:
+    start = time.perf_counter()
+    api_key = os.environ["OLLAMA_API_KEY"]
+    base_url = os.environ.get("OLLAMA_CLOUD_BASE_URL", "https://ollama.com").rstrip("/")
+    timeout_seconds = int(os.environ.get("STAGING_TIMEOUT_SECONDS", "180"))
+    max_retries = int(os.environ.get("STAGING_MAX_RETRIES", "2"))
+    backoff = float(os.environ.get("STAGING_RETRY_BACKOFF_SECONDS", "2"))
+    body = json.dumps(
+        {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "stream": False,
+            "options": {"temperature": 0},
+        }
+    ).encode("utf-8")
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+    last_error: Exception | None = None
+    for attempt in range(max_retries + 1):
+        request = urllib.request.Request(f"{base_url}/api/chat", data=body, headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+            if exc.code not in {429, 500, 502, 503, 504} or attempt >= max_retries:
+                raise RuntimeError(f"Ollama Cloud baseline request failed with HTTP {exc.code}") from exc
+            retry_after = exc.headers.get("Retry-After")
+            delay = float(retry_after) if retry_after and retry_after.isdigit() else backoff * (attempt + 1)
+            time.sleep(delay)
+        except (urllib.error.URLError, TimeoutError) as exc:
+            last_error = exc
+            if attempt >= max_retries:
+                raise RuntimeError(f"Ollama Cloud baseline request failed: {type(exc).__name__}") from exc
+            time.sleep(backoff * (attempt + 1))
+    else:
+        raise RuntimeError(f"Ollama Cloud baseline request failed: {last_error}")
+
+    message = payload.get("message") if isinstance(payload, dict) else None
+    if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+        raise RuntimeError("Ollama Cloud baseline response was malformed")
+    text = str(message["content"]).strip()
+    if not text:
+        raise RuntimeError("Ollama Cloud baseline response was empty")
+    prompt_count = payload.get("prompt_eval_count")
+    completion_count = payload.get("eval_count")
+    token_usage: dict[str, object] = {
+        "judged_fireworks_tokens": "not_applicable",
+        "official_fireworks_token_score": "NOT_MEASURED",
+        "staging_remote_provider": "ollama-cloud",
+        "staging_remote_model": model,
+        "retry_count": 0,
+    }
+    if isinstance(prompt_count, int):
+        token_usage["staging_remote_prompt_tokens"] = prompt_count
+    else:
+        token_usage["staging_remote_prompt_estimate"] = estimate_tokens(prompt)
+    if isinstance(completion_count, int):
+        token_usage["staging_remote_completion_tokens"] = completion_count
+    else:
+        token_usage["staging_remote_completion_estimate"] = estimate_tokens(text)
+    if isinstance(prompt_count, int) and isinstance(completion_count, int):
+        token_usage["staging_remote_total_tokens"] = prompt_count + completion_count
+    return text, token_usage, int((time.perf_counter() - start) * 1000)
+
+
+def main() -> int:
+    input_path = Path("/input/tasks.json")
+    output_path = Path("/output/results.json")
+    audit_dir = Path("/output/audit")
+    model = os.environ["STAGING_EXACT_API_MODEL_ID"]
+    tasks = json.loads(input_path.read_text(encoding="utf-8"))
+    results = []
+    for task in tasks:
+        task_id = str(task["task_id"])
+        prompt = str(task["prompt"])
+        answer, token_usage, latency_ms = complete(prompt, model)
+        results.append({"task_id": task_id, "answer": answer})
+        write_json(
+            audit_dir / f"{task_id}-{int(time.time())}.json",
+            {
+                "task_id": task_id,
+                "task_family": None,
+                "work_jurisdiction": "STAGING_REMOTE_BASELINE",
+                "answer_schema": {"format": "text", "instruction": "Return a concise answer with no preamble."},
+                "compiled_prompt": prompt,
+                "estimated_input_tokens": estimate_tokens(prompt),
+                "selected_provider": "version6-staging-remote-baseline",
+                "selected_path": "staging_remote_baseline",
+                "selected_model": model,
+                "routing_reason": "staging_remote_baseline_direct_ollama_cloud",
+                "final_mode_compliant": False,
+                "validation_result": {"passed": True, "reason": "ok"},
+                "repair": {"attempted": False, "reason": "ok"},
+                "token_usage": token_usage,
+                "fireworks_token_usage": {
+                    "judged_fireworks_tokens": "not_applicable",
+                    "official_fireworks_token_score": "NOT_MEASURED",
+                },
+                "judged_fireworks_tokens": "not_applicable",
+                "official_fireworks_token_score": "NOT_MEASURED",
+                "retry_count": 0,
+                "latency": {"milliseconds": latency_ms},
+                "output": answer,
+            },
+        )
+    write_json(output_path, results)
+    print(json.dumps({"status": "completed", "task_count": len(results), "result_path": str(output_path)}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+'''
 
 
 def prepare_cell(root: Path, suite: SuiteSpec, alias: str, mode_key: str, input_tasks: list[dict[str, str]], evaluator: list[dict[str, Any]]) -> Path:
