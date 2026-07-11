@@ -8,10 +8,12 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY src ./src
 COPY web ./web
-COPY qualification/results ./qualification/results
+COPY benchmarks/categories/version5_local_category_benchmarks_v2.json ./benchmarks/categories/version5_local_category_benchmarks_v2.json
+COPY benchmarks/categories/version6_shadow_category_benchmarks_v1.json ./benchmarks/categories/version6_shadow_category_benchmarks_v1.json
 COPY docs/version6_submission_analytics.json ./docs/version6_submission_analytics.json
 
-RUN python -m pip install --no-cache-dir -e .
+RUN python -m pip install --no-cache-dir -e . \
+    && mkdir -p /app/qualification/results
 
 ENV UI_HOST=127.0.0.1
 ENV UI_PORT=18083

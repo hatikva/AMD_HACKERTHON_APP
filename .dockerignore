@@ -7,6 +7,9 @@ __pycache__/
 .local/
 audit/
 benchmarks/
+!benchmarks/categories/
+!benchmarks/categories/version5_local_category_benchmarks_v2.json
+!benchmarks/categories/version6_shadow_category_benchmarks_v1.json
 qualification/
 runs/
 data/
