@@ -10,9 +10,18 @@ from .env import load_dotenv
 
 load_dotenv()
 
-from .analytics import write_version5_analytics
+from .analytics import write_version5_analytics, write_version6_analytics
 from .benchmarks import CANONICAL_BENCHMARK_PATH, BENCHMARK_SUITE_ID, load_category_benchmark, run_category_benchmark
-from .pipeline import VERSION_5_LOCAL_PROVIDER, preflight, record_to_json, run_scenario, run_tasks_file
+from .pipeline import (
+    VERSION_5_LOCAL_PROVIDER,
+    VERSION_6_LOCAL_PROVIDER,
+    VERSION_6_PRODUCTION_PROVIDER,
+    VERSION_6_STAGING_PROVIDER,
+    preflight,
+    record_to_json,
+    run_scenario,
+    run_tasks_file,
+)
 from .ui import run as run_ui
 
 
@@ -117,6 +126,22 @@ def cmd_build_version5_analytics(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_build_version6_analytics(args: argparse.Namespace) -> int:
+    payload = write_version6_analytics(results_dir=Path(args.results_dir), output_path=Path(args.output))
+    print(
+        record_to_json(
+            {
+                "schema": payload["schema"],
+                "source_result_files": payload["source_result_files"],
+                "output": args.output,
+                "deduced_analytics_source": payload["deduced_analytics"]["source"],
+                "status": "completed",
+            }
+        )
+    )
+    return 0
+
+
 def cmd_ui(args: argparse.Namespace) -> int:
     run_ui(host=args.host, port=args.port)
     return 0
@@ -125,7 +150,17 @@ def cmd_ui(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="amd-router")
     subcommands = parser.add_subparsers(dest="command", required=True)
-    providers = ["mock", "fireworks", "ollama-demo", "version5", VERSION_5_LOCAL_PROVIDER, "llama-cpp"]
+    providers = [
+        "mock",
+        "fireworks",
+        "ollama-demo",
+        "version5",
+        VERSION_5_LOCAL_PROVIDER,
+        VERSION_6_LOCAL_PROVIDER,
+        VERSION_6_PRODUCTION_PROVIDER,
+        VERSION_6_STAGING_PROVIDER,
+        "llama-cpp",
+    ]
 
     preflight_parser = subcommands.add_parser("preflight")
     preflight_parser.set_defaults(func=cmd_preflight)
@@ -165,6 +200,11 @@ def build_parser() -> argparse.ArgumentParser:
     analytics_parser.add_argument("--results-dir", default="qualification/results")
     analytics_parser.add_argument("--output", default="docs/version5_authority_analytics.json")
     analytics_parser.set_defaults(func=cmd_build_version5_analytics)
+
+    analytics6_parser = subcommands.add_parser("build-version6-analytics")
+    analytics6_parser.add_argument("--results-dir", default="qualification/results")
+    analytics6_parser.add_argument("--output", default="docs/version6_submission_analytics.json")
+    analytics6_parser.set_defaults(func=cmd_build_version6_analytics)
 
     ui_parser = subcommands.add_parser("ui")
     ui_parser.add_argument("--host", default=os.environ.get("UI_HOST", "127.0.0.1"))

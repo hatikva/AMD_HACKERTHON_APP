@@ -18,6 +18,7 @@ from .pipeline import ROOT, VERSION_5_LOCAL_PROVIDER, normalize_task_family
 
 
 ANALYTICS_SCHEMA = "amd_hackathon.version5_authority_analytics.v1"
+VERSION6_ANALYTICS_SCHEMA = "amd_hackathon.version6_submission_analytics.v1"
 CATEGORY_TASK_TOTAL = 5
 QUALIFICATION_ONLY_PROVIDERS = {"ollama-demo", "llama-cpp"}
 
@@ -402,6 +403,107 @@ def build_version5_analytics(results_dir: Path = ROOT / "qualification/results")
 
 def write_version5_analytics(results_dir: Path, output_path: Path) -> dict[str, Any]:
     payload = build_version5_analytics(results_dir)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return payload
+
+
+def build_version6_analytics(results_dir: Path = ROOT / "qualification/results") -> dict[str, Any]:
+    evidence = build_version5_analytics(results_dir)
+    metrics = evidence["per_model_overall_metrics"]
+    local_rows = [row for row in metrics if row["provider"] in {"version6-ollama", "version5-ollama", "ollama-demo"}]
+    fallback_rows = [row for row in metrics if row["effective_provider"] == "fireworks" or row["provider"] == "fireworks"]
+    compliance = {
+        "runtime_contract": {
+            "input": "/input/tasks.json",
+            "output": "/output/results.json",
+            "input_schema": "top_level_array_of_task_id_prompt_records_only",
+            "output_schema": "top_level_array_of_task_id_answer_records_only",
+            "batch_starts_on_container_start": True,
+            "ui_required": False,
+            "server_lifecycle_required": False,
+        },
+        "submission_images": {
+            "version6-staging": "submission-shaped_non_submission_staging_fallback",
+            "version6-production": "official_submission_fireworks_fallback_only",
+        },
+        "analytics_ui": {
+            "container": "version6-analytics-ui",
+            "submission_runtime": False,
+            "task_input_form": False,
+            "live_execution_endpoint": False,
+        },
+        "remote_fallback": {
+            "production": "FIREWORKS_BASE_URL with FIREWORKS_API_KEY and ALLOWED_MODELS",
+            "staging": "STAGING_INFERENCE_BASE_URL for token-safe development only",
+            "production_external_non_fireworks_allowed": False,
+        },
+    }
+    deduced = {
+        "source": "deterministic_summary_local_narrative_unavailable",
+        "fireworks_called": False,
+        "summary": (
+            "Version 6 keeps the official runtime batch-only, keeps UI and benchmark evidence out of "
+            "submission images, and treats accuracy as the gate before Fireworks-token minimization."
+        ),
+        "recommendation": (
+            "Use version6-production for the public submission image after image inspection passes. "
+            "Use version6-staging only for production-shaped development tests."
+        ),
+        "local_nemotron_evidence": {
+            "model": "nemotron-3-nano:4b",
+            "local_rows": local_rows,
+            "narrative_generation": "unavailable_without_running_local_ollama",
+        },
+    }
+    return {
+        "schema": VERSION6_ANALYTICS_SCHEMA,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source_result_files": evidence["source_result_files"],
+        "overview": {
+            "track": "Track 1 Hybrid Token-Efficient Routing Agent",
+            "active_version": "Version 6",
+            "team": "team-2168",
+            "local_model": "nemotron-3-nano:4b",
+            "runtime": "CPU-only Ollama bundled in submission images",
+        },
+        "results": metrics,
+        "category_performance": evidence["per_category_ranking"],
+        "route_and_token_flow": {
+            "fallback_rows": fallback_rows,
+            "judged_fireworks_tokens_by_result": [
+                {
+                    "result_file": row["result_file_name"],
+                    "provider": row["provider"],
+                    "effective_provider": row["effective_provider"],
+                    "judged_fireworks_tokens": row["judged_fireworks_tokens"],
+                }
+                for row in metrics
+            ],
+        },
+        "local_nemotron_evidence": local_rows,
+        "staging_vs_production_readiness": {
+            "same_code_path_required": True,
+            "only_remote_fallback_differs": True,
+            "staging_not_for_submission": True,
+            "production_fireworks_only": True,
+        },
+        "failures_and_validation": {
+            "categorization": evidence["categorization_evaluation"],
+            "blockers": [
+                *evidence["blockers"],
+                "Run image inspection for both Version 6 submission targets before publishing.",
+            ],
+        },
+        "submission_compliance": compliance,
+        "deduced_analytics": deduced,
+        "authorization_registry_mutated": False,
+        "local_jurisdictions_promoted": [],
+    }
+
+
+def write_version6_analytics(results_dir: Path, output_path: Path) -> dict[str, Any]:
+    payload = build_version6_analytics(results_dir)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return payload

@@ -25,8 +25,12 @@ from amd_hackathon_app.pipeline import (
     ProviderResult,
     Task,
     VERSION_5_LOCAL_PROVIDER,
+    VERSION_6_LOCAL_PROVIDER,
+    VERSION_6_PRODUCTION_PROVIDER,
+    VERSION_6_STAGING_PROVIDER,
     local_certification_for,
     parse_allowed_models,
+    provider_for,
     route_task,
     run_task,
     run_scenario,
@@ -419,6 +423,69 @@ class PipelineTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "top-level list"):
                 run_tasks_file(input_path=input_path, output_path=output_path, provider_override="mock")
 
+    def test_submission_input_rejects_extra_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input" / "tasks.json"
+            output_path = root / "output" / "results.json"
+            input_path.parent.mkdir()
+            input_path.write_text(
+                json.dumps([{"task_id": "one", "prompt": "Classify sentiment: fine", "category": "sentiment"}]),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "only task_id and prompt"):
+                run_tasks_file(input_path=input_path, output_path=output_path, provider_override="mock")
+
+    def test_version6_production_fallback_uses_fireworks_allowed_models(self) -> None:
+        decision = route_task(
+            task_family="sentiment",
+            jurisdiction="SENTIMENT_CLASSIFICATION",
+            provider_override=VERSION_6_PRODUCTION_PROVIDER,
+            allowed_models=["allowed-fireworks-model"],
+        )
+
+        self.assertEqual(decision.candidate_version, "version_6")
+        self.assertEqual(decision.provider, "fireworks")
+        self.assertEqual(decision.selected_path, "fireworks")
+        self.assertEqual(decision.model, "allowed-fireworks-model")
+
+    def test_version6_staging_fallback_is_distinct_from_production(self) -> None:
+        decision = route_task(
+            task_family="sentiment",
+            jurisdiction="SENTIMENT_CLASSIFICATION",
+            provider_override=VERSION_6_STAGING_PROVIDER,
+            allowed_models=[],
+        )
+
+        self.assertEqual(decision.candidate_version, "version_6")
+        self.assertEqual(decision.provider, VERSION_6_STAGING_PROVIDER)
+        self.assertEqual(decision.selected_path, "staging_remote_fallback")
+        self.assertEqual(decision.model, "staging-model")
+        self.assertFalse(decision.final_mode_compliant)
+
+    def test_version6_direct_ollama_records_zero_fireworks_tokens(self) -> None:
+        decision = route_task(
+            task_family="sentiment",
+            jurisdiction="SENTIMENT_CLASSIFICATION",
+            provider_override=VERSION_6_LOCAL_PROVIDER,
+            allowed_models=[],
+        )
+
+        self.assertEqual(decision.candidate_version, "version_6")
+        self.assertEqual(decision.provider, VERSION_6_LOCAL_PROVIDER)
+        self.assertEqual(decision.model, "nemotron-3-nano:4b")
+        self.assertTrue(decision.final_mode_compliant)
+
+    def test_version6_staging_requires_staging_endpoint(self) -> None:
+        old = os.environ.pop("STAGING_INFERENCE_BASE_URL", None)
+        try:
+            with self.assertRaisesRegex(RuntimeError, "STAGING_INFERENCE_BASE_URL"):
+                provider_for(VERSION_6_STAGING_PROVIDER)
+        finally:
+            if old is not None:
+                os.environ["STAGING_INFERENCE_BASE_URL"] = old
+
     def test_grading_join_fails_duplicate_missing_and_unknown_results(self) -> None:
         expected = {"one", "two"}
         with self.assertRaisesRegex(ValueError, "duplicate result task_id"):
@@ -438,30 +505,23 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(CANONICAL_BENCHMARK_PATH.name, "version5_local_category_benchmarks_v2.json")
         self.assertNotIn("v1", str(CANONICAL_BENCHMARK_PATH))
 
-    def test_ui_summary_separates_judged_fireworks_tokens(self) -> None:
+    def test_ui_summary_reports_judged_fireworks_tokens_from_evidence_rows(self) -> None:
         summary = summarize_records(
             [
                 {
-                    "status": "completed",
-                    "selected_provider": "fireworks",
-                    "selected_model": "allowed-model-a",
-                    "token_usage": {"prompt_tokens": 10, "completion_tokens": 3, "total_tokens": 13},
-                    "latency": {"milliseconds": 50},
-                    "validation_result": {"passed": True},
+                    "provider": "fireworks",
+                    "model": "allowed-model-a",
+                    "judged_fireworks_tokens": 13,
                 },
                 {
-                    "status": "completed",
-                    "selected_provider": "ollama-demo",
-                    "selected_model": "qwen2.5-coder:3b",
-                    "token_usage": {"prompt_tokens": 7, "completion_tokens": 2, "total_tokens": 9},
-                    "latency": {"milliseconds": 25},
-                    "validation_result": {"passed": True},
+                    "provider": "version6-ollama",
+                    "model": "nemotron-3-nano:4b",
+                    "judged_fireworks_tokens": 0,
                 },
             ]
         )
-        self.assertEqual(summary["total_tokens"], 22)
         self.assertEqual(summary["judged_fireworks_tokens"], 13)
-        self.assertEqual(summary["local_or_demo_tokens"], 9)
+        self.assertEqual(summary["providers"], ["fireworks", "version6-ollama"])
 
 
 if __name__ == "__main__":

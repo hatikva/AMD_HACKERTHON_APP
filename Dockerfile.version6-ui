@@ -1,0 +1,21 @@
+FROM python:3.12-slim
+
+LABEL org.opencontainers.image.title="AMD Hackathon Version 6 Analytics UI"
+LABEL org.opencontainers.image.description="Read-only analytics UI. Not for submission."
+
+WORKDIR /app
+
+COPY pyproject.toml ./
+COPY src ./src
+COPY web ./web
+COPY qualification/results ./qualification/results
+COPY docs/version6_submission_analytics.json ./docs/version6_submission_analytics.json
+
+RUN python -m pip install --no-cache-dir -e .
+
+ENV UI_HOST=127.0.0.1
+ENV UI_PORT=18083
+
+EXPOSE 18083
+
+CMD ["amd-router", "ui"]

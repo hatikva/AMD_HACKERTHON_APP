@@ -5,8 +5,10 @@ import unittest
 from pathlib import Path
 
 from amd_hackathon_app.analytics import (
+    build_version6_analytics,
     build_version5_analytics,
     ranking_key,
+    write_version6_analytics,
     write_version5_analytics,
 )
 
@@ -67,6 +69,27 @@ class AnalyticsTests(unittest.TestCase):
         self.assertEqual(report["total_tasks"], 40)
         self.assertIn("confusion_matrix", report)
         self.assertIn("per_category", report)
+
+    def test_build_version6_analytics_is_read_only_and_fireworks_free(self) -> None:
+        payload = build_version6_analytics(Path("qualification/results"))
+
+        self.assertEqual(payload["schema"], "amd_hackathon.version6_submission_analytics.v1")
+        self.assertFalse(payload["authorization_registry_mutated"])
+        self.assertFalse(payload["deduced_analytics"]["fireworks_called"])
+        self.assertEqual(payload["deduced_analytics"]["source"], "deterministic_summary_local_narrative_unavailable")
+        self.assertFalse(payload["submission_compliance"]["analytics_ui"]["task_input_form"])
+        self.assertFalse(payload["submission_compliance"]["analytics_ui"]["live_execution_endpoint"])
+        self.assertFalse(
+            payload["submission_compliance"]["remote_fallback"]["production_external_non_fireworks_allowed"]
+        )
+
+    def test_write_version6_analytics_generates_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "version6_submission_analytics.json"
+            payload = write_version6_analytics(Path("qualification/results"), output)
+
+            self.assertTrue(output.exists())
+            self.assertEqual(payload["overview"]["active_version"], "Version 6")
 
 
 if __name__ == "__main__":

@@ -3,99 +3,42 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Most Innovative Routing System</title>
+    <title>Version 6 Analytics</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>Most Innovative Routing System</h1>
-        <p>AMD Developer Hackathon Track 1</p>
+        <h1>Version 6 Analytics</h1>
+        <p>Track 1 submission readiness evidence</p>
       </div>
       <div class="status-strip" id="statusStrip">
-        <span>Preflight pending</span>
+        <span>Loading</span>
       </div>
     </header>
 
     <main class="layout">
-      <nav class="tabbar" aria-label="UI sections">
-        <button class="tab-button active" type="button" data-view="runnerView">Runner</button>
-        <button class="tab-button" type="button" data-view="analyticsView">Version 5 Results And Analytics</button>
-        <button class="tab-button" type="button" data-view="toolingView">Internal Tooling Analysis</button>
+      <nav class="tabbar" aria-label="Analytics pages">
+        <button class="tab-button active" type="button" data-view="overviewView">Overview</button>
+        <button class="tab-button" type="button" data-view="resultsView">Results</button>
+        <button class="tab-button" type="button" data-view="categoryView">Categories</button>
+        <button class="tab-button" type="button" data-view="routeView">Route Flow</button>
+        <button class="tab-button" type="button" data-view="localView">Local Nemotron</button>
+        <button class="tab-button" type="button" data-view="readinessView">Readiness</button>
+        <button class="tab-button" type="button" data-view="failuresView">Failures</button>
+        <button class="tab-button" type="button" data-view="complianceView">Compliance</button>
+        <button class="tab-button" type="button" data-view="deducedView">Deduced Analytics</button>
       </nav>
 
-      <section class="view active" id="runnerView">
-      <section class="input-pane" aria-label="Task input">
-        <div class="pane-head">
-          <h2>Tasks</h2>
-          <div class="version-toggle" aria-label="Version selection">
-            <label><input type="checkbox" value="version3" checked> V3</label>
-            <label><input type="checkbox" value="version4"> V4</label>
-            <label><input type="checkbox" value="version5"> V5</label>
-          </div>
-        </div>
-        <textarea id="taskInput" spellcheck="false">{
-  "tasks": [
-    {
-      "id": "classification-basic",
-      "prompt": "Classify this request as one of: bugfix, feature, docs. Request: Add a troubleshooting section to the README.",
-      "task_family": "factual_qa",
-      "expected_format": "text",
-      "evidence_refs": ["memory/project-doctrine.md"]
-    }
-  ]
-}</textarea>
-        <div class="actions">
-          <button id="runButton" type="button">Run</button>
-          <button id="formatButton" type="button">Format</button>
-        </div>
-      </section>
-
-      <section class="output-pane" aria-label="Task output">
-        <div class="pane-head">
-          <h2>Results</h2>
-          <span id="runState" class="muted">Idle</span>
-        </div>
-        <div class="analytics-grid" id="analyticsGrid"></div>
-        <div class="results-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Version</th>
-                <th>Task</th>
-                <th>Provider</th>
-                <th>Model</th>
-                <th>Tokens</th>
-                <th>Latency</th>
-                <th>Validation</th>
-                <th>Output</th>
-              </tr>
-            </thead>
-            <tbody id="resultsBody">
-              <tr>
-                <td colspan="8" class="empty">No run data</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      </section>
-
-      <section class="view review-view" id="analyticsView" aria-label="Version 5 Results And Analytics">
-        <div class="pane-head">
-          <h2>Version 5 Results And Analytics</h2>
-          <span id="analyticsState" class="muted">Loading</span>
-        </div>
-        <div class="review-content" id="version5Analytics"></div>
-      </section>
-
-      <section class="view review-view" id="toolingView" aria-label="Internal Tooling Analysis">
-        <div class="pane-head">
-          <h2>Internal Tooling Analysis</h2>
-          <span class="muted">Reviewed evidence only</span>
-        </div>
-        <div class="review-content" id="toolingAnalysis"></div>
-      </section>
+      <section class="view review-view active" id="overviewView"><div class="review-content" id="overview"></div></section>
+      <section class="view review-view" id="resultsView"><div class="review-content" id="results"></div></section>
+      <section class="view review-view" id="categoryView"><div class="review-content" id="categories"></div></section>
+      <section class="view review-view" id="routeView"><div class="review-content" id="routeFlow"></div></section>
+      <section class="view review-view" id="localView"><div class="review-content" id="localEvidence"></div></section>
+      <section class="view review-view" id="readinessView"><div class="review-content" id="readiness"></div></section>
+      <section class="view review-view" id="failuresView"><div class="review-content" id="failures"></div></section>
+      <section class="view review-view" id="complianceView"><div class="review-content" id="compliance"></div></section>
+      <section class="view review-view" id="deducedView"><div class="review-content" id="deduced"></div></section>
     </main>
 
     <script src="/app.js"></script>

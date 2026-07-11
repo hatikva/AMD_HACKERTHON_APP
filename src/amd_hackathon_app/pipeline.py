@@ -57,7 +57,25 @@ VERSION_5_WORK_JURISDICTIONS = [
 
 LOCAL_STATUS_VALUES = {"LOCAL_CERTIFIED", "LOCAL_DENIED", "LOCAL_CONDITIONAL", "FIREWORKS_ONLY"}
 VERSION_5_LOCAL_PROVIDER = "version5-ollama"
+VERSION_6_LOCAL_PROVIDER = "version6-ollama"
+VERSION_6_PRODUCTION_PROVIDER = "version6-production"
+VERSION_6_STAGING_PROVIDER = "version6-staging"
 VERSION_5_LOCAL_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, "llama-cpp"}
+VERSION_6_PROVIDERS = {VERSION_6_PRODUCTION_PROVIDER, VERSION_6_STAGING_PROVIDER}
+LOCAL_OLLAMA_PROVIDERS = {VERSION_5_LOCAL_PROVIDER, VERSION_6_LOCAL_PROVIDER}
+
+VERSION_6_MODE = {
+    "track": "AMD Developer Hackathon ACT II Track 1",
+    "team": "team-2168",
+    "team_members": 1,
+    "contact": "dr.wbsite@gmail.com",
+    "timeline": {
+        "start": "2026-07-06 16:00 British Summer Time",
+        "end": "2026-07-12 16:00 British Summer Time",
+    },
+    "production_remote_fallback": "fireworks",
+    "staging_remote_fallback": "staging-openai-compatible",
+}
 
 VERSION_5_LOCAL_MODEL = {
     "model_name": "nemotron-3-nano:4b",
@@ -276,6 +294,8 @@ def task_from_mapping(row: dict[str, Any], fallback_id: str) -> Task:
 def submission_task_from_mapping(row: dict[str, Any], fallback_id: str) -> Task:
     if not isinstance(row, dict):
         raise ValueError(f"task {fallback_id} must be an object")
+    if set(row) != {"task_id", "prompt"}:
+        raise ValueError(f"task {fallback_id} must contain only task_id and prompt")
     task_id = row.get("task_id")
     prompt = row.get("prompt")
     if not isinstance(task_id, str) or not task_id.strip():
@@ -357,7 +377,7 @@ def normalize_task_family(value: str | None, prompt: str) -> str:
 def jurisdiction_for(task_family: str, provider_override: str | None = None) -> str:
     if provider_override == "ollama-demo":
         return "DEMO_LOCAL_MODEL_EXECUTION"
-    if provider_override in {"version5", VERSION_5_LOCAL_PROVIDER, "llama-cpp"}:
+    if provider_override in {"version5", VERSION_5_LOCAL_PROVIDER, "llama-cpp", *VERSION_6_PROVIDERS, VERSION_6_LOCAL_PROVIDER}:
         return version5_jurisdiction_for(task_family)
     if task_family in {"sentiment", "named_entity_recognition"}:
         return "ANSWER_SCHEMA_SELECTION"
@@ -470,8 +490,10 @@ def select_model(allowed_models: list[str], provider_name: str) -> str:
         return "mock-model"
     if provider_name == "ollama-demo":
         return os.environ.get("MODEL_NAME", "qwen2.5-coder:3b")
-    if provider_name == VERSION_5_LOCAL_PROVIDER:
+    if provider_name in LOCAL_OLLAMA_PROVIDERS:
         return os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"])
+    if provider_name == VERSION_6_STAGING_PROVIDER:
+        return os.environ.get("STAGING_INFERENCE_MODEL") or (allowed_models[0] if allowed_models else "staging-model")
     if provider_name == "llama-cpp":
         return os.environ.get("LLAMA_MODEL_PATH", VERSION_5_LOCAL_MODEL["image_path"])
     if not allowed_models:
@@ -487,7 +509,17 @@ def route_task(
 ) -> RouteDecision:
     provider_name = provider_override or "fireworks"
     allowed = allowed_models if allowed_models is not None else parse_allowed_models()
-    if provider_name not in {"mock", "fireworks", "ollama-demo", "version5", VERSION_5_LOCAL_PROVIDER, "llama-cpp"}:
+    if provider_name not in {
+        "mock",
+        "fireworks",
+        "ollama-demo",
+        "version5",
+        VERSION_5_LOCAL_PROVIDER,
+        VERSION_6_LOCAL_PROVIDER,
+        VERSION_6_PRODUCTION_PROVIDER,
+        VERSION_6_STAGING_PROVIDER,
+        "llama-cpp",
+    }:
         raise ValueError(f"unknown provider override: {provider_name}")
     local_certification = None
     candidate_version = "version_3"
@@ -509,10 +541,27 @@ def route_task(
             if provider_name == VERSION_5_LOCAL_PROVIDER
             else "local_rejected_runtime_evidence"
         )
+    elif provider_name in VERSION_6_PROVIDERS:
+        candidate_version = "version_6"
+        local_certification = local_certification_for(jurisdiction)
+        if local_certification["local_status"] == "LOCAL_CERTIFIED":
+            provider_name = VERSION_6_LOCAL_PROVIDER
+            selected_path = "local"
+        elif provider_name == VERSION_6_STAGING_PROVIDER:
+            selected_path = "staging_remote_fallback"
+        else:
+            provider_name = "fireworks"
+            selected_path = "fireworks"
+    elif provider_name == VERSION_6_LOCAL_PROVIDER:
+        candidate_version = "version_6"
+        local_certification = local_certification_for(jurisdiction)
+        selected_path = "local_direct_runtime_evidence"
     model = select_model(allowed, provider_name)
-    final_mode_compliant = provider_name in {"fireworks", "mock", VERSION_5_LOCAL_PROVIDER}
+    final_mode_compliant = provider_name in {"fireworks", "mock", VERSION_5_LOCAL_PROVIDER, VERSION_6_LOCAL_PROVIDER}
     if provider_name == "ollama-demo":
         reason = "demo_local_model_execution"
+    elif candidate_version == "version_6":
+        reason = "version_6_local_certification_lookup"
     elif candidate_version == "version_5":
         reason = "version_5_local_certification_lookup"
     else:
@@ -625,7 +674,7 @@ class OpenAICompatibleProvider:
 
 
 class OllamaLocalProvider(OpenAICompatibleProvider):
-    name = VERSION_5_LOCAL_PROVIDER
+    name = VERSION_6_LOCAL_PROVIDER
 
     def __init__(self) -> None:
         super().__init__(
@@ -713,8 +762,14 @@ def provider_for(name: str) -> Any:
         return MockProvider()
     if name == "ollama-demo":
         return OpenAICompatibleProvider(os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"))
-    if name == VERSION_5_LOCAL_PROVIDER:
+    if name in LOCAL_OLLAMA_PROVIDERS:
         return OllamaLocalProvider()
+    if name == VERSION_6_STAGING_PROVIDER:
+        base_url = os.environ.get("STAGING_INFERENCE_BASE_URL")
+        if not base_url:
+            raise RuntimeError("STAGING_INFERENCE_BASE_URL is required for Version 6 staging fallback")
+        api_key = os.environ.get("STAGING_INFERENCE_API_KEY")
+        return OpenAICompatibleProvider(base_url, api_key)
     if name == "fireworks":
         api_key = os.environ.get("FIREWORKS_API_KEY")
         if not api_key:
@@ -766,30 +821,32 @@ def run_task(
     initial_decision = decision
     provider = provider_for(decision.provider)
     fallback_reason = None
-    allow_version5_fallback = provider_override == "version5"
+    allow_policy_fallback = provider_override in {"version5", VERSION_6_PRODUCTION_PROVIDER, VERSION_6_STAGING_PROVIDER}
     try:
         result = provider.complete(packet["compiled_prompt"], decision.model)
     except RuntimeError as exc:
         if (
-            not allow_version5_fallback
-            or decision.candidate_version != "version_5"
-            or decision.provider not in VERSION_5_LOCAL_PROVIDERS
+            not allow_policy_fallback
+            or decision.candidate_version not in {"version_5", "version_6"}
+            or decision.provider not in (VERSION_5_LOCAL_PROVIDERS | {VERSION_6_LOCAL_PROVIDER})
         ):
             raise
         fallback_reason = f"local_runtime_failure: {exc}"
-        decision = route_task(task_family, jurisdiction, "fireworks", allowed_models)
+        fallback_provider = VERSION_6_STAGING_PROVIDER if provider_override == VERSION_6_STAGING_PROVIDER else "fireworks"
+        decision = route_task(task_family, jurisdiction, fallback_provider, allowed_models)
         provider = provider_for(decision.provider)
         result = provider.complete(packet["compiled_prompt"], decision.model)
     output, repair = structural_repair(packet["answer_schema"]["format"], result.text)
     validation = validate_output(packet["answer_schema"]["format"], output)
     if (
-        decision.candidate_version == "version_5"
-        and decision.provider in VERSION_5_LOCAL_PROVIDERS
+        decision.candidate_version in {"version_5", "version_6"}
+        and decision.provider in (VERSION_5_LOCAL_PROVIDERS | {VERSION_6_LOCAL_PROVIDER})
         and not validation["passed"]
-        and allow_version5_fallback
+        and allow_policy_fallback
     ):
         fallback_reason = f"local_validation_failure: {validation['reason']}"
-        decision = route_task(task_family, jurisdiction, "fireworks", allowed_models)
+        fallback_provider = VERSION_6_STAGING_PROVIDER if provider_override == VERSION_6_STAGING_PROVIDER else "fireworks"
+        decision = route_task(task_family, jurisdiction, fallback_provider, allowed_models)
         provider = provider_for(decision.provider)
         result = provider.complete(packet["compiled_prompt"], decision.model)
         output, repair = structural_repair(packet["answer_schema"]["format"], result.text)
@@ -798,7 +855,9 @@ def run_task(
     candidate_version = initial_decision.candidate_version
     local_certification = initial_decision.local_certification
     selected_path = "local_then_fireworks_fallback" if fallback_reason else initial_decision.selected_path
-    local_attempted = candidate_version == "version_5" and initial_decision.provider in VERSION_5_LOCAL_PROVIDERS
+    local_attempted = candidate_version in {"version_5", "version_6"} and initial_decision.provider in (
+        VERSION_5_LOCAL_PROVIDERS | {VERSION_6_LOCAL_PROVIDER}
+    )
     local_success = bool(local_attempted and not fallback_reason and validation["passed"])
     fireworks_used = decision.provider == "fireworks"
     retry_count = 1 if fallback_reason else 0
@@ -870,17 +929,7 @@ def run_tasks_file(
     write_json(output_path, official_results)
     return {
         "schema": "amd_hackathon.submission_run.v1",
-        "mode": (
-            "version_3_demo"
-            if provider_override == "ollama-demo"
-            else "version_5_candidate"
-            if provider_override == "version5"
-            else "version_5_direct_ollama_benchmark"
-            if provider_override == VERSION_5_LOCAL_PROVIDER
-            else "version_5_direct_llama_cpp_benchmark"
-            if provider_override == "llama-cpp"
-            else "fireworks_final_compatible"
-        ),
+        "mode": submission_mode_name(provider_override),
         "result_path": str(output_path),
         "task_count": len(records),
         "results": official_results,
@@ -892,8 +941,10 @@ def preflight() -> dict[str, Any]:
     allowed_models = parse_allowed_models()
     return {
         "repo_root": str(ROOT),
-        "doctrine": "version-3-most-innovative-routing-system",
-        "version_5_candidate_available": True,
+        "doctrine": "version-6-confirmed-submission-runtime",
+        "version_6": VERSION_6_MODE,
+        "version_6_submission_providers": sorted(VERSION_6_PROVIDERS),
+        "version_5_candidate_available": False,
         "version_5_local_model_status": "ollama_runtime_certified_jurisdictions_pending_benchmark_promotion",
         "version_5_local_model": VERSION_5_LOCAL_MODEL,
         "version_5_runtime_certification": VERSION_5_RUNTIME_CERTIFICATION,
@@ -905,6 +956,10 @@ def preflight() -> dict[str, Any]:
         "llama_context_length": int(os.environ.get("LLAMA_CONTEXT_LENGTH", "2048")),
         "llama_threads": int(os.environ.get("LLAMA_THREADS", "2")),
         "version5_ollama_provider": VERSION_5_LOCAL_PROVIDER,
+        "version6_ollama_provider": VERSION_6_LOCAL_PROVIDER,
+        "version6_production_provider": VERSION_6_PRODUCTION_PROVIDER,
+        "version6_staging_provider": VERSION_6_STAGING_PROVIDER,
+        "staging_inference_base_url_configured": bool(os.environ.get("STAGING_INFERENCE_BASE_URL")),
         "version5_ollama_model": os.environ.get("OLLAMA_MODEL_NAME", VERSION_5_LOCAL_MODEL["model_name"]),
         "version5_ollama_base_url": os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1"),
         "version5_ollama_context_length": int(os.environ.get("OLLAMA_CONTEXT_LENGTH", "128")),
@@ -918,6 +973,24 @@ def preflight() -> dict[str, Any]:
         "ollama_demo_only": True,
         "lemonade_active_runtime": False,
     }
+
+
+def submission_mode_name(provider_override: str | None) -> str:
+    if provider_override == VERSION_6_PRODUCTION_PROVIDER:
+        return "version_6_production_submission"
+    if provider_override == VERSION_6_STAGING_PROVIDER:
+        return "version_6_staging_submission_shape"
+    if provider_override == VERSION_6_LOCAL_PROVIDER:
+        return "version_6_direct_ollama_evidence"
+    if provider_override == "ollama-demo":
+        return "version_3_demo"
+    if provider_override == "version5":
+        return "version_5_candidate"
+    if provider_override == VERSION_5_LOCAL_PROVIDER:
+        return "version_5_direct_ollama_benchmark"
+    if provider_override == "llama-cpp":
+        return "version_5_direct_llama_cpp_benchmark"
+    return "fireworks_final_compatible"
 
 
 def record_to_json(record: dict[str, Any]) -> str:

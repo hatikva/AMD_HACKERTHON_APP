@@ -40,18 +40,22 @@ python3 -m amd_hackathon_app.cli validate-category-benchmark >"$tmp_root/categor
 python3 -m amd_hackathon_app.cli build-version5-analytics \
   --results-dir qualification/results \
   --output "$tmp_root/version5_authority_analytics.json" >"$tmp_root/version5_authority_analytics.stdout.json"
+python3 -m amd_hackathon_app.cli build-version6-analytics \
+  --results-dir qualification/results \
+  --output "$tmp_root/version6_submission_analytics.json" >"$tmp_root/version6_submission_analytics.stdout.json"
 python3 -m amd_hackathon_app.cli benchmark-categories \
   --provider mock \
   --output "$tmp_root/mock-category-qualification.json" >"$tmp_root/mock-category-qualification.stdout.json"
 
-grep -q 'Most Innovative Routing System' README.md
-grep -q 'Work Jurisdiction' README.md
+grep -q 'Version 6 is the confirmed final-stage runtime' README.md
+grep -q 'version6-staging' README.md
+grep -q 'version6-production' README.md
+grep -q 'version6-analytics-ui' README.md
+grep -q 'analytics only' README.md
 grep -q 'FIREWORKS_BASE_URL' README.md
 grep -q 'ALLOWED_MODELS' README.md
-grep -q 'Local demo inference uses Ollama, not Lemonade' README.md
-grep -q 'Version 5 local-first execution is blocked' README.md
-grep -q 'version5-category-benchmark-v2' README.md
-grep -q 'docs/algorithm.json' README.md
+grep -q '/input/tasks.json' README.md
+grep -q '/output/results.json' README.md
 
 grep -q 'ALLOWED_MODELS' .env.example
 grep -q 'qwen2.5-coder:3b' .env.example
@@ -62,10 +66,16 @@ grep -q 'ALLOWED_MODELS is required for Fireworks execution' src/amd_hackathon_a
 grep -q 'DEMO_LOCAL_MODEL_EXECUTION' src/amd_hackathon_app/pipeline.py
 grep -q 'LlamaCppProvider' src/amd_hackathon_app/pipeline.py
 grep -q 'OllamaLocalProvider' src/amd_hackathon_app/pipeline.py
-grep -q 'version5-ollama' src/amd_hackathon_app/pipeline.py
+grep -q 'version6-production' src/amd_hackathon_app/pipeline.py
+grep -q 'STAGING_INFERENCE_BASE_URL' src/amd_hackathon_app/pipeline.py
 grep -q 'ThreadingHTTPServer' src/amd_hackathon_app/ui.py
-grep -q 'version3' web/app.js
-grep -q 'analytics-grid' web/styles.css
+grep -q 'METHOD_NOT_ALLOWED' src/amd_hackathon_app/ui.py
+grep -q 'Version 6 Analytics' web/index.html
+grep -q 'api/version6-analytics' web/app.js
+if grep -q 'api/run\|taskInput\|runButton' web/app.js web/index.html; then
+  echo "Version 6 analytics UI must not expose live task execution controls" >&2
+  exit 1
+fi
 
 grep -q 'no bundled model weights' docs/concept.json
 grep -q 'Work Jurisdiction Routing' docs/algorithm.json
@@ -85,6 +95,10 @@ grep -q 'amd-router' Dockerfile.submission
 grep -q 'llama.cpp local-first candidate' Dockerfile.version5
 grep -q 'Version 5 Ollama Final Runtime' Dockerfile.version5-ollama
 grep -q 'version5-ollama' Dockerfile.version5-ollama
+grep -q 'version6-staging' Dockerfile.version6
+grep -q 'version6-production' Dockerfile.version6
+grep -q 'test ! -e /app/web' Dockerfile.version6
+grep -q 'Version 6 Analytics UI' Dockerfile.version6-ui
 if grep -q 'lemonade-server' Dockerfile.submission; then
   echo "submission Dockerfile must not depend on Lemonade" >&2
   exit 1
@@ -101,7 +115,7 @@ assert payload == [{"answer": '{"label":"neutral","confidence":0.74}', "task_id"
 assert set(payload[0]) == {"task_id", "answer"}
 PY
 
-python3 - "$tmp_root/category-benchmark.json" "$tmp_root/mock-category-qualification.json" "$tmp_root/version5_authority_analytics.json" <<'PY'
+python3 - "$tmp_root/category-benchmark.json" "$tmp_root/mock-category-qualification.json" "$tmp_root/version5_authority_analytics.json" "$tmp_root/version6_submission_analytics.json" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -109,6 +123,7 @@ from pathlib import Path
 benchmark = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 qualification = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 analytics = json.loads(Path(sys.argv[3]).read_text(encoding="utf-8"))
+version6 = json.loads(Path(sys.argv[4]).read_text(encoding="utf-8"))
 assert benchmark["benchmark_suite"] == "version5-category-benchmark-v2"
 assert benchmark["task_count"] == 40
 assert qualification["benchmark_suite"] == "version5-category-benchmark-v2"
@@ -121,6 +136,10 @@ assert analytics["schema"] == "amd_hackathon.version5_authority_analytics.v1"
 assert analytics["authorization_registry_mutated"] is False
 assert analytics["local_jurisdictions_promoted"] == []
 assert analytics["categorization_evaluation"]["official_shape_valid"] is True
+assert version6["schema"] == "amd_hackathon.version6_submission_analytics.v1"
+assert version6["submission_compliance"]["analytics_ui"]["task_input_form"] is False
+assert version6["submission_compliance"]["analytics_ui"]["live_execution_endpoint"] is False
+assert version6["deduced_analytics"]["fireworks_called"] is False
 PY
 
 echo "app validation passed"
