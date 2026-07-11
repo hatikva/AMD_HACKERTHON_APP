@@ -10,8 +10,6 @@ from .env import load_dotenv
 
 load_dotenv()
 
-from .analytics import write_version5_analytics, write_version6_analytics
-from .benchmarks import CANONICAL_BENCHMARK_PATH, BENCHMARK_SUITE_ID, load_category_benchmark, run_category_benchmark
 from .pipeline import (
     VERSION_5_LOCAL_PROVIDER,
     VERSION_6_LOCAL_PROVIDER,
@@ -22,7 +20,6 @@ from .pipeline import (
     run_scenario,
     run_tasks_file,
 )
-from .ui import run as run_ui
 
 
 def optional_command(command: list[str]) -> str:
@@ -75,6 +72,8 @@ def cmd_run_submission(args: argparse.Namespace) -> int:
 
 
 def cmd_validate_benchmark(args: argparse.Namespace) -> int:
+    from .benchmarks import load_category_benchmark
+
     suite = load_category_benchmark(Path(args.suite))
     print(
         json.dumps(
@@ -95,6 +94,8 @@ def cmd_validate_benchmark(args: argparse.Namespace) -> int:
 
 
 def cmd_benchmark_categories(args: argparse.Namespace) -> int:
+    from .benchmarks import BENCHMARK_SUITE_ID, run_category_benchmark
+
     if args.suite_id != BENCHMARK_SUITE_ID:
         raise SystemExit(f"unsupported benchmark suite id: {args.suite_id}")
     result = run_category_benchmark(
@@ -108,6 +109,8 @@ def cmd_benchmark_categories(args: argparse.Namespace) -> int:
 
 
 def cmd_build_version5_analytics(args: argparse.Namespace) -> int:
+    from .analytics import write_version5_analytics
+
     payload = write_version5_analytics(results_dir=Path(args.results_dir), output_path=Path(args.output))
     print(
         record_to_json(
@@ -127,6 +130,8 @@ def cmd_build_version5_analytics(args: argparse.Namespace) -> int:
 
 
 def cmd_build_version6_analytics(args: argparse.Namespace) -> int:
+    from .analytics import write_version6_analytics
+
     payload = write_version6_analytics(results_dir=Path(args.results_dir), output_path=Path(args.output))
     print(
         record_to_json(
@@ -143,6 +148,8 @@ def cmd_build_version6_analytics(args: argparse.Namespace) -> int:
 
 
 def cmd_ui(args: argparse.Namespace) -> int:
+    from .ui import run as run_ui
+
     run_ui(host=args.host, port=args.port)
     return 0
 
@@ -161,6 +168,8 @@ def build_parser() -> argparse.ArgumentParser:
         VERSION_6_STAGING_PROVIDER,
         "llama-cpp",
     ]
+    canonical_benchmark_path = "qualification/version5_local_category_benchmarks_v2.json"
+    benchmark_suite_id = "version5_local_category_benchmarks_v2"
 
     preflight_parser = subcommands.add_parser("preflight")
     preflight_parser.set_defaults(func=cmd_preflight)
@@ -185,15 +194,15 @@ def build_parser() -> argparse.ArgumentParser:
     submission_parser.set_defaults(func=cmd_run_submission)
 
     validate_benchmark_parser = subcommands.add_parser("validate-category-benchmark")
-    validate_benchmark_parser.add_argument("--suite", default=str(CANONICAL_BENCHMARK_PATH))
+    validate_benchmark_parser.add_argument("--suite", default=canonical_benchmark_path)
     validate_benchmark_parser.set_defaults(func=cmd_validate_benchmark)
 
     benchmark_parser = subcommands.add_parser("benchmark-categories")
-    benchmark_parser.add_argument("--suite", default=str(CANONICAL_BENCHMARK_PATH))
+    benchmark_parser.add_argument("--suite", default=canonical_benchmark_path)
     benchmark_parser.add_argument("--provider", choices=providers, default="mock")
     benchmark_parser.add_argument("--model", default=None)
     benchmark_parser.add_argument("--output", default=None)
-    benchmark_parser.add_argument("--suite-id", default=BENCHMARK_SUITE_ID, help="Expected suite identifier for operator clarity.")
+    benchmark_parser.add_argument("--suite-id", default=benchmark_suite_id, help="Expected suite identifier for operator clarity.")
     benchmark_parser.set_defaults(func=cmd_benchmark_categories)
 
     analytics_parser = subcommands.add_parser("build-version5-analytics")

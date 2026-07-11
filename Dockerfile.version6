@@ -30,7 +30,10 @@ COPY models/version5-ollama/bin/ollama /usr/local/bin/ollama
 COPY models/version5-ollama/lib/ollama /usr/local/lib/ollama
 COPY models/version5-ollama/models /app/ollama-models
 
-RUN python -m pip install --no-cache-dir . \
+RUN rm -rf src/amd_hackathon_app/__pycache__ \
+    && rm -f src/amd_hackathon_app/analytics.py src/amd_hackathon_app/benchmarks.py src/amd_hackathon_app/ui.py \
+    && python -m pip install --no-cache-dir . \
+    && rm -rf build src/amd_hackathon_app.egg-info src/amd_hackathon_app/__pycache__ \
     && mkdir -p /input /output \
     && test -x /usr/local/bin/ollama \
     && test -x /app/bin/version6-entrypoint.sh \
@@ -38,6 +41,10 @@ RUN python -m pip install --no-cache-dir . \
     && test ! -e /app/web \
     && test ! -e /app/benchmarks \
     && test ! -e /app/qualification \
+    && test ! -e /app/build \
+    && test ! -e /app/src/amd_hackathon_app/analytics.py \
+    && test ! -e /app/src/amd_hackathon_app/benchmarks.py \
+    && test ! -e /app/src/amd_hackathon_app/ui.py \
     && test ! -e /app/.env
 
 ENTRYPOINT ["/app/bin/version6-entrypoint.sh"]
