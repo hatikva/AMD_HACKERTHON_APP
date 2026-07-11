@@ -41,6 +41,16 @@ def summarize_records(records: list[dict[str, Any]]) -> dict[str, Any]:
 class UiHandler(BaseHTTPRequestHandler):
     server_version = "AMDVersion6AnalyticsUI/0.1"
 
+    def do_HEAD(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/preflight":
+            self.send_json_headers(HTTPStatus.OK, "application/json; charset=utf-8", 0)
+            return
+        if parsed.path == "/api/version6-analytics":
+            self.send_json_headers(HTTPStatus.OK, "application/json; charset=utf-8", 0)
+            return
+        self.serve_static(parsed.path, include_body=False)
+
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/api/preflight":
@@ -62,13 +72,22 @@ class UiHandler(BaseHTTPRequestHandler):
 
     def send_json(self, payload: Any, status: HTTPStatus = HTTPStatus.OK) -> None:
         body = json.dumps(payload, indent=2, sort_keys=True).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
+        self.send_json_headers(status, "application/json; charset=utf-8", len(body))
         self.wfile.write(body)
 
-    def serve_static(self, request_path: str) -> None:
+    def send_json_headers(self, status: HTTPStatus, content_type: str, content_length: int) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(content_length))
+        self.send_no_store_headers()
+        self.end_headers()
+
+    def send_no_store_headers(self) -> None:
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+
+    def serve_static(self, request_path: str, include_body: bool = True) -> None:
         relative = "index.html" if request_path in {"", "/"} else request_path.lstrip("/")
         path = (STATIC_ROOT / relative).resolve()
         if not str(path).startswith(str(STATIC_ROOT.resolve())) or not path.is_file():
@@ -78,8 +97,10 @@ class UiHandler(BaseHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", CONTENT_TYPES.get(path.suffix, "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
+        self.send_no_store_headers()
         self.end_headers()
-        self.wfile.write(body)
+        if include_body:
+            self.wfile.write(body)
 
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"{self.address_string()} - {fmt % args}")
