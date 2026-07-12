@@ -1,40 +1,27 @@
 {
-  "schema": "amd_hackathon.public_concept.v1",
-  "name": "Most Innovative Routing System",
+  "schema": "amd_hackathon.public_concept.v2",
+  "name": "Version 7 Pipelined Category Routing Runtime",
   "track": "AMD Developer Hackathon Track 1",
-  "summary": "A token-efficient routing agent that uses deterministic task analysis, compact prompt construction, validation, repair, and Fireworks-compatible model selection.",
-  "modes": {
-    "version_3_demo": {
-      "purpose": "Demonstrate routing behavior, validation, and provider boundaries.",
-      "local_model_policy": "Ollama local inference may be used only as demo/development behavior."
-    },
-    "version_4_final_target": {
-      "purpose": "Final scoring-oriented execution.",
-      "inference_policy": "All semantic inference goes through FIREWORKS_BASE_URL with models sourced from ALLOWED_MODELS."
-    },
-    "version_5_candidate": {
-      "purpose": "Evaluate llama.cpp local-first execution with Fireworks-compliant fallback.",
-      "inference_policy": "Use local inference only for certified Work Jurisdictions. Until a GGUF model artifact and benchmark evidence exist, route through Fireworks fallback."
-    }
-  },
-  "version_5_qualification": {
-    "benchmark_suite": "version5-category-benchmark-v2",
-    "benchmark_path": "benchmarks/categories/version5_local_category_benchmarks_v2.json",
-    "benchmark_hash": "sha256:24e9981521b91173e70f17910f14740ca6c159c7165e7272196835fcc2b9d6e7",
-    "status": "canonical_offline_primary_category_suite",
-    "policy": "The suite is used before live task execution to produce reviewable qualification evidence. Live /input/tasks.json processing never executes this benchmark and never mutates model authorization."
-  },
+  "summary": "A token-efficient batch runtime that classifies each official task locally, routes by a locked category policy, uses Fireworks Kimi for five categories, uses bundled local Nemotron for three categories, and writes the official minimal result file.",
+  "active_submission_version": "version_7",
+  "official_image_target": "ghcr.io/hatikva/amd-hackathon-app:version7-production-f1dfc86",
+  "publication_state": "pending GHCR permission; do not submit until publicly pullable",
+  "local_model": "nemotron-3-nano:4b bundled with CPU Ollama",
+  "remote_model_alias": "kimi-k2p7-code resolved from ALLOWED_MODELS",
   "official_runtime_contract": {
-    "input": "Top-level /input/tasks.json array with records containing only task_id and prompt.",
-    "output": "Top-level /output/results.json array with records containing only task_id and answer.",
-    "classification": "Task category is classified internally from the prompt.",
-    "grading": "Development-only and optional. Normal runtime execution does not require benchmark data.",
-    "final_image_exclusions": "Benchmark tasks, expected answers, evaluator metadata, and grading fixtures are excluded from the final submission image."
+    "input": "Top-level /input/tasks.json array with task_id and prompt records.",
+    "output": "Top-level /output/results.json array with task_id and answer records only.",
+    "startup": "container startup runs the batch automatically and exits",
+    "ui": "none",
+    "http_server": "none except internal child Ollama service on loopback"
   },
   "final_constraints": [
-    "no hardcoded final model IDs",
-    "no bundled model weights",
-    "no local LLM inference in final mode",
-    "no Lemonade or Ollama dependency in final mode"
-  ]
+    "bundled local Ollama and Nemotron model are present in the submitted image",
+    "no runtime model downloads",
+    "no hosted provider other than Fireworks",
+    "Fireworks calls use FIREWORKS_BASE_URL and FIREWORKS_API_KEY",
+    "Fireworks model IDs are resolved from ALLOWED_MODELS",
+    "official results contain no audit or routing metadata"
+  ],
+  "fallback_history": "Version 6 remains preserved in Dockerfile.version6 as known-good fallback evidence, not the active official runtime."
 }

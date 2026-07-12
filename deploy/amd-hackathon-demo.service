@@ -1,0 +1,15 @@
+[Unit]
+Description=AMD Hackathon Version 7 live demo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/amd-hackathon-demo
+ExecStart=/usr/bin/python3 -m http.server 8090 --bind 0.0.0.0 --directory /opt/amd-hackathon-demo
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

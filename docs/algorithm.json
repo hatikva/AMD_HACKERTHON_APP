@@ -1,75 +1,106 @@
 {
-  "schema": "amd_hackathon.public_algorithm.v1",
-  "name": "Work Jurisdiction Routing",
-  "steps": [
-    "Load official tasks from /input/tasks.json as records containing only task_id and prompt.",
-    "Adapt official tasks into internal task records without benchmark answers or evaluator data.",
-    "Classify task category internally with deterministic rules and fallback policy.",
-    "Assign a Work Jurisdiction for the task scope.",
-    "Select an answer schema and compact prompt template.",
-    "Pack available evidence within the token budget.",
-    "Select an allowed model from ALLOWED_MODELS for Fireworks execution.",
-    "For Version 5, check the local certification table before Fireworks execution.",
-    "For Version 5, run provider version5-ollama only when the jurisdiction is LOCAL_CERTIFIED.",
-    "For Version 5, fall back through FIREWORKS_BASE_URL when local execution is not certified, fails validation, or times out.",
-    "Call the configured provider through the approved base URL.",
-    "Validate output deterministically.",
-    "Apply structural repair when safe.",
-    "Write only task_id and answer records to /output/results.json.",
-    "Write provider, model, token, validation, repair, fallback, and latency telemetry to separate audit artifacts."
+  "schema": "amd_hackathon.public_algorithm.v2",
+  "name": "Version 7 Pipelined Category Routing Runtime",
+  "active_submission_version": "version_7",
+  "official_runtime_steps": [
+    "Start one bundled local Ollama server inside the container.",
+    "Load official tasks from /input/tasks.json as a top-level array of task_id and prompt records.",
+    "Validate task shape, non-empty task IDs and prompts, and unique task IDs.",
+    "Classify each task serially with local nemotron-3-nano:4b using a strict canonical category parser.",
+    "Resolve the immutable category route by deterministic table lookup.",
+    "Dispatch Fireworks-owned tasks immediately after classification with bounded concurrency.",
+    "Defer local Nemotron answer generation until all tasks are classified.",
+    "Drain the combined local queue serially after the classification barrier.",
+    "Use the raw official prompt for all answer-generation calls.",
+    "Reconstruct results in original input order.",
+    "Atomically write /output/results.json with only task_id and answer fields.",
+    "Write optional redacted audit records separately under /output/audit."
   ],
-  "qualification_steps": [
-    "Load benchmarks/categories/version5_local_category_benchmarks_v2.json with the dedicated benchmark loader.",
-    "Validate suite schema, category coverage, unique IDs, unique prompts, progressive difficulty, and evaluator metadata.",
-    "Project each benchmark record into an official-format model-visible task containing only task_id and prompt.",
-    "Keep category, difficulty, expected answers, accepted answers, rubrics, and evaluator metadata in evaluator-only data.",
-    "Run an explicit provider/model candidate through the production execution path.",
-    "Evaluate outputs with implemented deterministic evaluators or mark unsafe code evaluators blocked.",
-    "Write qualification results outside /output/results.json.",
-    "Review qualification evidence before updating any runtime authorization registry."
-  ],
-  "public_jurisdictions": [
-    "TASK_FAMILY_CLASSIFICATION",
-    "PROMPT_OPTIMIZATION",
-    "TASK_CONTRACT_EXTRACTION",
-    "CONTEXT_SELECTION",
-    "EVIDENCE_PACKING",
-    "ANSWER_SCHEMA_SELECTION",
-    "DETERMINISTIC_VALIDATION",
-    "REPAIR_CLASSIFICATION",
-    "MODEL_SELECTION",
-    "TOKEN_BUDGETING",
-    "FIREWORKS_PROXY_COMPLIANCE"
-  ],
-  "version_5_public_jurisdictions": [
-    "SHORT_FACTUAL_ANSWERING",
-    "SENTIMENT_CLASSIFICATION",
-    "NAMED_ENTITY_RECOGNITION",
-    "SIMPLE_SUMMARIZATION",
-    "MATH_LIGHT",
-    "LOGICAL_DEDUCTION_LIGHT",
-    "CODE_DEBUGGING_SMALL",
-    "CODE_GENERATION_SMALL"
-  ],
-  "version_5_canonical_categories": [
-    "FACTUAL_KNOWLEDGE",
-    "MATHEMATICAL_REASONING",
-    "SENTIMENT_CLASSIFICATION",
-    "TEXT_SUMMARISATION",
-    "NAMED_ENTITY_RECOGNITION",
+  "canonical_categories": [
     "CODE_DEBUGGING",
+    "CODE_GENERATION",
+    "FACTUAL_KNOWLEDGE",
     "LOGICAL_DEDUCTIVE_REASONING",
-    "CODE_GENERATION"
+    "MATHEMATICAL_REASONING",
+    "NAMED_ENTITY_RECOGNITION",
+    "SENTIMENT_CLASSIFICATION",
+    "TEXT_SUMMARISATION"
   ],
-  "benchmark_boundary": {
-    "suite_id": "version5-category-benchmark-v2",
-    "live_input": false,
-    "authorization_mutation": "never during benchmark execution or live task execution",
-    "version_1_status": "retired"
+  "locked_routes": {
+    "CODE_DEBUGGING": {
+      "provider": "local_ollama",
+      "model": "nemotron-3-nano:4b",
+      "max_completion_tokens": 1000
+    },
+    "CODE_GENERATION": {
+      "provider": "fireworks",
+      "model_alias": "kimi-k2p7-code",
+      "max_completion_tokens": 1000
+    },
+    "FACTUAL_KNOWLEDGE": {
+      "provider": "fireworks",
+      "model_alias": "kimi-k2p7-code",
+      "max_completion_tokens": 64
+    },
+    "LOGICAL_DEDUCTIVE_REASONING": {
+      "provider": "fireworks",
+      "model_alias": "kimi-k2p7-code",
+      "max_completion_tokens": 64
+    },
+    "MATHEMATICAL_REASONING": {
+      "provider": "fireworks",
+      "model_alias": "kimi-k2p7-code",
+      "max_completion_tokens": 400
+    },
+    "NAMED_ENTITY_RECOGNITION": {
+      "provider": "local_ollama",
+      "model": "nemotron-3-nano:4b",
+      "max_completion_tokens": 1000
+    },
+    "SENTIMENT_CLASSIFICATION": {
+      "provider": "fireworks",
+      "model_alias": "kimi-k2p7-code",
+      "max_completion_tokens": 64
+    },
+    "TEXT_SUMMARISATION": {
+      "provider": "local_ollama",
+      "model": "nemotron-3-nano:4b",
+      "max_completion_tokens": 1000
+    }
   },
-  "private_details_omitted": [
-    "benchmark thresholds",
-    "full certification strategy",
-    "planning critique"
-  ]
+  "scheduler": {
+    "classification": "serial local Nemotron classification",
+    "remote_dispatch": "after each Fireworks-owned category classification, bounded by FIREWORKS_MAX_CONCURRENCY",
+    "local_barrier": "local answer generation starts only after all classifications finish",
+    "local_queue": [
+      "CODE_DEBUGGING",
+      "NAMED_ENTITY_RECOGNITION",
+      "TEXT_SUMMARISATION"
+    ],
+    "local_parallelism": "forbidden; one local generation at a time"
+  },
+  "fireworks_policy": {
+    "base_url": "FIREWORKS_BASE_URL",
+    "api_key": "FIREWORKS_API_KEY",
+    "allowed_models": "ALLOWED_MODELS",
+    "resolver": "exactly one allowed model whose final resource component is kimi-k2p7-code",
+    "other_hosted_providers": "forbidden"
+  },
+  "official_output_boundary": {
+    "allowed_fields": [
+      "task_id",
+      "answer"
+    ],
+    "forbidden_fields": [
+      "category",
+      "provider",
+      "model",
+      "token counts",
+      "latency",
+      "retry state",
+      "audit metadata",
+      "routing reason"
+    ]
+  },
+  "historical_evidence_policy": "Version 5 and Version 6 benchmark and analytics artifacts are retained as historical evidence and are excluded from the Version 7 production image."
 }

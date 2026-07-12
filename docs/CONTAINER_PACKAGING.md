@@ -1,74 +1,89 @@
 # Container Packaging
 
-Development and submission packaging are separate concerns.
+This repository is now organized around the Version 7 production submission
+runtime.
 
-## Development
+## Official Submission Image
 
-`compose.dev.yml` uses named volumes so candidate models and Lemonade backend state are not repeatedly downloaded:
-
-- `lemonade-cache`
-- `lemonade-llama`
-- `lemonade-recipe`
-
-These volumes are not part of the image. A container that depends on them is not self-contained.
-
-## Submission
-
-The final submission must not depend on host bind mounts or pre-existing model volumes. Do not commit model weights to Git.
-
-Only one selected local model should be embedded in the Version 5 image. The final Version 5 runtime path is CPU-only Ollama with `nemotron-3-nano:4b`, staged under `models/version5-ollama/` with its manifest and required blobs. Runtime downloads are not part of the final Version 5 path.
-
-## Offline Test Requirement
-
-Before claiming a submission image is self-contained:
-
-1. Build the image from a clean context.
-2. Run it without model volumes or bind mounts.
-3. Disable outbound network access.
-4. Confirm the selected model loads and serves a non-empty response.
-
-Compose YAML alone does not prove scoring accepts multiple containers or that weights are self-contained.
-
-The older direct llama.cpp image is retained as runtime evidence only:
+Build the official image with:
 
 ```bash
-scripts/stage-version5-model.sh
-scripts/verify-version5-image.sh amd-hackathon-version5:local
+docker build -f Dockerfile.submission -t amd-hackathon:version7-production .
 ```
 
-That verification builds `Dockerfile.version5`, checks the gzip-compressed saved image is below 10 GB, and runs `amd-router preflight` with `--memory=4g --cpus=2`. Direct llama.cpp inference with the selected Nemotron artifact was OOM-killed under the target envelope, so it is not the final Version 5 local runtime path.
-
-Use this for the promoted Version 5 Ollama runtime path:
+`Dockerfile.submission` is intentionally aligned with `Dockerfile.version7`.
+Both run the same entrypoint and the same production command:
 
 ```bash
-scripts/stage-version5-ollama-runtime.sh
-scripts/verify-version5-ollama-image.sh amd-hackathon-version5:ollama
+amd-router run-version7-submission \
+  --input /input/tasks.json \
+  --output /output/results.json \
+  --audit-log /output/audit.jsonl
 ```
 
-The staging script copies only:
+The image embeds the selected local Ollama model payload from
+`models/version5-ollama/`. The directory name is historical because the same
+model artifact was qualified during earlier experiments; the promoted runtime is
+Version 7.
 
-- `/usr/local/bin/ollama`;
-- CPU shared libraries from `/usr/local/lib/ollama`;
-- the selected `nemotron-3-nano:4b` Ollama manifest and required blobs.
+## Runtime Contract
 
-It intentionally excludes the CUDA and Vulkan backend directories from the host Ollama install. The staged payload remains under ignored `models/version5-ollama/` and must not be committed.
+Version 7 expects:
 
-Observed on 2026-07-10:
+- `/input/tasks.json` mounted read-only with the official task list;
+- `/output` mounted writable for `results.json` and `audit.jsonl`;
+- `FIREWORKS_API_KEY` supplied at runtime;
+- no host model volume, no runtime model download, and no second service
+  container.
 
-```text
-llama.cpp compressed image: 2,860,434,793 bytes
-CPU-only Ollama compressed image after final provider promotion: 2,866,482,542 bytes
-delta: +6,030,430 bytes for Ollama
-Ollama constrained smoke: passed under --memory=4g --cpus=2
-llama.cpp constrained direct inference: OOM-killed under --memory=4g --cpus=2
+The container starts exactly one local `ollama serve` child process, waits for
+the embedded model to become available, validates that the Fireworks Kimi model
+is enabled, and then runs the deterministic Version 7 scheduler.
+
+## Routing Policy
+
+Version 7 uses one canonical classifier and eight official categories:
+
+- `CODE_GENERATION`: Fireworks Kimi, `max_tokens=1000`
+- `FACTUAL`: Fireworks Kimi, `max_tokens=64`
+- `LOGICAL`: Fireworks Kimi, `max_tokens=64`
+- `MATH`: Fireworks Kimi, `max_tokens=400`
+- `SENTIMENT`: Fireworks Kimi, `max_tokens=64`
+- `CODE_DEBUGGING`: local Ollama, `max_tokens=1000`
+- `NAMED_ENTITY_RECOGNITION`: local Ollama, `max_tokens=1000`
+- `TEXT_SUMMARISATION`: local Ollama, `max_tokens=1000`
+
+Classification is serial. Remote tasks are dispatched immediately after
+classification with bounded concurrency. Local answer generation waits until all
+tasks have been classified, then runs serially to protect the embedded local
+model under the target CPU and memory envelope. Output order always matches the
+input order.
+
+## Verification
+
+Run the local verification script before publishing a submission image:
+
+```bash
+scripts/verify-version7-image.sh amd-hackathon:version7-production
 ```
 
-The Ollama image now uses the final provider identity `version5-ollama`. This certifies the local runtime path only. Jurisdiction-level local routing remains blocked until benchmark results through `version5-ollama` meet reviewed thresholds and are promoted into authorization records.
+The verifier checks:
 
-## Version 5 Qualification Benchmark Packaging
+- image architecture and compressed size;
+- embedded Ollama model availability;
+- official category validation;
+- Kimi availability enforcement;
+- malformed-input failure behavior;
+- missing-`FIREWORKS_API_KEY` failure behavior;
+- no partial `results.json` on fatal startup or validation failures.
 
-`benchmarks/categories/version5_local_category_benchmarks_v2.json` is an offline qualification suite, not a live task fixture.
+For release verification, also run an end-to-end mixed-category smoke using a
+fake Fireworks-compatible endpoint and inspect `/output/audit.jsonl` for the
+expected five remote answers and three local answers.
 
-Do not place the benchmark in `/input/tasks.json`, `/output`, or automatic live-processing paths. If a development or qualification image includes the benchmark, treat it as evaluator-only material: it contains expected answers, rubrics, and reference solutions that must never be sent to a tested model.
+## Historical Packaging
 
-Production submission packaging should include qualification artifacts only when explicitly required by the submission process. Otherwise, use benchmark-derived, reviewed authorization records rather than bundling evaluator answers into the runtime image.
+Earlier Version 5 and Version 6 Dockerfiles, scripts, and benchmark artifacts
+remain in the repository only as implementation evidence. They are not the
+official submission runtime. New submission work should use
+`Dockerfile.submission`, `Dockerfile.version7`, and `src/amd_hackathon_app/version7.py`.

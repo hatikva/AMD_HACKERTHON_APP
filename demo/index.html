@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AMD Hackathon Version 7 Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d2430;
+      --muted: #5b6575;
+      --line: #d8dee8;
+      --panel: #ffffff;
+      --bg: #f5f7fb;
+      --green: #168a62;
+      --blue: #275fb8;
+      --amber: #aa6a00;
+      --red: #b83a4b;
+      --dark: #20242b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      letter-spacing: 0;
+    }
+
+    button, textarea, select {
+      font: inherit;
+    }
+
+    .topbar {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 24px;
+      background: var(--dark);
+      color: #fff;
+      border-bottom: 4px solid var(--green);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 8px;
+      background: #11151b;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+      font-weight: 750;
+    }
+
+    .subtitle {
+      color: #c4ccd8;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .status {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .pill {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.22);
+      padding: 5px 9px;
+      background: rgba(255,255,255,.07);
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    main {
+      width: min(1240px, calc(100vw - 32px));
+      margin: 18px auto 32px;
+      display: grid;
+      grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .body {
+      padding: 16px;
+    }
+
+    .samples {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .sample {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcff;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .sample:hover {
+      border-color: var(--blue);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .primary {
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--green);
+      color: #fff;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    select {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcff;
+      min-height: 86px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .lane-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .lane {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 190px;
+      background: #fbfcff;
+    }
+
+    .lane-title {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .token {
+      display: inline-flex;
+      min-height: 26px;
+      align-items: center;
+      border-radius: 8px;
+      padding: 3px 8px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+    }
+
+    .queue {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .task {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .task strong {
+      font-size: 13px;
+    }
+
+    .task small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .remote {
+      border-left: 4px solid var(--blue);
+    }
+
+    .local {
+      border-left: 4px solid var(--green);
+    }
+
+    .trace {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .trace-row {
+      display: grid;
+      grid-template-columns: 126px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .trace-row code {
+      color: var(--blue);
+      word-break: break-word;
+    }
+
+    .policy {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .policy-item {
+      min-height: 74px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .policy-item strong {
+      display: block;
+      font-size: 12px;
+      word-break: break-word;
+      margin-bottom: 6px;
+    }
+
+    .policy-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .answer {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      min-height: 98px;
+      line-height: 1.5;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .status {
+        justify-content: flex-start;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .grid, .lane-wrap, .policy {
+        grid-template-columns: 1fr;
+      }
+
+      .trace-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark">V7</div>
+      <div>
+        <h1>AMD Hackathon Track 1 Version 7</h1>
+        <div class="subtitle">Hybrid token-efficient routing runtime demo</div>
+      </div>
+    </div>
+    <div class="status">
+      <span class="pill"><span class="dot"></span> Official repo: Version 7</span>
+      <span class="pill">Kimi remote routes: 5</span>
+      <span class="pill">Local routes: 3</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Task Probe</h2>
+        <span class="token">live demo</span>
+      </div>
+      <div class="body">
+        <div class="samples" id="samples"></div>
+        <textarea id="prompt" spellcheck="false"></textarea>
+        <div class="actions">
+          <button class="primary" id="route">Run route trace</button>
+          <select id="category"></select>
+        </div>
+        <div class="answer" id="answer"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Version 7 Scheduler</h2>
+        <span class="token">batch-only container</span>
+      </div>
+      <div class="body">
+        <div class="grid">
+          <div class="metric"><b>8</b><span>official classifier categories</span></div>
+          <div class="metric"><b>5</b><span>Fireworks Kimi routes</span></div>
+          <div class="metric"><b>3</b><span>deferred local Ollama routes</span></div>
+          <div class="metric"><b>210s</b><span>observed mixed eight-category smoke</span></div>
+        </div>
+
+        <div class="lane-wrap">
+          <div class="lane">
+            <div class="lane-title">Remote dispatch <span class="token">bounded</span></div>
+            <div class="queue" id="remoteQueue"></div>
+          </div>
+          <div class="lane">
+            <div class="lane-title">Local answer queue <span class="token">serial</span></div>
+            <div class="queue" id="localQueue"></div>
+          </div>
+        </div>
+
+        <div class="trace" id="trace"></div>
+      </div>
+    </section>
+
+    <section class="panel" style="grid-column: 1 / -1;">
+      <div class="panel-head">
+        <h2>Locked Routing Policy</h2>
+        <span class="token">no Minimax production route</span>
+      </div>
+      <div class="body">
+        <div class="policy" id="policy"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const policy = {
+      CODE_DEBUGGING: ["local Ollama", "nemotron-3-nano:4b", 1000],
+      CODE_GENERATION: ["Fireworks Kimi", "kimi-k2p7-code", 1000],
+      FACTUAL_KNOWLEDGE: ["Fireworks Kimi", "kimi-k2p7-code", 64],
+      LOGICAL_DEDUCTIVE_REASONING: ["Fireworks Kimi", "kimi-k2p7-code", 64],
+      MATHEMATICAL_REASONING: ["Fireworks Kimi", "kimi-k2p7-code", 400],
+      NAMED_ENTITY_RECOGNITION: ["local Ollama", "nemotron-3-nano:4b", 1000],
+      SENTIMENT_CLASSIFICATION: ["Fireworks Kimi", "kimi-k2p7-code", 64],
+      TEXT_SUMMARISATION: ["local Ollama", "nemotron-3-nano:4b", 1000]
+    };
+
+    const samples = [
+      ["Code gen", "Write a Python function that groups log entries by user id and returns the three users with the most errors."],
+      ["Debug", "This JavaScript promise chain swallows errors and returns undefined. Find the bug and rewrite it safely."],
+      ["Math", "A container has 7 red balls and 5 blue balls. Two are drawn without replacement. What is the probability both are red?"],
+      ["NER", "Extract the person, organization, and location entities from: Ada Lovelace visited the Royal Society in London."]
+    ];
+
+    const promptEl = document.getElementById("prompt");
+    const categoryEl = document.getElementById("category");
+    const answerEl = document.getElementById("answer");
+    const remoteQueueEl = document.getElementById("remoteQueue");
+    const localQueueEl = document.getElementById("localQueue");
+    const traceEl = document.getElementById("trace");
+    const policyEl = document.getElementById("policy");
+
+    for (const category of Object.keys(policy)) {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      categoryEl.append(option);
+    }
+
+    for (const [label, text] of samples) {
+      const button = document.createElement("button");
+      button.className = "sample";
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        promptEl.value = text;
+        categoryEl.value = inferCategory(text);
+        render();
+      });
+      document.getElementById("samples").append(button);
+    }
+
+    for (const [category, route] of Object.entries(policy)) {
+      const item = document.createElement("div");
+      item.className = "policy-item";
+      item.innerHTML = `<strong>${category}</strong><span>${route[0]} · ${route[1]}</span><span>${route[2]} completion tokens</span>`;
+      policyEl.append(item);
+    }
+
+    function inferCategory(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes("debug") || lower.includes("bug") || lower.includes("error")) return "CODE_DEBUGGING";
+      if (lower.includes("extract") || lower.includes("entity")) return "NAMED_ENTITY_RECOGNITION";
+      if (lower.includes("summar")) return "TEXT_SUMMARISATION";
+      if (lower.includes("probability") || lower.includes("calculate") || lower.includes("equation")) return "MATHEMATICAL_REASONING";
+      if (lower.includes("sentiment") || lower.includes("positive") || lower.includes("negative")) return "SENTIMENT_CLASSIFICATION";
+      if (lower.includes("logic") || lower.includes("deduce")) return "LOGICAL_DEDUCTIVE_REASONING";
+      if (lower.includes("write") || lower.includes("function") || lower.includes("code")) return "CODE_GENERATION";
+      return "FACTUAL_KNOWLEDGE";
+    }
+
+    function taskCard(category, prompt) {
+      const route = policy[category];
+      const item = document.createElement("div");
+      item.className = `task ${route[0].startsWith("Fireworks") ? "remote" : "local"}`;
+      item.innerHTML = `<strong>${category}</strong><small>${route[0]} · max ${route[2]} tokens</small><small>${prompt.slice(0, 92)}${prompt.length > 92 ? "..." : ""}</small>`;
+      return item;
+    }
+
+    function traceRow(step, detail, status) {
+      const row = document.createElement("div");
+      row.className = "trace-row";
+      row.innerHTML = `<strong>${step}</strong><code>${detail}</code><span class="token">${status}</span>`;
+      return row;
+    }
+
+    function render() {
+      const prompt = promptEl.value.trim();
+      const category = categoryEl.value;
+      const route = policy[category];
+      remoteQueueEl.innerHTML = "";
+      localQueueEl.innerHTML = "";
+      traceEl.innerHTML = "";
+
+      const target = route[0].startsWith("Fireworks") ? remoteQueueEl : localQueueEl;
+      target.append(taskCard(category, prompt || "Official task prompt"));
+
+      traceEl.append(traceRow("Phase A", "local classifier returns " + category, "serial"));
+      if (route[0].startsWith("Fireworks")) {
+        traceEl.append(traceRow("Dispatch", route[1] + " receives the raw prompt", "immediate"));
+        traceEl.append(traceRow("Tokens", String(route[2]) + " completion token ceiling", "remote"));
+      } else {
+        traceEl.append(traceRow("Barrier", "task waits until all prompts are classified", "deferred"));
+        traceEl.append(traceRow("Local", route[1] + " answers after the barrier", "serial"));
+      }
+
+      answerEl.innerHTML = `<strong>${category}</strong><br><span class="muted">${route[0]} using ${route[1]}, max completion tokens ${route[2]}. The production container writes only task_id and answer to /output/results.json.</span>`;
+    }
+
+    document.getElementById("route").addEventListener("click", () => {
+      categoryEl.value = inferCategory(promptEl.value);
+      render();
+    });
+
+    categoryEl.addEventListener("change", render);
+    promptEl.value = samples[0][1];
+    categoryEl.value = "CODE_GENERATION";
+    render();
+  </script>
+</body>
+</html>

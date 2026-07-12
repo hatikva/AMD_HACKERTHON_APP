@@ -1,19 +1,47 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS version7-production
 
-LABEL org.opencontainers.image.title="AMD Hackathon Track 1 Most Innovative Routing System"
-LABEL org.opencontainers.image.description="Fireworks-compatible Work Jurisdiction router without bundled model weights."
+LABEL org.opencontainers.image.title="AMD Hackathon Track 1 Version 7 Production Runtime"
+LABEL org.opencontainers.image.description="Official batch-only Version 7 runtime with bundled CPU Ollama Nemotron classifier/local answerer and Fireworks Kimi routes."
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libstdc++6 ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONUNBUFFERED=1
-ENV APP_RUN_DIR=/output/runs
+ENV MODEL_NAME=nemotron-3-nano:4b
+ENV OLLAMA_MODEL_NAME=nemotron-3-nano:4b
+ENV OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
+ENV OLLAMA_HOST=127.0.0.1:11434
+ENV OLLAMA_MODELS=/app/ollama-models
+ENV OLLAMA_CONTEXT_LENGTH=512
+ENV OLLAMA_MAX_LOADED_MODELS=1
+ENV OLLAMA_NUM_PARALLEL=1
+ENV OLLAMA_NO_CLOUD=true
+ENV OLLAMA_FLASH_ATTENTION=false
+ENV FIREWORKS_MAX_CONCURRENCY=4
+ENV VERSION7_BATCH_DEADLINE_SECONDS=570
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml ./
 COPY src ./src
-COPY docs ./docs
+COPY scripts/version7-entrypoint.sh /app/bin/version7-entrypoint.sh
+COPY models/version5-ollama/bin/ollama /usr/local/bin/ollama
+COPY models/version5-ollama/lib/ollama /usr/local/lib/ollama
+COPY models/version5-ollama/models /app/ollama-models
 
-RUN python -m pip install --no-cache-dir .
+RUN rm -rf src/amd_hackathon_app/__pycache__ \
+    && rm -f src/amd_hackathon_app/analytics.py src/amd_hackathon_app/benchmarks.py src/amd_hackathon_app/ui.py src/amd_hackathon_app/web.py \
+    && python -m pip install --no-cache-dir . \
+    && rm -rf build src/amd_hackathon_app.egg-info src/amd_hackathon_app/__pycache__ \
+    && mkdir -p /input /output \
+    && chmod +x /app/bin/version7-entrypoint.sh \
+    && test -x /usr/local/bin/ollama \
+    && test -s /app/ollama-models/blobs/sha256-527db2cf6c705d8fabb95693d038d9c06b4a2b0b8b0a4bbdbd01212d37242970 \
+    && test ! -e /app/web \
+    && test ! -e /app/benchmarks \
+    && test ! -e /app/qualification \
+    && test ! -e /app/.env
 
-RUN mkdir -p /input /output
-
-CMD ["amd-router", "run-submission", "--input", "/input/tasks.json", "--output", "/output/results.json"]
+ENTRYPOINT ["/app/bin/version7-entrypoint.sh"]
+CMD ["amd-router", "run-version7-submission", "--input", "/input/tasks.json", "--output", "/output/results.json"]

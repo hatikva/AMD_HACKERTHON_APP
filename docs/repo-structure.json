@@ -1,33 +1,45 @@
 {
-  "schema": "amd_hackathon.repo_structure.v1",
-  "active_runtime": {
-    "package": "src/amd_hackathon_app",
+  "schema": "amd_hackathon.repo_structure.v2",
+  "official_runtime": {
+    "version": "version_7",
+    "dockerfile": "Dockerfile.submission",
+    "explicit_dockerfile": "Dockerfile.version7",
+    "target": "version7-production",
+    "entrypoint": "scripts/version7-entrypoint.sh",
+    "runtime_module": "src/amd_hackathon_app/version7.py",
     "cli": "src/amd_hackathon_app/cli.py",
-    "pipeline": "src/amd_hackathon_app/pipeline.py",
-    "benchmark_loader": "src/amd_hackathon_app/benchmarks.py",
-    "tests": "tests/test_pipeline.py",
-    "validation": "scripts/validate-app.sh"
+    "tests": "tests/test_version7.py",
+    "image_verifier": "scripts/verify-version7-image.sh"
   },
-  "qualification_benchmarks": {
-    "version5_category_benchmark_v2": "benchmarks/categories/version5_local_category_benchmarks_v2.json",
-    "benchmark_index": "benchmarks/categories/README.md",
-    "result_location": "qualification/results/",
-    "live_runtime_input": false
+  "live_demo": {
+    "static_site": "demo/index.html",
+    "systemd_unit": "deploy/amd-hackathon-demo.service",
+    "origin": "http://127.0.0.1:8090",
+    "intended_hostname": "https://amd-hackerthon.drwebsite.host/"
   },
   "io_contract": {
     "input": "/input/tasks.json",
     "input_shape": "top-level array of task_id and prompt records",
     "output": "/output/results.json",
     "output_shape": "top-level array of task_id and answer records",
-    "audit_output": "separate run artifacts, not the official results file"
+    "audit_output": "/output/audit/version7-run.jsonl, separate from official results"
+  },
+  "model_assets": {
+    "staged_ollama_runtime": "models/version5-ollama/",
+    "production_usage": "reused by Version 7 image packaging for bundled CPU Ollama and nemotron-3-nano:4b",
+    "git_policy": "model payload remains ignored and is not committed"
   },
   "historical_surfaces": [
-    "containers/lemonade",
-    "compose.dev.yml",
-    "audit/receipts"
+    "Dockerfile.version6",
+    "Dockerfile.version6-ui",
+    "docs/VERSION6_SUBMISSION_RUNTIME.md",
+    "docs/VERSION6_STAGING_OLLAMA_CLOUD.md",
+    "qualification/",
+    "benchmarks/"
   ],
   "notes": [
-    "Historical Lemonade artifacts are preserved but are not the active Version 3 inference runtime.",
-    "Version 4 final mode excludes local LLM runtime dependencies."
+    "Version 7 is the official repository focus.",
+    "Historical benchmark and analytics files are retained for audit context and excluded from the production image.",
+    "The final submission image reference must be publicly pullable before it is entered in the submission form."
   ]
 }
