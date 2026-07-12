@@ -72,6 +72,17 @@ def cmd_run_submission(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_version7_submission(args: argparse.Namespace) -> int:
+    from .version7 import run_batch
+
+    record = run_batch(
+        input_path=Path(args.input),
+        output_path=Path(args.output),
+    )
+    print(record_to_json({"status": "completed", **record}))
+    return 0
+
+
 def cmd_validate_benchmark(args: argparse.Namespace) -> int:
     from .benchmarks import load_category_benchmark
 
@@ -194,6 +205,11 @@ def build_parser() -> argparse.ArgumentParser:
     submission_parser.add_argument("--output", default="/output/results.json")
     submission_parser.add_argument("--provider", choices=providers, default=None)
     submission_parser.set_defaults(func=cmd_run_submission)
+
+    version7_parser = subcommands.add_parser("run-version7-submission")
+    version7_parser.add_argument("--input", default="/input/tasks.json")
+    version7_parser.add_argument("--output", default="/output/results.json")
+    version7_parser.set_defaults(func=cmd_run_version7_submission)
 
     validate_benchmark_parser = subcommands.add_parser("validate-category-benchmark")
     validate_benchmark_parser.add_argument("--suite", default=canonical_benchmark_path)

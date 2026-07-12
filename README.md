@@ -1,12 +1,94 @@
-# AMD Hackathon Version 6 Submission Runtime
+# AMD Hackathon Version 7 Production Candidate
 
-Version 6 is the confirmed final-stage runtime for the AMD Developer Hackathon ACT II Track 1: Hybrid Token-Efficient Routing Agent.
+Version 7 is the current production candidate for the AMD Developer Hackathon ACT II Track 1: Hybrid Token-Efficient Routing Agent. Version 6 remains the known-good bundled-Ollama fallback and is preserved in `Dockerfile.version6`.
 
 Event: https://lablab.ai/ai-hackathons/amd-developer-hackathon-act-ii
 
 Team: `team-2168`, 1 member, `dr.wbsite@gmail.com`
 
 Timeline: starts `2026-07-06 16:00 British Summer Time`, ends `2026-07-12 16:00 British Summer Time`
+
+## Version 7 Policy
+
+Version 7 reads `/input/tasks.json`, classifies each prompt with local `nemotron-3-nano:4b`, routes by immutable category policy, writes `/output/results.json`, and exits. It has no UI, no request server, and no interactive trigger.
+
+Locked routes:
+
+- `CODE_DEBUGGING`: local Ollama `nemotron-3-nano:4b`, `1000` completion tokens, deferred serial local queue.
+- `CODE_GENERATION`: Fireworks Kimi alias `kimi-k2p7-code`, `1000` completion tokens.
+- `FACTUAL_KNOWLEDGE`: Fireworks Kimi alias `kimi-k2p7-code`, `64` completion tokens.
+- `LOGICAL_DEDUCTIVE_REASONING`: Fireworks Kimi alias `kimi-k2p7-code`, `64` completion tokens.
+- `MATHEMATICAL_REASONING`: Fireworks Kimi alias `kimi-k2p7-code`, `400` completion tokens.
+- `NAMED_ENTITY_RECOGNITION`: local Ollama `nemotron-3-nano:4b`, `1000` completion tokens, deferred serial local queue.
+- `SENTIMENT_CLASSIFICATION`: Fireworks Kimi alias `kimi-k2p7-code`, `64` completion tokens.
+- `TEXT_SUMMARISATION`: local Ollama `nemotron-3-nano:4b`, `1000` completion tokens, deferred serial local queue.
+
+`CODE_GENERATION` is explicitly a Kimi route, not a Nemotron route. Fireworks model resolution uses the harness-provided `ALLOWED_MODELS` at runtime and accepts exactly one resource whose final component is `kimi-k2p7-code`.
+
+Scheduler constraints:
+
+- classification is serial and owns the only local model slot during Phase A;
+- Fireworks tasks dispatch immediately after classification with bounded `FIREWORKS_MAX_CONCURRENCY` defaulting to `4`;
+- local answer generation starts only after every task has been classified;
+- local answer generation is strictly serial and contains only `CODE_DEBUGGING`, `NAMED_ENTITY_RECOGNITION`, and `TEXT_SUMMARISATION`;
+- Fireworks work may overlap later classification and post-barrier local answering.
+
+Required Fireworks environment:
+
+```text
+FIREWORKS_API_KEY
+FIREWORKS_BASE_URL
+ALLOWED_MODELS
+```
+
+Local build:
+
+```bash
+docker build -f Dockerfile.version7 --target version7-production -t amd-hackathon:version7-production .
+```
+
+`linux/amd64` build:
+
+```bash
+docker buildx build --platform linux/amd64 -f Dockerfile.version7 --target version7-production -t ghcr.io/hatikva/amd-hackerthon-app:version7-production-<short-commit> .
+```
+
+Run with official mounts:
+
+```bash
+docker run --rm \
+  -e FIREWORKS_API_KEY="$FIREWORKS_API_KEY" \
+  -e FIREWORKS_BASE_URL="$FIREWORKS_BASE_URL" \
+  -e ALLOWED_MODELS="$ALLOWED_MODELS" \
+  -v "$PWD/input:/input:ro" \
+  -v "$PWD/output:/output" \
+  amd-hackathon:version7-production
+```
+
+Verify image:
+
+```bash
+scripts/verify-version7-image.sh amd-hackathon:version7-production
+```
+
+Publish after local verification:
+
+```bash
+docker buildx build --platform linux/amd64 -f Dockerfile.version7 --target version7-production \
+  -t ghcr.io/hatikva/amd-hackerthon-app:version7-production-<short-commit> --push .
+docker pull ghcr.io/hatikva/amd-hackerthon-app:version7-production-<short-commit>
+docker buildx imagetools inspect ghcr.io/hatikva/amd-hackerthon-app:version7-production-<short-commit>
+docker tag ghcr.io/hatikva/amd-hackerthon-app:version7-production-<short-commit> ghcr.io/hatikva/amd-hackerthon-app:version7-production
+docker push ghcr.io/hatikva/amd-hackerthon-app:version7-production
+```
+
+Public image tag and digest are pending registry-authenticated publication.
+
+Known residual risks:
+
+- hidden-task accuracy remains unknowable until official scoring;
+- production Fireworks execution requires harness credentials and an `ALLOWED_MODELS` value containing exactly one Kimi resource;
+- final public image publication is blocked until registry credentials are available and the pushed digest is verified.
 
 ## Mission
 
