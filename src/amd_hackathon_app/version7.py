@@ -20,6 +20,10 @@ DEFAULT_BATCH_DEADLINE_SECONDS = 570.0
 CLASSIFIER_MAX_COMPLETION_TOKENS = 32
 LOCAL_ANSWER_MAX_COMPLETION_TOKENS = 1000
 DEFAULT_FIREWORKS_MAX_CONCURRENCY = 4
+DEFAULT_FIREWORKS_MODEL_RESOURCES = {
+    KIMI_ALIAS: "accounts/fireworks/models/kimi-k2p7-code",
+    MINIMAX_ALIAS: "accounts/fireworks/models/minimax-m3",
+}
 
 
 class Version7Error(RuntimeError):
@@ -94,8 +98,13 @@ class AnswerClient(Protocol):
 
 
 def parse_allowed_models(value: str | None = None) -> list[str]:
-    raw = os.environ.get("ALLOWED_MODELS", "") if value is None else value
-    entries = [item.strip() for item in raw.split(",")]
+    raw = (os.environ.get("ALLOWED_MODELS", "") if value is None else value).strip()
+    if not raw:
+        return []
+    if raw.startswith("["):
+        parsed = json.loads(raw)
+        return [str(item).strip() for item in parsed if str(item).strip()]
+    entries = [item.strip() for item in raw.replace("\n", ",").split(",")]
     return [item for item in entries if item]
 
 
@@ -353,6 +362,11 @@ class FireworksClient:
             return json.loads(response.read().decode("utf-8"))
 
 
+class UnavailableFireworksClient:
+    async def generate(self, prompt: str, *, model: str, max_completion_tokens: int) -> GenerationResult:
+        raise Version7Error("Fireworks is unavailable because FIREWORKS_BASE_URL or FIREWORKS_API_KEY is not set")
+
+
 def extract_openai_text(payload: dict[str, Any]) -> str:
     choices = payload.get("choices")
     if not isinstance(choices, list) or not choices:
@@ -386,7 +400,7 @@ async def classify_with_retry(
     audit: AuditWriter,
     *,
     local_lock: asyncio.Lock,
-    classifier_fallback_model: str,
+    classifier_fallback_model: str | None,
 ) -> Category:
     for attempt in (1, 2):
         async with local_lock:
@@ -397,6 +411,8 @@ async def classify_with_retry(
             return category
         except Version7Error as exc:
             audit.write({"event": "classification_invalid", "task_id": task.task.task_id, "index": task.index, "attempt": attempt, "failure": str(exc)})
+    if classifier_fallback_model is None:
+        raise Version7Error(f"classification failed for task {task.task.task_id}")
     result = await fallback_client.generate(
         classifier_prompt(task.task.prompt, retry=True) + "\nLabel:",
         model=classifier_fallback_model,
@@ -506,9 +522,23 @@ async def run_scheduler(
                     "failure": str(exc),
                 }
             )
-            if route.fallback_provider == "fireworks":
-                return await fireworks_answer(indexed, route, route.fallback_model_alias, fallback=True)
-            if route.fallback_provider == "ollama":
+            try:
+                if route.fallback_provider == "fireworks":
+                    return await fireworks_answer(indexed, route, route.fallback_model_alias, fallback=True)
+                if route.fallback_provider == "ollama":
+                    return await local_answer(indexed, route, fallback=True)
+            except Exception as fallback_exc:
+                audit.write(
+                    {
+                        "event": "fallback_failed",
+                        "task_id": indexed.task.task_id,
+                        "index": indexed.index,
+                        "category": route.category.value,
+                        "provider": route.fallback_provider,
+                        "model_alias": route.fallback_model_alias,
+                        "failure": str(fallback_exc),
+                    }
+                )
                 return await local_answer(indexed, route, fallback=True)
             raise Version7Error(f"unsupported fallback provider: {route.fallback_provider}")
 
@@ -532,7 +562,7 @@ async def run_scheduler(
             indexed,
             audit,
             local_lock=local_lock,
-            classifier_fallback_model=resolve_fireworks_alias(KIMI_ALIAS),
+            classifier_fallback_model=fireworks_models.get(KIMI_ALIAS),
         )
         route = category_policy(category)
         audit.write({"event": "routed", "task_id": task.task_id, "index": index, "category": category.value, "provider": route.provider, "max_completion_tokens": route.max_completion_tokens})
@@ -573,21 +603,27 @@ async def run_batch_async(
     audit = AuditWriter(audit_path)
     tasks = load_official_tasks(input_path)
     allowed_models = parse_allowed_models()
-    resolved_kimi = resolve_kimi_model(allowed_models)
-    resolved_minimax = resolve_minimax_model(allowed_models)
+    if allowed_models:
+        resolved_kimi = resolve_kimi_model(allowed_models)
+        resolved_minimax = resolve_minimax_model(allowed_models)
+        fireworks_models = {KIMI_ALIAS: resolved_kimi, MINIMAX_ALIAS: resolved_minimax}
+    else:
+        fireworks_models = DEFAULT_FIREWORKS_MODEL_RESOURCES
     local = local_client or OllamaChatClient()
     classifier_client = classifier or local
-    fireworks = fireworks_client or FireworksClient(
-        os.environ.get("FIREWORKS_BASE_URL", ""),
-        os.environ.get("FIREWORKS_API_KEY", ""),
-        deadline,
+    fireworks_base_url = os.environ.get("FIREWORKS_BASE_URL", "")
+    fireworks_api_key = os.environ.get("FIREWORKS_API_KEY", "")
+    fireworks = fireworks_client or (
+        FireworksClient(fireworks_base_url, fireworks_api_key, deadline)
+        if fireworks_base_url.strip() and fireworks_api_key.strip()
+        else UnavailableFireworksClient()
     )
     answers = await run_scheduler(
         tasks,
         classifier=classifier_client,
         local_client=local,
         fireworks_client=fireworks,
-        fireworks_models={KIMI_ALIAS: resolved_kimi, MINIMAX_ALIAS: resolved_minimax},
+        fireworks_models=fireworks_models,
         audit=audit,
         deadline=deadline,
         fireworks_max_concurrency=int(os.environ.get("FIREWORKS_MAX_CONCURRENCY", str(DEFAULT_FIREWORKS_MAX_CONCURRENCY))),

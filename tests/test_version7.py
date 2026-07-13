@@ -124,6 +124,8 @@ class Version7PolicyTests(unittest.TestCase):
             "accounts/fireworks/models/minimax-m3",
         )
         self.assertEqual(parse_allowed_models(" a, ,b "), ["a", "b"])
+        self.assertEqual(parse_allowed_models('["a", "b"]'), ["a", "b"])
+        self.assertEqual(parse_allowed_models("a\nb"), ["a", "b"])
         with self.assertRaises(Version7Error):
             resolve_kimi_model(["accounts/fireworks/models/minimax-m3"])
         with self.assertRaises(Version7Error):
@@ -357,6 +359,45 @@ class Version7SchedulerTests(unittest.TestCase):
             self.assertEqual(rows, [{"task_id": "one", "answer": "remote:p"}])
             self.assertTrue(audit_path.exists())
             self.assertNotIn("category", rows[0])
+
+    def test_run_batch_without_remote_env_uses_local_rescue(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input" / "tasks.json"
+            output_path = root / "output" / "results.json"
+            audit_path = root / "output" / "audit" / "version7-run.jsonl"
+            input_path.parent.mkdir()
+            input_path.write_text(json.dumps([{"task_id": "one", "prompt": "p"}]), encoding="utf-8")
+            events: list[str] = []
+            env = __import__("os").environ
+            old_allowed = env.get("ALLOWED_MODELS")
+            old_base = env.get("FIREWORKS_BASE_URL")
+            old_key = env.get("FIREWORKS_API_KEY")
+            try:
+                env.pop("ALLOWED_MODELS", None)
+                env.pop("FIREWORKS_BASE_URL", None)
+                env.pop("FIREWORKS_API_KEY", None)
+                asyncio.run(
+                    run_batch_async(
+                        input_path=input_path,
+                        output_path=output_path,
+                        audit_path=audit_path,
+                        classifier=FakeClassifier(["FACTUAL_KNOWLEDGE"], events),
+                        local_client=FakeAnswerClient("local", events),
+                    )
+                )
+            finally:
+                for key, value in (
+                    ("ALLOWED_MODELS", old_allowed),
+                    ("FIREWORKS_BASE_URL", old_base),
+                    ("FIREWORKS_API_KEY", old_key),
+                ):
+                    if value is None:
+                        env.pop(key, None)
+                    else:
+                        env[key] = value
+            rows = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertEqual(rows, [{"task_id": "one", "answer": "local:p"}])
 
 
 if __name__ == "__main__":
