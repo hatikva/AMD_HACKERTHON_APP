@@ -38,18 +38,18 @@ Internal audit records may be written under `/output/audit`, but they are not pa
 
 All tasks are classified locally with bundled `nemotron-3-nano:4b`. The classifier is separate from answer generation and returns exactly one canonical category.
 
-Locked policy:
+Locked primary/fallback policy:
 
-- `CODE_DEBUGGING`: local Ollama `nemotron-3-nano:4b`, `1000` completion tokens.
-- `CODE_GENERATION`: Fireworks Kimi alias `kimi-k2p7-code`, `1000` completion tokens.
-- `FACTUAL_KNOWLEDGE`: Fireworks Kimi alias `kimi-k2p7-code`, `64` completion tokens.
-- `LOGICAL_DEDUCTIVE_REASONING`: Fireworks Kimi alias `kimi-k2p7-code`, `64` completion tokens.
-- `MATHEMATICAL_REASONING`: Fireworks Kimi alias `kimi-k2p7-code`, `400` completion tokens.
-- `NAMED_ENTITY_RECOGNITION`: local Ollama `nemotron-3-nano:4b`, `1000` completion tokens.
-- `SENTIMENT_CLASSIFICATION`: Fireworks Kimi alias `kimi-k2p7-code`, `64` completion tokens.
-- `TEXT_SUMMARISATION`: local Ollama `nemotron-3-nano:4b`, `1000` completion tokens.
+- `CODE_DEBUGGING`: local Ollama `nemotron-3-nano:4b`, fallback Fireworks Kimi alias `kimi-k2p7-code`, `1000` completion tokens.
+- `CODE_GENERATION`: Fireworks Kimi alias `kimi-k2p7-code`, fallback local Ollama `nemotron-3-nano:4b`, `1000` completion tokens.
+- `FACTUAL_KNOWLEDGE`: Fireworks Kimi alias `kimi-k2p7-code`, fallback Fireworks Minimax alias `minimax-m3`, `64` completion tokens.
+- `LOGICAL_DEDUCTIVE_REASONING`: Fireworks Kimi alias `kimi-k2p7-code`, fallback Fireworks Minimax alias `minimax-m3`, `64` completion tokens.
+- `MATHEMATICAL_REASONING`: Fireworks Kimi alias `kimi-k2p7-code`, fallback local Ollama `nemotron-3-nano:4b`, `400` completion tokens.
+- `NAMED_ENTITY_RECOGNITION`: local Ollama `nemotron-3-nano:4b`, fallback Fireworks Kimi alias `kimi-k2p7-code`, `1000` completion tokens.
+- `SENTIMENT_CLASSIFICATION`: Fireworks Kimi alias `kimi-k2p7-code`, fallback Fireworks Minimax alias `minimax-m3`, `64` completion tokens.
+- `TEXT_SUMMARISATION`: local Ollama `nemotron-3-nano:4b`, fallback Fireworks Kimi alias `kimi-k2p7-code`, `1000` completion tokens.
 
-`CODE_GENERATION` is intentionally routed to Kimi, not to Nemotron. Minimax has no Version 7 production route.
+Classification is local-first with bundled `nemotron-3-nano:4b`: it retries once locally, then falls back to Fireworks Kimi for a third classification attempt.
 
 ## Scheduler
 
@@ -78,7 +78,7 @@ FIREWORKS_BASE_URL
 ALLOWED_MODELS
 ```
 
-`ALLOWED_MODELS` is parsed at runtime. The runtime accepts exactly one allowed model resource whose final resource-name component is `kimi-k2p7-code`.
+`ALLOWED_MODELS` is parsed at runtime. The runtime requires exactly one allowed model resource whose final resource-name component is `kimi-k2p7-code`, and exactly one whose final component is `minimax-m3`.
 
 ## Build
 

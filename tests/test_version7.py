@@ -23,11 +23,18 @@ from amd_hackathon_app.version7 import (
     parse_allowed_models,
     project_official_results,
     resolve_kimi_model,
+    resolve_minimax_model,
     run_batch_async,
     run_scheduler,
     validate_official_tasks,
     extract_openai_text,
 )
+
+
+FIREWORKS_MODELS = {
+    "kimi-k2p7-code": "accounts/fireworks/models/kimi-k2p7-code",
+    "minimax-m3": "accounts/fireworks/models/minimax-m3",
+}
 
 
 class AuditProbe:
@@ -54,7 +61,14 @@ class FakeClassifier:
 
 
 class FakeAnswerClient:
-    def __init__(self, name: str, events: list[str], delays: dict[str, float] | None = None, fail_once_empty: bool = False) -> None:
+    def __init__(
+        self,
+        name: str,
+        events: list[str],
+        delays: dict[str, float] | None = None,
+        fail_once_empty: bool = False,
+        fail_models: set[str] | None = None,
+    ) -> None:
         self.name = name
         self.events = events
         self.delays = delays or {}
@@ -62,6 +76,7 @@ class FakeAnswerClient:
         self.active = 0
         self.max_active = 0
         self.fail_once_empty = fail_once_empty
+        self.fail_models = fail_models or set()
 
     async def generate(self, prompt: str, *, model: str, max_completion_tokens: int) -> GenerationResult:
         self.calls.append((prompt, model, max_completion_tokens))
@@ -74,6 +89,10 @@ class FakeAnswerClient:
         if self.fail_once_empty:
             self.fail_once_empty = False
             return GenerationResult("", {}, 1)
+        if model in self.fail_models:
+            raise RuntimeError(f"forced failure for {model}")
+        if "Categories:" in prompt and "Label:" in prompt:
+            return GenerationResult("FACTUAL_KNOWLEDGE", {"completion_tokens": 1}, 1)
         return GenerationResult(f"{self.name}:{prompt}", {"completion_tokens": 1}, 1)
 
     async def healthcheck(self) -> None:
@@ -100,18 +119,26 @@ class Version7PolicyTests(unittest.TestCase):
             resolve_kimi_model(["accounts/fireworks/models/kimi-k2p7-code"]),
             "accounts/fireworks/models/kimi-k2p7-code",
         )
+        self.assertEqual(
+            resolve_minimax_model(["accounts/fireworks/models/minimax-m3"]),
+            "accounts/fireworks/models/minimax-m3",
+        )
         self.assertEqual(parse_allowed_models(" a, ,b "), ["a", "b"])
         with self.assertRaises(Version7Error):
             resolve_kimi_model(["accounts/fireworks/models/minimax-m3"])
         with self.assertRaises(Version7Error):
             resolve_kimi_model(["a/kimi-k2p7-code", "b/kimi-k2p7-code"])
 
-    def test_exact_policy_mapping_and_no_minimax(self) -> None:
+    def test_exact_policy_mapping_and_fallbacks(self) -> None:
         self.assertEqual(len(ROUTING_POLICY), 8)
         self.assertEqual(category_policy(Category.CODE_GENERATION).provider, "fireworks")
         self.assertEqual(category_policy(Category.CODE_GENERATION).max_completion_tokens, 1000)
         self.assertEqual(category_policy(Category.MATHEMATICAL_REASONING).max_completion_tokens, 400)
         self.assertEqual(category_policy(Category.FACTUAL_KNOWLEDGE).max_completion_tokens, 64)
+        self.assertEqual(category_policy(Category.FACTUAL_KNOWLEDGE).fallback_model_alias, "minimax-m3")
+        self.assertEqual(category_policy(Category.SENTIMENT_CLASSIFICATION).fallback_model_alias, "minimax-m3")
+        self.assertEqual(category_policy(Category.CODE_DEBUGGING).fallback_model_alias, "kimi-k2p7-code")
+        self.assertEqual(category_policy(Category.CODE_GENERATION).fallback_model_alias, "nemotron-3-nano:4b")
         self.assertEqual(
             LOCAL_ANSWER_CATEGORIES,
             {Category.CODE_DEBUGGING, Category.NAMED_ENTITY_RECOGNITION, Category.TEXT_SUMMARISATION},
@@ -126,7 +153,7 @@ class Version7PolicyTests(unittest.TestCase):
                 Category.SENTIMENT_CLASSIFICATION,
             },
         )
-        self.assertNotIn("minimax", json.dumps([route.__dict__ for route in ROUTING_POLICY.values()]).lower())
+        self.assertIn("minimax", json.dumps([route.__dict__ for route in ROUTING_POLICY.values()]).lower())
 
     def test_official_projection_and_atomic_write(self) -> None:
         tasks = validate_official_tasks([{"task_id": "a", "prompt": "A"}])
@@ -174,7 +201,7 @@ class Version7SchedulerTests(unittest.TestCase):
                 classifier=classifier,
                 local_client=local,
                 fireworks_client=remote,
-                resolved_kimi_model="accounts/fireworks/models/kimi-k2p7-code",
+                fireworks_models=FIREWORKS_MODELS,
                 audit=audit,
                 deadline=Deadline(10),
                 fireworks_max_concurrency=2,
@@ -202,13 +229,37 @@ class Version7SchedulerTests(unittest.TestCase):
                 classifier=classifier,
                 local_client=local,
                 fireworks_client=remote,
-                resolved_kimi_model="accounts/fireworks/models/kimi-k2p7-code",
+                fireworks_models=FIREWORKS_MODELS,
                 audit=AuditProbe(),
                 deadline=Deadline(10),
             )
         )
         self.assertEqual(answers, ["remote:p"])
         self.assertEqual(classifier.calls, 2)
+
+    def test_classifier_falls_back_to_kimi_on_third_attempt(self) -> None:
+        events: list[str] = []
+        tasks = validate_official_tasks([{"task_id": "a", "prompt": "p"}])
+        classifier = FakeClassifier(["bad label", "still bad"], events)
+        remote = FakeAnswerClient("remote", events)
+        local = FakeAnswerClient("local", events)
+
+        answers = asyncio.run(
+            run_scheduler(
+                tasks,
+                classifier=classifier,
+                local_client=local,
+                fireworks_client=remote,
+                fireworks_models=FIREWORKS_MODELS,
+                audit=AuditProbe(),
+                deadline=Deadline(10),
+            )
+        )
+
+        self.assertEqual(answers, ["remote:p"])
+        self.assertEqual(classifier.calls, 2)
+        self.assertEqual(remote.calls[0][1], "accounts/fireworks/models/kimi-k2p7-code")
+        self.assertIn("Categories:", remote.calls[0][0])
 
     def test_local_empty_answer_retries_serially(self) -> None:
         events: list[str] = []
@@ -222,7 +273,7 @@ class Version7SchedulerTests(unittest.TestCase):
                 classifier=classifier,
                 local_client=local,
                 fireworks_client=remote,
-                resolved_kimi_model="accounts/fireworks/models/kimi-k2p7-code",
+                fireworks_models=FIREWORKS_MODELS,
                 audit=AuditProbe(),
                 deadline=Deadline(10),
             )
@@ -230,6 +281,50 @@ class Version7SchedulerTests(unittest.TestCase):
         self.assertEqual(answers, ["local:p"])
         self.assertEqual(len(local.calls), 2)
         self.assertLessEqual(local.max_active, 1)
+
+    def test_kimi_primary_can_fallback_to_minimax(self) -> None:
+        events: list[str] = []
+        tasks = validate_official_tasks([{"task_id": "a", "prompt": "p"}])
+        classifier = FakeClassifier(["FACTUAL_KNOWLEDGE"], events)
+        remote = FakeAnswerClient("remote", events, fail_models={"accounts/fireworks/models/kimi-k2p7-code"})
+        local = FakeAnswerClient("local", events)
+
+        answers = asyncio.run(
+            run_scheduler(
+                tasks,
+                classifier=classifier,
+                local_client=local,
+                fireworks_client=remote,
+                fireworks_models=FIREWORKS_MODELS,
+                audit=AuditProbe(),
+                deadline=Deadline(10),
+            )
+        )
+
+        self.assertEqual(answers, ["remote:p"])
+        self.assertEqual([call[1] for call in remote.calls], ["accounts/fireworks/models/kimi-k2p7-code", "accounts/fireworks/models/minimax-m3"])
+
+    def test_local_primary_can_fallback_to_kimi(self) -> None:
+        events: list[str] = []
+        tasks = validate_official_tasks([{"task_id": "a", "prompt": "p"}])
+        classifier = FakeClassifier(["CODE_DEBUGGING"], events)
+        local = FakeAnswerClient("local", events, fail_models={"nemotron-3-nano:4b"})
+        remote = FakeAnswerClient("remote", events)
+
+        answers = asyncio.run(
+            run_scheduler(
+                tasks,
+                classifier=classifier,
+                local_client=local,
+                fireworks_client=remote,
+                fireworks_models=FIREWORKS_MODELS,
+                audit=AuditProbe(),
+                deadline=Deadline(10),
+            )
+        )
+
+        self.assertEqual(answers, ["remote:p"])
+        self.assertEqual([call[1] for call in remote.calls], ["accounts/fireworks/models/kimi-k2p7-code"])
 
     def test_run_batch_keeps_audit_separate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -242,7 +337,7 @@ class Version7SchedulerTests(unittest.TestCase):
             events: list[str] = []
             old_allowed = __import__("os").environ.get("ALLOWED_MODELS")
             try:
-                __import__("os").environ["ALLOWED_MODELS"] = "accounts/fireworks/models/kimi-k2p7-code"
+                __import__("os").environ["ALLOWED_MODELS"] = "accounts/fireworks/models/kimi-k2p7-code,accounts/fireworks/models/minimax-m3"
                 asyncio.run(
                     run_batch_async(
                         input_path=input_path,

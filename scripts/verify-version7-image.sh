@@ -19,7 +19,8 @@ test ! -e /app/qualification
 test ! -e /app/.env
 test ! -e /app/src/amd_hackathon_app/ui.py
 test ! -e /app/src/amd_hackathon_app/analytics.py
-grep -R "minimax" -n /usr/local/lib/python*/site-packages/amd_hackathon_app/version7.py >/tmp/minimax.txt && exit 1 || true
+grep -R "kimi-k2p7-code" -n /usr/local/lib/python*/site-packages/amd_hackathon_app/version7.py >/dev/null
+grep -R "minimax-m3" -n /usr/local/lib/python*/site-packages/amd_hackathon_app/version7.py >/dev/null
 '
 
 tmpdir="$(mktemp -d /tmp/version7-verify.XXXXXX)"
@@ -38,6 +39,17 @@ if "$DOCKER" run --rm \
   -v "$tmpdir/output:/output" \
   "$IMAGE"; then
   echo "missing_kimi_allowed_model_should_fail=true" >&2
+  exit 1
+fi
+
+if "$DOCKER" run --rm \
+  -e ALLOWED_MODELS=accounts/fireworks/models/kimi-k2p7-code \
+  -e FIREWORKS_API_KEY=test \
+  -e FIREWORKS_BASE_URL=http://127.0.0.1:9 \
+  -v "$tmpdir/input:/input:ro" \
+  -v "$tmpdir/output:/output" \
+  "$IMAGE"; then
+  echo "missing_minimax_allowed_model_should_fail=true" >&2
   exit 1
 fi
 

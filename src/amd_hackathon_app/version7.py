@@ -15,6 +15,7 @@ from typing import Any, Protocol
 
 LOCAL_MODEL = "nemotron-3-nano:4b"
 KIMI_ALIAS = "kimi-k2p7-code"
+MINIMAX_ALIAS = "minimax-m3"
 DEFAULT_BATCH_DEADLINE_SECONDS = 570.0
 CLASSIFIER_MAX_COMPLETION_TOKENS = 32
 LOCAL_ANSWER_MAX_COMPLETION_TOKENS = 1000
@@ -43,17 +44,19 @@ class RoutePolicy:
     model_alias: str
     max_completion_tokens: int
     scheduling: str
+    fallback_provider: str
+    fallback_model_alias: str
 
 
 ROUTING_POLICY: dict[Category, RoutePolicy] = {
-    Category.CODE_DEBUGGING: RoutePolicy(Category.CODE_DEBUGGING, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local"),
-    Category.CODE_GENERATION: RoutePolicy(Category.CODE_GENERATION, "fireworks", KIMI_ALIAS, 1000, "bounded_remote"),
-    Category.FACTUAL_KNOWLEDGE: RoutePolicy(Category.FACTUAL_KNOWLEDGE, "fireworks", KIMI_ALIAS, 64, "bounded_remote"),
-    Category.LOGICAL_DEDUCTIVE_REASONING: RoutePolicy(Category.LOGICAL_DEDUCTIVE_REASONING, "fireworks", KIMI_ALIAS, 64, "bounded_remote"),
-    Category.MATHEMATICAL_REASONING: RoutePolicy(Category.MATHEMATICAL_REASONING, "fireworks", KIMI_ALIAS, 400, "bounded_remote"),
-    Category.NAMED_ENTITY_RECOGNITION: RoutePolicy(Category.NAMED_ENTITY_RECOGNITION, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local"),
-    Category.SENTIMENT_CLASSIFICATION: RoutePolicy(Category.SENTIMENT_CLASSIFICATION, "fireworks", KIMI_ALIAS, 64, "bounded_remote"),
-    Category.TEXT_SUMMARISATION: RoutePolicy(Category.TEXT_SUMMARISATION, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local"),
+    Category.CODE_DEBUGGING: RoutePolicy(Category.CODE_DEBUGGING, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local", "fireworks", KIMI_ALIAS),
+    Category.CODE_GENERATION: RoutePolicy(Category.CODE_GENERATION, "fireworks", KIMI_ALIAS, 1000, "bounded_remote", "ollama", LOCAL_MODEL),
+    Category.FACTUAL_KNOWLEDGE: RoutePolicy(Category.FACTUAL_KNOWLEDGE, "fireworks", KIMI_ALIAS, 64, "bounded_remote", "fireworks", MINIMAX_ALIAS),
+    Category.LOGICAL_DEDUCTIVE_REASONING: RoutePolicy(Category.LOGICAL_DEDUCTIVE_REASONING, "fireworks", KIMI_ALIAS, 64, "bounded_remote", "fireworks", MINIMAX_ALIAS),
+    Category.MATHEMATICAL_REASONING: RoutePolicy(Category.MATHEMATICAL_REASONING, "fireworks", KIMI_ALIAS, 400, "bounded_remote", "ollama", LOCAL_MODEL),
+    Category.NAMED_ENTITY_RECOGNITION: RoutePolicy(Category.NAMED_ENTITY_RECOGNITION, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local", "fireworks", KIMI_ALIAS),
+    Category.SENTIMENT_CLASSIFICATION: RoutePolicy(Category.SENTIMENT_CLASSIFICATION, "fireworks", KIMI_ALIAS, 64, "bounded_remote", "fireworks", MINIMAX_ALIAS),
+    Category.TEXT_SUMMARISATION: RoutePolicy(Category.TEXT_SUMMARISATION, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local", "fireworks", KIMI_ALIAS),
 }
 
 REMOTE_CATEGORIES = frozenset(category for category, route in ROUTING_POLICY.items() if route.provider == "fireworks")
@@ -97,11 +100,19 @@ def parse_allowed_models(value: str | None = None) -> list[str]:
 
 
 def resolve_kimi_model(allowed_models: list[str]) -> str:
-    matches = [model for model in allowed_models if model.rstrip("/").split("/")[-1] == KIMI_ALIAS]
+    return resolve_allowed_model(allowed_models, KIMI_ALIAS)
+
+
+def resolve_minimax_model(allowed_models: list[str]) -> str:
+    return resolve_allowed_model(allowed_models, MINIMAX_ALIAS)
+
+
+def resolve_allowed_model(allowed_models: list[str], alias: str) -> str:
+    matches = [model for model in allowed_models if model.rstrip("/").split("/")[-1] == alias]
     if not matches:
-        raise Version7Error("ALLOWED_MODELS does not contain exactly one kimi-k2p7-code resource")
+        raise Version7Error(f"ALLOWED_MODELS does not contain exactly one {alias} resource")
     if len(matches) > 1:
-        raise Version7Error("ALLOWED_MODELS contains multiple kimi-k2p7-code resources")
+        raise Version7Error(f"ALLOWED_MODELS contains multiple {alias} resources")
     return matches[0]
 
 
@@ -368,16 +379,46 @@ def is_transient_fireworks_error(exc: Exception) -> bool:
     return False
 
 
-async def classify_with_retry(client: ClassifierClient, task: IndexedTask, audit: AuditWriter) -> Category:
+async def classify_with_retry(
+    client: ClassifierClient,
+    fallback_client: AnswerClient,
+    task: IndexedTask,
+    audit: AuditWriter,
+    *,
+    local_lock: asyncio.Lock,
+    classifier_fallback_model: str,
+) -> Category:
     for attempt in (1, 2):
-        raw = await client.classify(task.task.prompt, retry=attempt == 2)
+        async with local_lock:
+            raw = await client.classify(task.task.prompt, retry=attempt == 2)
         try:
             category = parse_category_label(raw)
             audit.write({"event": "classified", "task_id": task.task.task_id, "index": task.index, "category": category.value, "retries": attempt - 1})
             return category
         except Version7Error as exc:
             audit.write({"event": "classification_invalid", "task_id": task.task.task_id, "index": task.index, "attempt": attempt, "failure": str(exc)})
-    raise Version7Error(f"classification failed for task {task.task.task_id}")
+    result = await fallback_client.generate(
+        classifier_prompt(task.task.prompt, retry=True) + "\nLabel:",
+        model=classifier_fallback_model,
+        max_completion_tokens=CLASSIFIER_MAX_COMPLETION_TOKENS,
+    )
+    try:
+        category = parse_category_label(result.text)
+        audit.write(
+            {
+                "event": "classified",
+                "task_id": task.task.task_id,
+                "index": task.index,
+                "category": category.value,
+                "retries": 2,
+                "classifier_fallback": "fireworks",
+                "classifier_fallback_model": classifier_fallback_model,
+            }
+        )
+        return category
+    except Version7Error as exc:
+        audit.write({"event": "classification_invalid", "task_id": task.task.task_id, "index": task.index, "attempt": 3, "failure": str(exc)})
+        raise Version7Error(f"classification failed for task {task.task.task_id}") from exc
 
 
 async def generate_local_with_retry(client: AnswerClient, task: IndexedTask, audit: AuditWriter) -> GenerationResult:
@@ -405,7 +446,7 @@ async def run_scheduler(
     classifier: ClassifierClient,
     local_client: AnswerClient,
     fireworks_client: AnswerClient,
-    resolved_kimi_model: str,
+    fireworks_models: dict[str, str],
     audit: AuditWriter,
     deadline: Deadline,
     fireworks_max_concurrency: int = DEFAULT_FIREWORKS_MAX_CONCURRENCY,
@@ -413,29 +454,71 @@ async def run_scheduler(
     answers: list[str | None] = [None] * len(tasks)
     local_queue: list[tuple[IndexedTask, RoutePolicy]] = []
     remote_sem = asyncio.Semaphore(max(1, fireworks_max_concurrency))
+    local_lock = asyncio.Lock()
     remote_tasks: list[asyncio.Task[None]] = []
+
+    def resolve_fireworks_alias(alias: str) -> str:
+        try:
+            return fireworks_models[alias]
+        except KeyError as exc:
+            raise Version7Error(f"missing resolved Fireworks model for {alias}") from exc
+
+    async def local_answer(indexed: IndexedTask, route: RoutePolicy, *, fallback: bool = False) -> GenerationResult:
+        async with local_lock:
+            result = await generate_local_with_retry(local_client, indexed, audit)
+        if fallback:
+            audit.write({"event": "fallback_answered", "task_id": indexed.task.task_id, "index": indexed.index, "provider": "ollama", "model": LOCAL_MODEL})
+        return result
+
+    async def fireworks_answer(indexed: IndexedTask, route: RoutePolicy, model_alias: str, *, fallback: bool = False) -> GenerationResult:
+        model = resolve_fireworks_alias(model_alias)
+        result = await fireworks_client.generate(indexed.task.prompt, model=model, max_completion_tokens=route.max_completion_tokens)
+        audit.write(
+            {
+                "event": "fallback_answered" if fallback else "remote_answered",
+                "task_id": indexed.task.task_id,
+                "index": indexed.index,
+                "category": route.category.value,
+                "provider": "fireworks",
+                "resolved_model_resource": model,
+                "max_completion_tokens": route.max_completion_tokens,
+                "latency_ms": result.latency_ms,
+                "attempts": result.attempts,
+                "usage": result.usage,
+            }
+        )
+        return result
+
+    async def answer_with_fallback(indexed: IndexedTask, route: RoutePolicy) -> GenerationResult:
+        try:
+            if route.provider == "fireworks":
+                return await fireworks_answer(indexed, route, route.model_alias)
+            return await local_answer(indexed, route)
+        except Exception as exc:
+            audit.write(
+                {
+                    "event": "primary_failed",
+                    "task_id": indexed.task.task_id,
+                    "index": indexed.index,
+                    "category": route.category.value,
+                    "provider": route.provider,
+                    "model_alias": route.model_alias,
+                    "failure": str(exc),
+                }
+            )
+            if route.fallback_provider == "fireworks":
+                return await fireworks_answer(indexed, route, route.fallback_model_alias, fallback=True)
+            if route.fallback_provider == "ollama":
+                return await local_answer(indexed, route, fallback=True)
+            raise Version7Error(f"unsupported fallback provider: {route.fallback_provider}")
 
     async def remote_answer(indexed: IndexedTask, route: RoutePolicy) -> None:
         async with remote_sem:
             deadline.require_time()
             started = time.perf_counter()
             try:
-                result = await fireworks_client.generate(indexed.task.prompt, model=resolved_kimi_model, max_completion_tokens=route.max_completion_tokens)
+                result = await answer_with_fallback(indexed, route)
                 answers[indexed.index] = result.text
-                audit.write(
-                    {
-                        "event": "remote_answered",
-                        "task_id": indexed.task.task_id,
-                        "index": indexed.index,
-                        "category": route.category.value,
-                        "provider": "fireworks",
-                        "resolved_model_resource": resolved_kimi_model,
-                        "max_completion_tokens": route.max_completion_tokens,
-                        "latency_ms": result.latency_ms,
-                        "attempts": result.attempts,
-                        "usage": result.usage,
-                    }
-                )
             except Exception as exc:
                 audit.write({"event": "remote_failed", "task_id": indexed.task.task_id, "index": indexed.index, "failure": str(exc), "latency_ms": int((time.perf_counter() - started) * 1000)})
                 raise
@@ -443,7 +526,14 @@ async def run_scheduler(
     for index, task in enumerate(tasks):
         deadline.require_time()
         indexed = IndexedTask(index=index, task=task)
-        category = await classify_with_retry(classifier, indexed, audit)
+        category = await classify_with_retry(
+            classifier,
+            fireworks_client,
+            indexed,
+            audit,
+            local_lock=local_lock,
+            classifier_fallback_model=resolve_fireworks_alias(KIMI_ALIAS),
+        )
         route = category_policy(category)
         audit.write({"event": "routed", "task_id": task.task_id, "index": index, "category": category.value, "provider": route.provider, "max_completion_tokens": route.max_completion_tokens})
         if route.provider == "fireworks":
@@ -454,11 +544,11 @@ async def run_scheduler(
     for indexed, route in local_queue:
         deadline.require_time()
         try:
-            result = await generate_local_with_retry(local_client, indexed, audit)
+            result = await answer_with_fallback(indexed, route)
             answers[indexed.index] = result.text
         except Exception as exc:
             audit.write({"event": "local_failed", "task_id": indexed.task.task_id, "index": indexed.index, "failure": str(exc), "category": route.category.value})
-            answers[indexed.index] = f"ERROR: local generation failed for task {indexed.task.task_id}"
+            raise
 
     if remote_tasks:
         await asyncio.gather(*remote_tasks)
@@ -484,6 +574,7 @@ async def run_batch_async(
     tasks = load_official_tasks(input_path)
     allowed_models = parse_allowed_models()
     resolved_kimi = resolve_kimi_model(allowed_models)
+    resolved_minimax = resolve_minimax_model(allowed_models)
     local = local_client or OllamaChatClient()
     classifier_client = classifier or local
     fireworks = fireworks_client or FireworksClient(
@@ -496,7 +587,7 @@ async def run_batch_async(
         classifier=classifier_client,
         local_client=local,
         fireworks_client=fireworks,
-        resolved_kimi_model=resolved_kimi,
+        fireworks_models={KIMI_ALIAS: resolved_kimi, MINIMAX_ALIAS: resolved_minimax},
         audit=audit,
         deadline=deadline,
         fireworks_max_concurrency=int(os.environ.get("FIREWORKS_MAX_CONCURRENCY", str(DEFAULT_FIREWORKS_MAX_CONCURRENCY))),
