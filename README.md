@@ -126,6 +126,8 @@ docker buildx build --platform linux/amd64 \
 
 ## Run
 
+Run a locally built image:
+
 ```bash
 docker run --rm \
   -e FIREWORKS_API_KEY="$FIREWORKS_API_KEY" \
@@ -135,6 +137,36 @@ docker run --rm \
   -v "$PWD/output:/output" \
   amd-hackathon:version7-production
 ```
+
+Run the published final-policy image on any server:
+
+```bash
+mkdir -p input output
+cat > input/tasks.json <<'JSON'
+[
+  {
+    "task_id": "self-test-1",
+    "prompt": "What planet is known as the Red Planet? Return only the planet name."
+  }
+]
+JSON
+
+export FIREWORKS_BASE_URL="https://api.fireworks.ai/inference/v1"
+export ALLOWED_MODELS="accounts/fireworks/models/kimi-k2p7-code,accounts/fireworks/models/minimax-m3"
+export FIREWORKS_API_KEY="your_fireworks_key_here"
+
+docker run --rm \
+  -e FIREWORKS_API_KEY="$FIREWORKS_API_KEY" \
+  -e FIREWORKS_BASE_URL="$FIREWORKS_BASE_URL" \
+  -e ALLOWED_MODELS="$ALLOWED_MODELS" \
+  -v "$PWD/input:/input:ro" \
+  -v "$PWD/output:/output" \
+  ghcr.io/hatikva/amd-hackathon-app:version7-production-83c6053
+
+cat output/results.json
+```
+
+The public image runs automatically, writes `/output/results.json`, and exits. The input file must use the official judging shape: a top-level JSON array of `{ "task_id": "...", "prompt": "..." }` objects.
 
 ## Verification
 
