@@ -20,6 +20,9 @@ DEFAULT_BATCH_DEADLINE_SECONDS = 570.0
 CLASSIFIER_MAX_COMPLETION_TOKENS = 32
 LOCAL_ANSWER_MAX_COMPLETION_TOKENS = 1000
 DEFAULT_FIREWORKS_MAX_CONCURRENCY = 4
+SCHEDULER_MODE_STREAMING_REMOTE = "streaming_remote"
+SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL = "post_classification_parallel"
+DEFAULT_SCHEDULER_MODE = SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL
 DEFAULT_FIREWORKS_MODEL_RESOURCES = {
     KIMI_ALIAS: "accounts/fireworks/models/kimi-k2p7-code",
     MINIMAX_ALIAS: "accounts/fireworks/models/minimax-m3",
@@ -41,6 +44,18 @@ class Category(StrEnum):
     TEXT_SUMMARISATION = "TEXT_SUMMARISATION"
 
 
+ANSWER_WRAPPERS: dict[Category, str] = {
+    Category.CODE_DEBUGGING: "Answer directly. Provide the corrected code or the specific bug and fix. Do not describe your reasoning process.",
+    Category.CODE_GENERATION: "Answer directly with the requested code or concise implementation. Do not describe your reasoning process.",
+    Category.FACTUAL_KNOWLEDGE: "Answer directly and completely. Cover every part of the question, but stay concise. Do not describe your reasoning process.",
+    Category.LOGICAL_DEDUCTIVE_REASONING: "Answer directly with the final conclusion and only the minimal supporting steps needed. Do not describe your reasoning process.",
+    Category.MATHEMATICAL_REASONING: "Answer directly with the final numeric result and concise calculation. Do not describe your reasoning process.",
+    Category.NAMED_ENTITY_RECOGNITION: "Extract the requested entities only. Preserve the requested labels or format. Do not add commentary.",
+    Category.SENTIMENT_CLASSIFICATION: "Return one sentiment label and one sentence reason only. Do not describe your reasoning process.",
+    Category.TEXT_SUMMARISATION: "Follow the requested sentence or bullet count exactly. Do not add commentary or extra sections.",
+}
+
+
 @dataclass(frozen=True)
 class RoutePolicy:
     category: Category
@@ -55,16 +70,17 @@ class RoutePolicy:
 ROUTING_POLICY: dict[Category, RoutePolicy] = {
     Category.CODE_DEBUGGING: RoutePolicy(Category.CODE_DEBUGGING, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local", "fireworks", KIMI_ALIAS),
     Category.CODE_GENERATION: RoutePolicy(Category.CODE_GENERATION, "fireworks", KIMI_ALIAS, 1000, "bounded_remote", "ollama", LOCAL_MODEL),
-    Category.FACTUAL_KNOWLEDGE: RoutePolicy(Category.FACTUAL_KNOWLEDGE, "fireworks", KIMI_ALIAS, 64, "bounded_remote", "fireworks", MINIMAX_ALIAS),
-    Category.LOGICAL_DEDUCTIVE_REASONING: RoutePolicy(Category.LOGICAL_DEDUCTIVE_REASONING, "fireworks", KIMI_ALIAS, 64, "bounded_remote", "fireworks", MINIMAX_ALIAS),
+    Category.FACTUAL_KNOWLEDGE: RoutePolicy(Category.FACTUAL_KNOWLEDGE, "fireworks", KIMI_ALIAS, 256, "bounded_remote", "fireworks", MINIMAX_ALIAS),
+    Category.LOGICAL_DEDUCTIVE_REASONING: RoutePolicy(Category.LOGICAL_DEDUCTIVE_REASONING, "fireworks", KIMI_ALIAS, 256, "bounded_remote", "fireworks", MINIMAX_ALIAS),
     Category.MATHEMATICAL_REASONING: RoutePolicy(Category.MATHEMATICAL_REASONING, "fireworks", KIMI_ALIAS, 400, "bounded_remote", "ollama", LOCAL_MODEL),
     Category.NAMED_ENTITY_RECOGNITION: RoutePolicy(Category.NAMED_ENTITY_RECOGNITION, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local", "fireworks", KIMI_ALIAS),
-    Category.SENTIMENT_CLASSIFICATION: RoutePolicy(Category.SENTIMENT_CLASSIFICATION, "fireworks", KIMI_ALIAS, 64, "bounded_remote", "fireworks", MINIMAX_ALIAS),
+    Category.SENTIMENT_CLASSIFICATION: RoutePolicy(Category.SENTIMENT_CLASSIFICATION, "fireworks", KIMI_ALIAS, 256, "bounded_remote", "fireworks", MINIMAX_ALIAS),
     Category.TEXT_SUMMARISATION: RoutePolicy(Category.TEXT_SUMMARISATION, "ollama", LOCAL_MODEL, 1000, "deferred_serial_local", "fireworks", KIMI_ALIAS),
 }
 
 REMOTE_CATEGORIES = frozenset(category for category, route in ROUTING_POLICY.items() if route.provider == "fireworks")
 LOCAL_ANSWER_CATEGORIES = frozenset(category for category, route in ROUTING_POLICY.items() if route.provider == "ollama")
+FIREWORKS_WRAPPED_CATEGORIES = frozenset({Category.FACTUAL_KNOWLEDGE}) | LOCAL_ANSWER_CATEGORIES
 
 
 @dataclass(frozen=True)
@@ -137,6 +153,10 @@ def parse_category_label(text: str) -> Category:
 
 def category_policy(category: Category) -> RoutePolicy:
     return ROUTING_POLICY[category]
+
+
+def answer_prompt(category: Category, task_prompt: str) -> str:
+    return f"{ANSWER_WRAPPERS[category]}\n\nTask:\n{task_prompt}"
 
 
 def validate_official_tasks(payload: Any) -> list[OfficialTask]:
@@ -437,12 +457,12 @@ async def classify_with_retry(
         raise Version7Error(f"classification failed for task {task.task.task_id}") from exc
 
 
-async def generate_local_with_retry(client: AnswerClient, task: IndexedTask, audit: AuditWriter) -> GenerationResult:
+async def generate_local_with_retry(client: AnswerClient, task: IndexedTask, audit: AuditWriter, *, max_completion_tokens: int = LOCAL_ANSWER_MAX_COMPLETION_TOKENS) -> GenerationResult:
     last_error: Exception | None = None
     for attempt in (1, 2):
         start = time.perf_counter()
         try:
-            result = await client.generate(task.task.prompt, model=LOCAL_MODEL, max_completion_tokens=LOCAL_ANSWER_MAX_COMPLETION_TOKENS)
+            result = await client.generate(task.task.prompt, model=LOCAL_MODEL, max_completion_tokens=max_completion_tokens)
             if result.text.strip():
                 audit.write({"event": "local_answered", "task_id": task.task.task_id, "index": task.index, "latency_ms": result.latency_ms, "attempts": attempt})
                 return result
@@ -466,12 +486,17 @@ async def run_scheduler(
     audit: AuditWriter,
     deadline: Deadline,
     fireworks_max_concurrency: int = DEFAULT_FIREWORKS_MAX_CONCURRENCY,
+    scheduler_mode: str | None = None,
 ) -> list[str]:
     answers: list[str | None] = [None] * len(tasks)
     local_queue: list[tuple[IndexedTask, RoutePolicy]] = []
+    routed_tasks: list[tuple[IndexedTask, RoutePolicy]] = []
     remote_sem = asyncio.Semaphore(max(1, fireworks_max_concurrency))
     local_lock = asyncio.Lock()
     remote_tasks: list[asyncio.Task[None]] = []
+    selected_mode = scheduler_mode or os.environ.get("VERSION7_SCHEDULER_MODE", DEFAULT_SCHEDULER_MODE)
+    if selected_mode not in {SCHEDULER_MODE_STREAMING_REMOTE, SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL}:
+        raise Version7Error(f"unsupported Version 7 scheduler mode: {selected_mode}")
 
     def resolve_fireworks_alias(alias: str) -> str:
         try:
@@ -480,15 +505,17 @@ async def run_scheduler(
             raise Version7Error(f"missing resolved Fireworks model for {alias}") from exc
 
     async def local_answer(indexed: IndexedTask, route: RoutePolicy, *, fallback: bool = False) -> GenerationResult:
+        wrapped = IndexedTask(index=indexed.index, task=OfficialTask(task_id=indexed.task.task_id, prompt=answer_prompt(route.category, indexed.task.prompt)))
         async with local_lock:
-            result = await generate_local_with_retry(local_client, indexed, audit)
+            result = await generate_local_with_retry(local_client, wrapped, audit, max_completion_tokens=route.max_completion_tokens)
         if fallback:
             audit.write({"event": "fallback_answered", "task_id": indexed.task.task_id, "index": indexed.index, "provider": "ollama", "model": LOCAL_MODEL})
         return result
 
     async def fireworks_answer(indexed: IndexedTask, route: RoutePolicy, model_alias: str, *, fallback: bool = False) -> GenerationResult:
         model = resolve_fireworks_alias(model_alias)
-        result = await fireworks_client.generate(indexed.task.prompt, model=model, max_completion_tokens=route.max_completion_tokens)
+        prompt = answer_prompt(route.category, indexed.task.prompt) if route.category in FIREWORKS_WRAPPED_CATEGORIES else indexed.task.prompt
+        result = await fireworks_client.generate(prompt, model=model, max_completion_tokens=route.max_completion_tokens)
         audit.write(
             {
                 "event": "fallback_answered" if fallback else "remote_answered",
@@ -553,6 +580,15 @@ async def run_scheduler(
                 audit.write({"event": "remote_failed", "task_id": indexed.task.task_id, "index": indexed.index, "failure": str(exc), "latency_ms": int((time.perf_counter() - started) * 1000)})
                 raise
 
+    async def local_answer_task(indexed: IndexedTask, route: RoutePolicy) -> None:
+        deadline.require_time()
+        try:
+            result = await answer_with_fallback(indexed, route)
+            answers[indexed.index] = result.text
+        except Exception as exc:
+            audit.write({"event": "local_failed", "task_id": indexed.task.task_id, "index": indexed.index, "failure": str(exc), "category": route.category.value})
+            raise
+
     for index, task in enumerate(tasks):
         deadline.require_time()
         indexed = IndexedTask(index=index, task=task)
@@ -566,19 +602,23 @@ async def run_scheduler(
         )
         route = category_policy(category)
         audit.write({"event": "routed", "task_id": task.task_id, "index": index, "category": category.value, "provider": route.provider, "max_completion_tokens": route.max_completion_tokens})
-        if route.provider == "fireworks":
+        if selected_mode == SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL:
+            routed_tasks.append((indexed, route))
+        elif route.provider == "fireworks":
             remote_tasks.append(asyncio.create_task(remote_answer(indexed, route)))
         else:
             local_queue.append((indexed, route))
 
-    for indexed, route in local_queue:
-        deadline.require_time()
-        try:
-            result = await answer_with_fallback(indexed, route)
-            answers[indexed.index] = result.text
-        except Exception as exc:
-            audit.write({"event": "local_failed", "task_id": indexed.task.task_id, "index": indexed.index, "failure": str(exc), "category": route.category.value})
-            raise
+    if selected_mode == SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL:
+        answer_tasks = [
+            asyncio.create_task(remote_answer(indexed, route) if route.provider == "fireworks" else local_answer_task(indexed, route))
+            for indexed, route in routed_tasks
+        ]
+        if answer_tasks:
+            await asyncio.gather(*answer_tasks)
+    else:
+        for indexed, route in local_queue:
+            await local_answer_task(indexed, route)
 
     if remote_tasks:
         await asyncio.gather(*remote_tasks)
@@ -627,6 +667,7 @@ async def run_batch_async(
         audit=audit,
         deadline=deadline,
         fireworks_max_concurrency=int(os.environ.get("FIREWORKS_MAX_CONCURRENCY", str(DEFAULT_FIREWORKS_MAX_CONCURRENCY))),
+        scheduler_mode=os.environ.get("VERSION7_SCHEDULER_MODE", DEFAULT_SCHEDULER_MODE),
     )
     public_results = project_official_results(tasks, answers)
     atomic_write_json(output_path, public_results)

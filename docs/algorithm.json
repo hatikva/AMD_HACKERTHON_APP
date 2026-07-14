@@ -1,6 +1,6 @@
 {
   "schema": "amd_hackathon.public_algorithm.v2",
-  "name": "Version 7 Pipelined Category Routing Runtime",
+  "name": "Version 7 Post-Classification Parallel Category Routing Runtime",
   "active_submission_version": "version_7",
   "official_runtime_steps": [
     "Start one bundled local Ollama server inside the container.",
@@ -8,10 +8,12 @@
     "Validate task shape, non-empty task IDs and prompts, and unique task IDs.",
     "Classify each task serially with local nemotron-3-nano:4b using a strict canonical category parser.",
     "Resolve the immutable category route by deterministic table lookup.",
-    "Dispatch Fireworks-owned tasks immediately after classification with bounded concurrency.",
-    "Defer local Nemotron answer generation until all tasks are classified.",
-    "Drain the combined local queue serially after the classification barrier.",
-    "Use the raw official prompt for all answer-generation calls.",
+    "After all tasks are classified, start answer generation for every routed task.",
+    "Run Fireworks-owned answer tasks with bounded concurrency.",
+    "Run local Nemotron answer generation serially after the classification barrier.",
+    "Use fixed user-message answer wrappers for local answer categories and for FACTUAL_KNOWLEDGE Fireworks answers.",
+    "Use the raw official prompt for other primary Fireworks answer categories.",
+    "Apply the same category prompt policy to fallback answer calls.",
     "Reconstruct results in original input order.",
     "Atomically write /output/results.json with only task_id and answer fields.",
     "Write optional redacted audit records separately under /output/audit."
@@ -40,12 +42,12 @@
     "FACTUAL_KNOWLEDGE": {
       "provider": "fireworks",
       "model_alias": "kimi-k2p7-code",
-      "max_completion_tokens": 64
+      "max_completion_tokens": 256
     },
     "LOGICAL_DEDUCTIVE_REASONING": {
       "provider": "fireworks",
       "model_alias": "kimi-k2p7-code",
-      "max_completion_tokens": 64
+      "max_completion_tokens": 256
     },
     "MATHEMATICAL_REASONING": {
       "provider": "fireworks",
@@ -60,7 +62,7 @@
     "SENTIMENT_CLASSIFICATION": {
       "provider": "fireworks",
       "model_alias": "kimi-k2p7-code",
-      "max_completion_tokens": 64
+      "max_completion_tokens": 256
     },
     "TEXT_SUMMARISATION": {
       "provider": "local_ollama",
@@ -70,14 +72,41 @@
   },
   "scheduler": {
     "classification": "serial local Nemotron classification",
-    "remote_dispatch": "after each Fireworks-owned category classification, bounded by FIREWORKS_MAX_CONCURRENCY",
-    "local_barrier": "local answer generation starts only after all classifications finish",
+    "remote_dispatch": "after all classifications finish, bounded by FIREWORKS_MAX_CONCURRENCY",
+    "local_barrier": "all answer generation starts only after all classifications finish",
     "local_queue": [
       "CODE_DEBUGGING",
       "NAMED_ENTITY_RECOGNITION",
       "TEXT_SUMMARISATION"
     ],
-    "local_parallelism": "forbidden; one local generation at a time"
+    "local_parallelism": "forbidden; one local generation at a time",
+    "default_mode": "post_classification_parallel"
+  },
+  "answer_prompt_policy": {
+    "wrapper_location": "prepended to the single user message; no system prompt is used",
+    "fireworks_wrapped_categories": [
+      "FACTUAL_KNOWLEDGE",
+      "CODE_DEBUGGING",
+      "NAMED_ENTITY_RECOGNITION",
+      "TEXT_SUMMARISATION"
+    ],
+    "fireworks_raw_primary_categories": [
+      "CODE_GENERATION",
+      "LOGICAL_DEDUCTIVE_REASONING",
+      "MATHEMATICAL_REASONING",
+      "SENTIMENT_CLASSIFICATION"
+    ],
+    "local_wrapped_categories": [
+      "CODE_DEBUGGING",
+      "CODE_GENERATION",
+      "FACTUAL_KNOWLEDGE",
+      "LOGICAL_DEDUCTIVE_REASONING",
+      "MATHEMATICAL_REASONING",
+      "NAMED_ENTITY_RECOGNITION",
+      "SENTIMENT_CLASSIFICATION",
+      "TEXT_SUMMARISATION"
+    ],
+    "fallback_policy": "fallback answer calls use the same category policy and max_completion_tokens as the primary route"
   },
   "fireworks_policy": {
     "base_url": "FIREWORKS_BASE_URL",

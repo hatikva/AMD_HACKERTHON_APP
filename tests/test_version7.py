@@ -12,9 +12,13 @@ from amd_hackathon_app.version7 import (
     Category,
     Deadline,
     GenerationResult,
+    ANSWER_WRAPPERS,
+    DEFAULT_SCHEDULER_MODE,
     LOCAL_ANSWER_CATEGORIES,
     REMOTE_CATEGORIES,
     ROUTING_POLICY,
+    SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL,
+    SCHEDULER_MODE_STREAMING_REMOTE,
     Version7Error,
     atomic_write_json,
     category_policy,
@@ -35,6 +39,14 @@ FIREWORKS_MODELS = {
     "kimi-k2p7-code": "accounts/fireworks/models/kimi-k2p7-code",
     "minimax-m3": "accounts/fireworks/models/minimax-m3",
 }
+
+
+def event_index(events: list[str], prefix: str) -> int:
+    return next(index for index, event in enumerate(events) if event.startswith(prefix))
+
+
+def task_part(prompt: str) -> str:
+    return prompt.split("\n\nTask:\n", 1)[1] if "\n\nTask:\n" in prompt else prompt
 
 
 class AuditProbe:
@@ -93,7 +105,8 @@ class FakeAnswerClient:
             raise RuntimeError(f"forced failure for {model}")
         if "Categories:" in prompt and "Label:" in prompt:
             return GenerationResult("FACTUAL_KNOWLEDGE", {"completion_tokens": 1}, 1)
-        return GenerationResult(f"{self.name}:{prompt}", {"completion_tokens": 1}, 1)
+        answer_prompt = prompt.split("\n\nTask:\n", 1)[1] if "\n\nTask:\n" in prompt else prompt
+        return GenerationResult(f"{self.name}:{answer_prompt}", {"completion_tokens": 1}, 1)
 
     async def healthcheck(self) -> None:
         self.events.append(f"{self.name}_healthcheck")
@@ -136,7 +149,10 @@ class Version7PolicyTests(unittest.TestCase):
         self.assertEqual(category_policy(Category.CODE_GENERATION).provider, "fireworks")
         self.assertEqual(category_policy(Category.CODE_GENERATION).max_completion_tokens, 1000)
         self.assertEqual(category_policy(Category.MATHEMATICAL_REASONING).max_completion_tokens, 400)
-        self.assertEqual(category_policy(Category.FACTUAL_KNOWLEDGE).max_completion_tokens, 64)
+        self.assertEqual(category_policy(Category.FACTUAL_KNOWLEDGE).max_completion_tokens, 256)
+        self.assertEqual(category_policy(Category.LOGICAL_DEDUCTIVE_REASONING).max_completion_tokens, 256)
+        self.assertEqual(category_policy(Category.NAMED_ENTITY_RECOGNITION).max_completion_tokens, 1000)
+        self.assertEqual(category_policy(Category.SENTIMENT_CLASSIFICATION).max_completion_tokens, 256)
         self.assertEqual(category_policy(Category.FACTUAL_KNOWLEDGE).fallback_model_alias, "minimax-m3")
         self.assertEqual(category_policy(Category.SENTIMENT_CLASSIFICATION).fallback_model_alias, "minimax-m3")
         self.assertEqual(category_policy(Category.CODE_DEBUGGING).fallback_model_alias, "kimi-k2p7-code")
@@ -156,6 +172,9 @@ class Version7PolicyTests(unittest.TestCase):
             },
         )
         self.assertIn("minimax", json.dumps([route.__dict__ for route in ROUTING_POLICY.values()]).lower())
+        self.assertEqual(DEFAULT_SCHEDULER_MODE, SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL)
+        self.assertIn("one sentiment label", ANSWER_WRAPPERS[Category.SENTIMENT_CLASSIFICATION])
+        self.assertIn("Cover every part", ANSWER_WRAPPERS[Category.FACTUAL_KNOWLEDGE])
 
     def test_official_projection_and_atomic_write(self) -> None:
         tasks = validate_official_tasks([{"task_id": "a", "prompt": "A"}])
@@ -207,15 +226,54 @@ class Version7SchedulerTests(unittest.TestCase):
                 audit=audit,
                 deadline=Deadline(10),
                 fireworks_max_concurrency=2,
+                scheduler_mode=SCHEDULER_MODE_STREAMING_REMOTE,
             )
         )
 
         self.assertEqual(answers, [f"remote:p0", "local:p1", "remote:p2", "local:p3", "local:p4", "remote:p5"])
-        self.assertLess(events.index("remote_start:p0"), events.index("classify_end:2"))
-        self.assertLess(events.index("classify_end:6"), events.index("local_start:p1"))
-        self.assertEqual([call[0] for call in local.calls], ["p1", "p3", "p4"])
+        self.assertLess(event_index(events, "remote_start:"), events.index("classify_end:2"))
+        self.assertLess(events.index("classify_end:6"), event_index(events, "local_start:"))
+        self.assertEqual([task_part(call[0]) for call in local.calls], ["p1", "p3", "p4"])
         self.assertNotIn("p0", [call[0] for call in local.calls])
         self.assertEqual(remote.calls[0][2], 1000)
+        self.assertEqual(remote.calls[0][0], "p0")
+        self.assertTrue(local.calls[0][0].startswith(ANSWER_WRAPPERS[Category.CODE_DEBUGGING]))
+        self.assertLessEqual(local.max_active, 1)
+        self.assertGreaterEqual(remote.max_active, 1)
+
+    def test_post_classification_parallel_mode_starts_answers_after_full_classification(self) -> None:
+        events: list[str] = []
+        labels = [
+            "CODE_GENERATION",
+            "CODE_DEBUGGING",
+            "FACTUAL_KNOWLEDGE",
+            "NAMED_ENTITY_RECOGNITION",
+            "TEXT_SUMMARISATION",
+            "SENTIMENT_CLASSIFICATION",
+        ]
+        tasks = validate_official_tasks([{"task_id": f"t{i}", "prompt": f"p{i}"} for i in range(len(labels))])
+        classifier = FakeClassifier(labels, events)
+        local = FakeAnswerClient("local", events, delays={"p1": 0.01, "p3": 0.01, "p4": 0.01})
+        remote = FakeAnswerClient("remote", events, delays={"p0": 0.08, "p2": 0.02, "p5": 0.01})
+
+        answers = asyncio.run(
+            run_scheduler(
+                tasks,
+                classifier=classifier,
+                local_client=local,
+                fireworks_client=remote,
+                fireworks_models=FIREWORKS_MODELS,
+                audit=AuditProbe(),
+                deadline=Deadline(10),
+                fireworks_max_concurrency=2,
+                scheduler_mode=SCHEDULER_MODE_POST_CLASSIFICATION_PARALLEL,
+            )
+        )
+
+        self.assertEqual(answers, [f"remote:p0", "local:p1", "remote:p2", "local:p3", "local:p4", "remote:p5"])
+        self.assertLess(events.index("classify_end:6"), event_index(events, "remote_start:"))
+        self.assertLess(events.index("classify_end:6"), event_index(events, "local_start:"))
+        self.assertLess(event_index(events, "local_start:"), event_index(events, "remote_end:"))
         self.assertLessEqual(local.max_active, 1)
         self.assertGreaterEqual(remote.max_active, 1)
 
@@ -238,6 +296,29 @@ class Version7SchedulerTests(unittest.TestCase):
         )
         self.assertEqual(answers, ["remote:p"])
         self.assertEqual(classifier.calls, 2)
+        self.assertTrue(remote.calls[0][0].startswith(ANSWER_WRAPPERS[Category.FACTUAL_KNOWLEDGE]))
+
+    def test_code_generation_fireworks_prompt_remains_raw(self) -> None:
+        events: list[str] = []
+        tasks = validate_official_tasks([{"task_id": "a", "prompt": "p"}])
+        classifier = FakeClassifier(["CODE_GENERATION"], events)
+        remote = FakeAnswerClient("remote", events)
+        local = FakeAnswerClient("local", events)
+
+        answers = asyncio.run(
+            run_scheduler(
+                tasks,
+                classifier=classifier,
+                local_client=local,
+                fireworks_client=remote,
+                fireworks_models=FIREWORKS_MODELS,
+                audit=AuditProbe(),
+                deadline=Deadline(10),
+            )
+        )
+
+        self.assertEqual(answers, ["remote:p"])
+        self.assertEqual(remote.calls[0][0], "p")
 
     def test_classifier_falls_back_to_kimi_on_third_attempt(self) -> None:
         events: list[str] = []
@@ -282,7 +363,31 @@ class Version7SchedulerTests(unittest.TestCase):
         )
         self.assertEqual(answers, ["local:p"])
         self.assertEqual(len(local.calls), 2)
+        self.assertEqual(local.calls[0][2], 1000)
         self.assertLessEqual(local.max_active, 1)
+
+    def test_route_specific_local_completion_cap_is_used(self) -> None:
+        events: list[str] = []
+        tasks = validate_official_tasks([{"task_id": "a", "prompt": "p"}])
+        classifier = FakeClassifier(["NAMED_ENTITY_RECOGNITION"], events)
+        local = FakeAnswerClient("local", events)
+        remote = FakeAnswerClient("remote", events)
+
+        answers = asyncio.run(
+            run_scheduler(
+                tasks,
+                classifier=classifier,
+                local_client=local,
+                fireworks_client=remote,
+                fireworks_models=FIREWORKS_MODELS,
+                audit=AuditProbe(),
+                deadline=Deadline(10),
+            )
+        )
+
+        self.assertEqual(answers, ["local:p"])
+        self.assertEqual(local.calls[0][2], 1000)
+        self.assertTrue(local.calls[0][0].startswith(ANSWER_WRAPPERS[Category.NAMED_ENTITY_RECOGNITION]))
 
     def test_kimi_primary_can_fallback_to_minimax(self) -> None:
         events: list[str] = []
@@ -305,6 +410,8 @@ class Version7SchedulerTests(unittest.TestCase):
 
         self.assertEqual(answers, ["remote:p"])
         self.assertEqual([call[1] for call in remote.calls], ["accounts/fireworks/models/kimi-k2p7-code", "accounts/fireworks/models/minimax-m3"])
+        self.assertTrue(remote.calls[0][0].startswith(ANSWER_WRAPPERS[Category.FACTUAL_KNOWLEDGE]))
+        self.assertTrue(remote.calls[1][0].startswith(ANSWER_WRAPPERS[Category.FACTUAL_KNOWLEDGE]))
 
     def test_local_primary_can_fallback_to_kimi(self) -> None:
         events: list[str] = []
@@ -327,6 +434,7 @@ class Version7SchedulerTests(unittest.TestCase):
 
         self.assertEqual(answers, ["remote:p"])
         self.assertEqual([call[1] for call in remote.calls], ["accounts/fireworks/models/kimi-k2p7-code"])
+        self.assertTrue(remote.calls[0][0].startswith(ANSWER_WRAPPERS[Category.CODE_DEBUGGING]))
 
     def test_run_batch_keeps_audit_separate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

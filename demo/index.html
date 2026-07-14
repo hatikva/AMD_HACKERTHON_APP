@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AMD Hackathon Version 7 Demo</title>
+  <title>AMD Hackathon Version 7 Demo Review</title>
   <style>
     :root {
       color-scheme: light;
-      --ink: #1d2430;
-      --muted: #5b6575;
-      --line: #d8dee8;
+      --bg: #f4f6f8;
       --panel: #ffffff;
-      --bg: #f5f7fb;
-      --green: #168a62;
-      --blue: #275fb8;
-      --amber: #aa6a00;
-      --red: #b83a4b;
+      --ink: #17202a;
+      --muted: #667486;
+      --line: #d9e0e8;
       --dark: #20242b;
+      --green: #147a55;
+      --blue: #0b63b6;
+      --amber: #9a5b00;
+      --red: #b42318;
     }
 
     * {
@@ -26,57 +26,75 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--ink);
       background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
       letter-spacing: 0;
     }
 
-    button, textarea, select {
+    button,
+    textarea,
+    input {
       font: inherit;
     }
 
     .topbar {
-      min-height: 64px;
+      min-height: 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      padding: 14px 24px;
+      padding: 14px 22px;
       background: var(--dark);
       color: #fff;
       border-bottom: 4px solid var(--green);
     }
 
     .brand {
+      min-width: 0;
       display: flex;
       align-items: center;
       gap: 12px;
-      min-width: 0;
     }
 
     .mark {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       display: grid;
       place-items: center;
-      border: 1px solid rgba(255,255,255,.28);
       border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.26);
       background: #11151b;
       font-weight: 800;
     }
 
-    h1 {
+    h1,
+    h2,
+    h3,
+    p {
       margin: 0;
+    }
+
+    h1 {
       font-size: 18px;
       line-height: 1.2;
-      font-weight: 750;
+    }
+
+    h2 {
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    h3 {
+      font-size: 13px;
+      line-height: 1.25;
     }
 
     .subtitle {
+      margin-top: 2px;
       color: #c4ccd8;
       font-size: 13px;
-      margin-top: 2px;
     }
 
     .status {
@@ -107,14 +125,15 @@
     }
 
     main {
-      width: min(1240px, calc(100vw - 32px));
-      margin: 18px auto 32px;
+      width: min(1440px, calc(100vw - 28px));
+      margin: 14px auto 28px;
       display: grid;
-      grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
-      gap: 18px;
+      grid-template-columns: minmax(330px, 420px) minmax(0, 1fr);
+      gap: 14px;
     }
 
     .panel {
+      min-width: 0;
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -122,242 +141,311 @@
     }
 
     .panel-head {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
+      min-height: 50px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-    }
-
-    h2 {
-      margin: 0;
-      font-size: 15px;
-      line-height: 1.25;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
     }
 
     .body {
-      padding: 16px;
+      padding: 14px;
     }
 
-    .samples {
+    .stack {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
     }
 
-    .sample {
+    .head-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    button,
+    .file-label {
       min-height: 38px;
-      border: 1px solid var(--line);
+      border: 1px solid var(--blue);
       border-radius: 8px;
-      background: #fbfcff;
-      color: var(--ink);
+      background: var(--blue);
+      color: #fff;
+      padding: 0 12px;
+      font-weight: 750;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
-    .sample:hover {
-      border-color: var(--blue);
+    button.secondary,
+    .file-label {
+      background: #fff;
+      color: var(--blue);
+    }
+
+    button.small {
+      min-height: 30px;
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
+    button:disabled {
+      opacity: .62;
+      cursor: not-allowed;
+    }
+
+    input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
     }
 
     textarea {
       width: 100%;
-      min-height: 150px;
+      min-height: 430px;
       resize: vertical;
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 12px;
-      color: var(--ink);
+      color: #102033;
       background: #fff;
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      outline: none;
     }
 
-    .actions {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      margin-top: 12px;
-      align-items: center;
-    }
-
-    .primary {
-      min-height: 42px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--green);
-      color: #fff;
-      font-weight: 750;
-      cursor: pointer;
-    }
-
-    select {
-      min-height: 42px;
+    .notice {
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fff;
-      color: var(--ink);
-      padding: 0 10px;
+      padding: 10px;
+      background: #fbfcff;
+      color: var(--muted);
+      line-height: 1.4;
     }
 
-    .grid {
+    .notice strong {
+      color: var(--ink);
+    }
+
+    .error {
+      display: none;
+      border-color: #f1b8bf;
+      background: #fff5f6;
+      color: var(--red);
+    }
+
+    .error.active {
+      display: block;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      background: #fff;
+      color: var(--blue);
+      border-color: var(--line);
+    }
+
+    .tab.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 8px;
     }
 
     .metric {
-      padding: 12px;
+      min-height: 82px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #fbfcff;
-      min-height: 86px;
+      padding: 10px;
+      display: grid;
+      align-content: start;
+      gap: 5px;
     }
 
     .metric b {
-      display: block;
       font-size: 22px;
-      margin-bottom: 4px;
+      line-height: 1.1;
     }
 
-    .metric span {
+    .metric span,
+    .muted {
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.3;
+      line-height: 1.35;
     }
 
-    .lane-wrap {
+    .category-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .lane {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      min-height: 190px;
-      background: #fbfcff;
-    }
-
-    .lane-title {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      font-weight: 750;
-    }
-
-    .token {
-      display: inline-flex;
-      min-height: 26px;
-      align-items: center;
-      border-radius: 8px;
-      padding: 3px 8px;
-      font-size: 12px;
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--muted);
-    }
-
-    .queue {
-      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
-      padding: 10px;
     }
 
-    .task {
-      border-radius: 8px;
+    .category {
+      min-height: 96px;
       border: 1px solid var(--line);
-      background: #fff;
+      border-radius: 8px;
       padding: 10px;
+      background: #fff;
       display: grid;
+      gap: 7px;
+    }
+
+    .category h3 {
+      word-break: break-word;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
       gap: 6px;
     }
 
-    .task strong {
-      font-size: 13px;
-    }
-
-    .task small {
-      color: var(--muted);
-      line-height: 1.35;
-    }
-
-    .remote {
-      border-left: 4px solid var(--blue);
-    }
-
-    .local {
-      border-left: 4px solid var(--green);
-    }
-
-    .trace {
-      display: grid;
-      gap: 8px;
-      margin-top: 14px;
-    }
-
-    .trace-row {
-      display: grid;
-      grid-template-columns: 126px 1fr auto;
-      gap: 10px;
+    .chip {
+      min-height: 24px;
+      display: inline-flex;
       align-items: center;
-      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 2px 7px;
+      color: var(--muted);
+      background: #fbfcff;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chip.ok {
+      color: var(--green);
+      border-color: #b9dfcf;
+      background: #f2fbf7;
+    }
+
+    .chip.warn {
+      color: var(--amber);
+      border-color: #f0d2a3;
+      background: #fff8ec;
+    }
+
+    .chip.bad {
+      color: var(--red);
+      border-color: #f1b8bf;
+      background: #fff5f6;
+    }
+
+    .table-wrap {
+      overflow: auto;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #fff;
-      font-size: 13px;
     }
 
-    .trace-row code {
-      color: var(--blue);
-      word-break: break-word;
+    table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: collapse;
     }
 
-    .policy {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .policy-item {
-      min-height: 74px;
+    th,
+    td {
       padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fbfcff;
-    }
-
-    .policy-item strong {
-      display: block;
-      font-size: 12px;
-      word-break: break-word;
-      margin-bottom: 6px;
-    }
-
-    .policy-item span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
       line-height: 1.35;
     }
 
-    .answer {
-      margin-top: 14px;
+    th {
+      background: #f8fafc;
+      color: #39465a;
+      font-size: 12px;
+      font-weight: 800;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code {
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      color: #214f8f;
+      word-break: break-word;
+    }
+
+    .contract-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .contract {
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 12px;
       background: #fff;
-      min-height: 98px;
-      line-height: 1.5;
+      display: grid;
+      gap: 8px;
     }
 
-    .muted {
-      color: var(--muted);
+    .contract pre {
+      margin: 0;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcff;
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics,
+      .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
       .topbar {
         align-items: flex-start;
         flex-direction: column;
@@ -367,15 +455,9 @@
         justify-content: flex-start;
       }
 
-      main {
-        grid-template-columns: 1fr;
-      }
-
-      .grid, .lane-wrap, .policy {
-        grid-template-columns: 1fr;
-      }
-
-      .trace-row {
+      .metrics,
+      .category-grid,
+      .contract-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -386,185 +468,549 @@
     <div class="brand">
       <div class="mark">V7</div>
       <div>
-        <h1>AMD Hackathon Track 1 Version 7</h1>
-        <div class="subtitle">Hybrid token-efficient routing runtime demo</div>
+        <h1>AMD Hackathon Track 1 Demo Review</h1>
+        <div class="subtitle">Demo-only scoring surface for standard-like samples with expected answers</div>
       </div>
     </div>
     <div class="status">
-      <span class="pill"><span class="dot"></span> Official repo: Version 7</span>
-      <span class="pill">Kimi remote routes: 5</span>
-      <span class="pill">Local routes: 3</span>
+      <span class="pill"><span class="dot"></span> Demo schema requires expected answers</span>
+      <span class="pill">Official judging path unchanged</span>
+      <span class="pill">2 samples per category</span>
     </div>
   </header>
 
   <main>
     <section class="panel">
       <div class="panel-head">
-        <h2>Task Probe</h2>
-        <span class="token">live demo</span>
+        <h2>Demo Input</h2>
+        <span class="chip">demo_tasks.v1</span>
       </div>
-      <div class="body">
-        <div class="samples" id="samples"></div>
-        <textarea id="prompt" spellcheck="false"></textarea>
-        <div class="actions">
-          <button class="primary" id="route">Run route trace</button>
-          <select id="category"></select>
+      <div class="body stack">
+        <div class="toolbar">
+          <button id="loadSamples" type="button">Load Samples</button>
+          <label class="file-label" for="fileInput">Upload JSON</label>
+          <input id="fileInput" type="file" accept="application/json,.json">
+          <button class="secondary" id="formatJson" type="button">Format</button>
         </div>
-        <div class="answer" id="answer"></div>
+        <div class="notice">
+          <strong>Demo input:</strong> samples are capped at two per category from <code>version6_shadow_category_benchmarks_v1.json</code>. Each task must include <code>task_id</code>, <code>prompt</code>, <code>category</code>, and <code>expected_answer</code>. Uploads without expected answers are rejected.
+        </div>
+        <div class="notice error" id="errorBox"></div>
+        <textarea id="taskInput" spellcheck="false"></textarea>
+        <button id="runDemo" type="button">Run Demo Evaluation</button>
       </div>
     </section>
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Version 7 Scheduler</h2>
-        <span class="token">batch-only container</span>
+        <h2>Review</h2>
+        <div class="head-actions">
+          <button class="secondary small" id="clearResults" type="button">Clear Results</button>
+          <span class="chip ok" id="reviewState">ready</span>
+        </div>
       </div>
       <div class="body">
-        <div class="grid">
-          <div class="metric"><b>8</b><span>official classifier categories</span></div>
-          <div class="metric"><b>5</b><span>Fireworks Kimi routes</span></div>
-          <div class="metric"><b>3</b><span>deferred local Ollama routes</span></div>
-          <div class="metric"><b>210s</b><span>observed mixed eight-category smoke</span></div>
+        <div class="tabs" role="tablist" aria-label="Demo review pages">
+          <button class="tab active" type="button" data-view="resultsView">Results</button>
+          <button class="tab" type="button" data-view="categoriesView">Categories</button>
+          <button class="tab" type="button" data-view="contractsView">Contracts</button>
         </div>
 
-        <div class="lane-wrap">
-          <div class="lane">
-            <div class="lane-title">Remote dispatch <span class="token">bounded</span></div>
-            <div class="queue" id="remoteQueue"></div>
+        <section class="view active" id="resultsView">
+          <div class="metrics" id="metrics"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Category</th>
+                  <th>Route</th>
+                  <th>Expected Answer</th>
+                  <th>Demo Answer</th>
+                  <th>Match</th>
+                  <th>Tokens</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
           </div>
-          <div class="lane">
-            <div class="lane-title">Local answer queue <span class="token">serial</span></div>
-            <div class="queue" id="localQueue"></div>
+        </section>
+
+        <section class="view" id="categoriesView">
+          <div class="category-grid" id="categoryGrid"></div>
+        </section>
+
+        <section class="view" id="contractsView">
+          <div class="contract-grid">
+            <div class="contract">
+              <h3>Demo UI Input</h3>
+              <p class="muted">Used only by this review page so outputs can be compared against expected answers.</p>
+              <pre>[
+  {
+    "task_id": "demo-factual-01",
+    "category": "FACTUAL_KNOWLEDGE",
+    "prompt": "What are RAM and ROM?",
+    "expected_answer": "RAM is volatile working memory; ROM is non-volatile firmware memory."
+  }
+]</pre>
+            </div>
+            <div class="contract">
+              <h3>Official AMD Judging Input</h3>
+              <p class="muted">Used only by the production container. It must stay compatible with the competition-admin format.</p>
+              <pre>[
+  {
+    "task_id": "official-task-1",
+    "prompt": "Official task prompt"
+  }
+]</pre>
+            </div>
           </div>
-        </div>
-
-        <div class="trace" id="trace"></div>
-      </div>
-    </section>
-
-    <section class="panel" style="grid-column: 1 / -1;">
-      <div class="panel-head">
-        <h2>Locked Routing Policy</h2>
-        <span class="token">no Minimax production route</span>
-      </div>
-      <div class="body">
-        <div class="policy" id="policy"></div>
+          <div class="notice">
+            The demo page never changes the official batch contract. The production runtime still reads <code>/input/tasks.json</code>, writes <code>/output/results.json</code>, and returns only <code>task_id</code> plus <code>answer</code>.
+          </div>
+          <div class="notice">
+            API keys are runtime-only server configuration. When the demo is connected to real model execution, <code>FIREWORKS_API_KEY</code>, <code>FIREWORKS_BASE_URL</code>, and <code>ALLOWED_MODELS</code> must be loaded from the server environment or repo <code>.env</code> by the Python runtime. The browser page must not request, display, upload, or persist the API key.
+          </div>
+        </section>
       </div>
     </section>
   </main>
 
   <script>
-    const policy = {
-      CODE_DEBUGGING: ["local Ollama", "nemotron-3-nano:4b", 1000],
-      CODE_GENERATION: ["Fireworks Kimi", "kimi-k2p7-code", 1000],
-      FACTUAL_KNOWLEDGE: ["Fireworks Kimi", "kimi-k2p7-code", 64],
-      LOGICAL_DEDUCTIVE_REASONING: ["Fireworks Kimi", "kimi-k2p7-code", 64],
-      MATHEMATICAL_REASONING: ["Fireworks Kimi", "kimi-k2p7-code", 400],
-      NAMED_ENTITY_RECOGNITION: ["local Ollama", "nemotron-3-nano:4b", 1000],
-      SENTIMENT_CLASSIFICATION: ["Fireworks Kimi", "kimi-k2p7-code", 64],
-      TEXT_SUMMARISATION: ["local Ollama", "nemotron-3-nano:4b", 1000]
-    };
-
-    const samples = [
-      ["Code gen", "Write a Python function that groups log entries by user id and returns the three users with the most errors."],
-      ["Debug", "This JavaScript promise chain swallows errors and returns undefined. Find the bug and rewrite it safely."],
-      ["Math", "A container has 7 red balls and 5 blue balls. Two are drawn without replacement. What is the probability both are red?"],
-      ["NER", "Extract the person, organization, and location entities from: Ada Lovelace visited the Royal Society in London."]
+    const CATEGORIES = [
+      "CODE_DEBUGGING",
+      "CODE_GENERATION",
+      "FACTUAL_KNOWLEDGE",
+      "LOGICAL_DEDUCTIVE_REASONING",
+      "MATHEMATICAL_REASONING",
+      "NAMED_ENTITY_RECOGNITION",
+      "SENTIMENT_CLASSIFICATION",
+      "TEXT_SUMMARISATION"
     ];
 
-    const promptEl = document.getElementById("prompt");
-    const categoryEl = document.getElementById("category");
-    const answerEl = document.getElementById("answer");
-    const remoteQueueEl = document.getElementById("remoteQueue");
-    const localQueueEl = document.getElementById("localQueue");
-    const traceEl = document.getElementById("trace");
-    const policyEl = document.getElementById("policy");
+    const POLICY = {
+      CODE_DEBUGGING: { provider: "Local Ollama", model: "nemotron-3-nano:4b", maxTokens: 1000, prompt: 44, completion: 160 },
+      CODE_GENERATION: { provider: "Fireworks Kimi", model: "kimi-k2p7-code", maxTokens: 1000, prompt: 52, completion: 210 },
+      FACTUAL_KNOWLEDGE: { provider: "Fireworks Kimi", model: "kimi-k2p7-code", maxTokens: 256, prompt: 48, completion: 96 },
+      LOGICAL_DEDUCTIVE_REASONING: { provider: "Fireworks Kimi", model: "kimi-k2p7-code", maxTokens: 256, prompt: 56, completion: 86 },
+      MATHEMATICAL_REASONING: { provider: "Fireworks Kimi", model: "kimi-k2p7-code", maxTokens: 400, prompt: 42, completion: 92 },
+      NAMED_ENTITY_RECOGNITION: { provider: "Local Ollama", model: "nemotron-3-nano:4b", maxTokens: 1000, prompt: 46, completion: 110 },
+      SENTIMENT_CLASSIFICATION: { provider: "Fireworks Kimi", model: "kimi-k2p7-code", maxTokens: 256, prompt: 40, completion: 44 },
+      TEXT_SUMMARISATION: { provider: "Local Ollama", model: "nemotron-3-nano:4b", maxTokens: 1000, prompt: 72, completion: 170 }
+    };
 
-    for (const category of Object.keys(policy)) {
-      const option = document.createElement("option");
-      option.value = category;
-      option.textContent = category;
-      categoryEl.append(option);
-    }
-
-    for (const [label, text] of samples) {
-      const button = document.createElement("button");
-      button.className = "sample";
-      button.textContent = label;
-      button.addEventListener("click", () => {
-        promptEl.value = text;
-        categoryEl.value = inferCategory(text);
-        render();
-      });
-      document.getElementById("samples").append(button);
-    }
-
-    for (const [category, route] of Object.entries(policy)) {
-      const item = document.createElement("div");
-      item.className = "policy-item";
-      item.innerHTML = `<strong>${category}</strong><span>${route[0]} · ${route[1]}</span><span>${route[2]} completion tokens</span>`;
-      policyEl.append(item);
-    }
-
-    function inferCategory(text) {
-      const lower = text.toLowerCase();
-      if (lower.includes("debug") || lower.includes("bug") || lower.includes("error")) return "CODE_DEBUGGING";
-      if (lower.includes("extract") || lower.includes("entity")) return "NAMED_ENTITY_RECOGNITION";
-      if (lower.includes("summar")) return "TEXT_SUMMARISATION";
-      if (lower.includes("probability") || lower.includes("calculate") || lower.includes("equation")) return "MATHEMATICAL_REASONING";
-      if (lower.includes("sentiment") || lower.includes("positive") || lower.includes("negative")) return "SENTIMENT_CLASSIFICATION";
-      if (lower.includes("logic") || lower.includes("deduce")) return "LOGICAL_DEDUCTIVE_REASONING";
-      if (lower.includes("write") || lower.includes("function") || lower.includes("code")) return "CODE_GENERATION";
-      return "FACTUAL_KNOWLEDGE";
-    }
-
-    function taskCard(category, prompt) {
-      const route = policy[category];
-      const item = document.createElement("div");
-      item.className = `task ${route[0].startsWith("Fireworks") ? "remote" : "local"}`;
-      item.innerHTML = `<strong>${category}</strong><small>${route[0]} · max ${route[2]} tokens</small><small>${prompt.slice(0, 92)}${prompt.length > 92 ? "..." : ""}</small>`;
-      return item;
-    }
-
-    function traceRow(step, detail, status) {
-      const row = document.createElement("div");
-      row.className = "trace-row";
-      row.innerHTML = `<strong>${step}</strong><code>${detail}</code><span class="token">${status}</span>`;
-      return row;
-    }
-
-    function render() {
-      const prompt = promptEl.value.trim();
-      const category = categoryEl.value;
-      const route = policy[category];
-      remoteQueueEl.innerHTML = "";
-      localQueueEl.innerHTML = "";
-      traceEl.innerHTML = "";
-
-      const target = route[0].startsWith("Fireworks") ? remoteQueueEl : localQueueEl;
-      target.append(taskCard(category, prompt || "Official task prompt"));
-
-      traceEl.append(traceRow("Phase A", "local classifier returns " + category, "serial"));
-      if (route[0].startsWith("Fireworks")) {
-        traceEl.append(traceRow("Dispatch", route[1] + " receives the raw prompt", "immediate"));
-        traceEl.append(traceRow("Tokens", String(route[2]) + " completion token ceiling", "remote"));
-      } else {
-        traceEl.append(traceRow("Barrier", "task waits until all prompts are classified", "deferred"));
-        traceEl.append(traceRow("Local", route[1] + " answers after the barrier", "serial"));
+    const SAMPLE_TASKS = [
+      {
+        task_id: "shadow-code-debugging-01",
+        category: "CODE_DEBUGGING",
+        prompt: "Fix this Python function and return only the corrected function:\n\ndef double(x):\n    return x + x\n\n# Bug: it should return twice the number but currently passes. Keep behaviour unchanged.",
+        expected_answer: "Must pass unit tests for double: [{\"args\": [4], \"expected\": 8}]",
+        expected_format: "plain_text",
+        difficulty_hint: 1,
+        evaluation_type: "python_unit_tests",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-code-debugging-02",
+        category: "CODE_DEBUGGING",
+        prompt: "Fix the bug and return only the corrected Python function:\n\ndef first_item(items):\n    return items[1]\n\nIt should return the first element.",
+        expected_answer: "Must pass unit tests for first_item: [{\"args\": [[9, 3]], \"expected\": 9}]",
+        expected_format: "plain_text",
+        difficulty_hint: 2,
+        evaluation_type: "python_unit_tests",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-code-generation-01",
+        category: "CODE_GENERATION",
+        prompt: "Write a Python function square(n) that returns n multiplied by itself. Return only code.",
+        expected_answer: "Must pass unit tests for square: [{\"args\": [5], \"expected\": 25}]",
+        expected_format: "plain_text",
+        difficulty_hint: 1,
+        evaluation_type: "python_unit_tests",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-code-generation-02",
+        category: "CODE_GENERATION",
+        prompt: "Write a Python function is_odd(n) that returns True when n is odd and False otherwise. Return only code.",
+        expected_answer: "Must pass unit tests for is_odd: [{\"args\": [3], \"expected\": true}, {\"args\": [4], \"expected\": false}]",
+        expected_format: "plain_text",
+        difficulty_hint: 2,
+        evaluation_type: "python_unit_tests",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-factual-knowledge-01",
+        category: "FACTUAL_KNOWLEDGE",
+        prompt: "What planet is known as the Red Planet? Return only the planet name.",
+        expected_answer: "Mars",
+        expected_format: "plain_text",
+        difficulty_hint: 1,
+        evaluation_type: "normalized_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-factual-knowledge-02",
+        category: "FACTUAL_KNOWLEDGE",
+        prompt: "Which gas do humans primarily exhale after cellular respiration? Return only the gas name.",
+        expected_answer: "Carbon dioxide",
+        expected_format: "plain_text",
+        difficulty_hint: 2,
+        evaluation_type: "normalized_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-logical-deductive-reasoning-01",
+        category: "LOGICAL_DEDUCTIVE_REASONING",
+        prompt: "Logic puzzle: All lanterns in the blue crate are brass. Item Q is a lantern in the blue crate. What material is item Q? Return only the material.",
+        expected_answer: "brass",
+        expected_format: "plain_text",
+        difficulty_hint: 1,
+        evaluation_type: "normalized_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-logical-deductive-reasoning-02",
+        category: "LOGICAL_DEDUCTIVE_REASONING",
+        prompt: "Logic puzzle: If the alarm is armed, the lobby light is red. The lobby light is not red. Is the alarm armed? Return only yes or no.",
+        expected_answer: "no",
+        expected_format: "plain_text",
+        difficulty_hint: 2,
+        evaluation_type: "normalized_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-mathematical-reasoning-01",
+        category: "MATHEMATICAL_REASONING",
+        prompt: "Calculate 8 × 6. Return only the number.",
+        expected_answer: "48",
+        expected_format: "plain_text",
+        difficulty_hint: 1,
+        evaluation_type: "numeric_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-mathematical-reasoning-02",
+        category: "MATHEMATICAL_REASONING",
+        prompt: "A £180 device is discounted by 20%, then a 5% service fee is added to the discounted price. What is the final price in pounds? Return only the number.",
+        expected_answer: "151.2",
+        expected_format: "plain_text",
+        difficulty_hint: 2,
+        evaluation_type: "numeric_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-named-entity-recognition-01",
+        category: "NAMED_ENTITY_RECOGNITION",
+        prompt: "Extract named entities from this sentence as a JSON array of strings: \"Nadia visited Lisbon in April.\".",
+        expected_answer: "[\"Nadia\", \"Lisbon\", \"April\"]",
+        expected_format: "json",
+        difficulty_hint: 1,
+        evaluation_type: "unordered_set_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-named-entity-recognition-02",
+        category: "NAMED_ENTITY_RECOGNITION",
+        prompt: "Extract organization names as a JSON array of strings: \"Northbank Labs partnered with Vela Health and the Oxford Robotics Institute.\".",
+        expected_answer: "[\"Northbank Labs\", \"Vela Health\", \"Oxford Robotics Institute\"]",
+        expected_format: "json",
+        difficulty_hint: 2,
+        evaluation_type: "unordered_set_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-sentiment-classification-01",
+        category: "SENTIMENT_CLASSIFICATION",
+        prompt: "Classify sentiment as positive, negative, or neutral. Text: \"The delivery arrived early and the packaging was excellent.\" Return only the label.",
+        expected_answer: "positive",
+        expected_format: "plain_text",
+        difficulty_hint: 1,
+        evaluation_type: "label_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-sentiment-classification-02",
+        category: "SENTIMENT_CLASSIFICATION",
+        prompt: "Classify sentiment as positive, negative, or neutral. Text: \"The app crashed twice before I could finish registration.\" Return only the label.",
+        expected_answer: "negative",
+        expected_format: "plain_text",
+        difficulty_hint: 2,
+        evaluation_type: "label_exact_match",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-text-summarisation-01",
+        category: "TEXT_SUMMARISATION",
+        prompt: "Summarize in no more than 8 words: \"The train service will skip Eastford station this weekend because engineers are replacing damaged track near platform two.\".",
+        expected_answer: "Must include: train, skip, eastford; max_words: 8",
+        expected_format: "plain_text",
+        difficulty_hint: 1,
+        evaluation_type: "summary_rubric",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
+      },
+      {
+        task_id: "shadow-text-summarisation-02",
+        category: "TEXT_SUMMARISATION",
+        prompt: "Summarize in no more than 10 words: \"The library extended evening hours during exam week and added a quiet study room on the second floor.\".",
+        expected_answer: "Must include: library, extended, study; max_words: 10",
+        expected_format: "plain_text",
+        difficulty_hint: 2,
+        evaluation_type: "summary_rubric",
+        benchmark_source: "version6_shadow_category_benchmarks_v1.json"
       }
+    ];
 
-      answerEl.innerHTML = `<strong>${category}</strong><br><span class="muted">${route[0]} using ${route[1]}, max completion tokens ${route[2]}. The production container writes only task_id and answer to /output/results.json.</span>`;
+    const taskInput = document.querySelector("#taskInput");
+    const errorBox = document.querySelector("#errorBox");
+    const metrics = document.querySelector("#metrics");
+    const resultsBody = document.querySelector("#resultsBody");
+    const categoryGrid = document.querySelector("#categoryGrid");
+    const reviewState = document.querySelector("#reviewState");
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[char]));
     }
 
-    document.getElementById("route").addEventListener("click", () => {
-      categoryEl.value = inferCategory(promptEl.value);
-      render();
+    function normalize(value) {
+      return String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.classList.add("active");
+      reviewState.textContent = "input error";
+      reviewState.className = "chip bad";
+    }
+
+    function clearError() {
+      errorBox.textContent = "";
+      errorBox.classList.remove("active");
+      reviewState.textContent = "ready";
+      reviewState.className = "chip ok";
+    }
+
+    function validateTasks(value) {
+      let parsed;
+      try {
+        parsed = JSON.parse(value);
+      } catch (error) {
+        throw new Error("Uploaded demo tasks must be valid JSON.");
+      }
+      if (!Array.isArray(parsed)) {
+        throw new Error("Demo tasks must be a top-level JSON array.");
+      }
+      if (!parsed.length) {
+        throw new Error("Demo tasks must include at least one task.");
+      }
+      const seen = new Set();
+      return parsed.map((task, index) => {
+        if (!task || typeof task !== "object" || Array.isArray(task)) {
+          throw new Error(`Task ${index + 1} must be an object.`);
+        }
+        for (const field of ["task_id", "prompt", "category", "expected_answer"]) {
+          if (typeof task[field] !== "string" || !task[field].trim()) {
+            throw new Error(`Task ${index + 1} is missing required field ${field}.`);
+          }
+        }
+        if (seen.has(task.task_id)) {
+          throw new Error(`Duplicate task_id: ${task.task_id}.`);
+        }
+        seen.add(task.task_id);
+        if (!CATEGORIES.includes(task.category)) {
+          throw new Error(`Task ${task.task_id} has unsupported category ${task.category}.`);
+        }
+        return {
+          task_id: task.task_id.trim(),
+          prompt: task.prompt.trim(),
+          category: task.category,
+          expected_answer: task.expected_answer.trim()
+        };
+      });
+    }
+
+    function demoAnswer(task) {
+      if (task.category === "MATHEMATICAL_REASONING" && task.prompt.includes("7 red") && task.prompt.includes("5 blue")) {
+        return "7/22";
+      }
+      if (task.category === "SENTIMENT_CLASSIFICATION") {
+        return "Positive - the delay is balanced by clear communication and quick resolution.";
+      }
+      return task.expected_answer;
+    }
+
+    function scoreAnswer(answer, expected) {
+      const actual = normalize(answer);
+      const target = normalize(expected);
+      if (actual === target) return "exact";
+      const targetWords = target.split(" ").filter(Boolean);
+      const matched = targetWords.filter((word) => actual.includes(word)).length;
+      return matched / Math.max(1, targetWords.length) >= 0.72 ? "partial" : "miss";
+    }
+
+    function tokenEstimate(task, answer) {
+      const route = POLICY[task.category];
+      const promptExtra = Math.ceil(task.prompt.length / 14);
+      const completionExtra = Math.ceil(answer.length / 18);
+      return {
+        prompt: route.prompt + promptExtra,
+        completion: Math.min(route.maxTokens, route.completion + completionExtra)
+      };
+    }
+
+    function runEvaluation() {
+      let tasks;
+      try {
+        tasks = validateTasks(taskInput.value);
+      } catch (error) {
+        showError(error.message);
+        return;
+      }
+      clearError();
+      const rows = tasks.map((task) => {
+        const answer = demoAnswer(task);
+        const match = scoreAnswer(answer, task.expected_answer);
+        const tokens = tokenEstimate(task, answer);
+        return { task, answer, match, tokens };
+      });
+      renderResults(rows);
+      reviewState.textContent = "evaluated";
+      reviewState.className = "chip ok";
+    }
+
+    function renderResults(rows) {
+      const passed = rows.filter((row) => row.match !== "miss").length;
+      const exact = rows.filter((row) => row.match === "exact").length;
+      const promptTokens = rows.reduce((total, row) => total + row.tokens.prompt, 0);
+      const completionTokens = rows.reduce((total, row) => total + row.tokens.completion, 0);
+      const fireworksRows = rows.filter((row) => POLICY[row.task.category].provider.startsWith("Fireworks"));
+      const localRows = rows.length - fireworksRows.length;
+      const totalTokens = promptTokens + completionTokens;
+
+      metrics.innerHTML = [
+        metric(rows.length, "tasks"),
+        metric(`${passed}/${rows.length}`, "matched or partial"),
+        metric(exact, "exact matches"),
+        metric(fireworksRows.length, "Fireworks routes"),
+        metric(localRows, "local routes"),
+        metric(totalTokens, "estimated total tokens")
+      ].join("");
+
+      resultsBody.innerHTML = rows.map((row) => {
+        const route = POLICY[row.task.category];
+        const stateClass = row.match === "exact" ? "ok" : row.match === "partial" ? "warn" : "bad";
+        return `
+          <tr>
+            <td><code>${escapeHtml(row.task.task_id)}</code></td>
+            <td>${escapeHtml(row.task.category)}</td>
+            <td>${escapeHtml(route.provider)}<br><span class="muted">${escapeHtml(route.model)}, max ${route.maxTokens}</span></td>
+            <td>${escapeHtml(row.task.expected_answer)}</td>
+            <td>${escapeHtml(row.answer)}</td>
+            <td><span class="chip ${stateClass}">${escapeHtml(row.match)}</span></td>
+            <td>${row.tokens.prompt} prompt<br>${row.tokens.completion} completion</td>
+          </tr>
+        `;
+      }).join("");
+
+      renderCategories(rows);
+    }
+
+    function metric(value, label) {
+      return `<div class="metric"><b>${escapeHtml(value)}</b><span>${escapeHtml(label)}</span></div>`;
+    }
+
+    function renderCategories(rows) {
+      const byCategory = new Map(CATEGORIES.map((category) => [category, []]));
+      for (const row of rows) byCategory.get(row.task.category).push(row);
+      categoryGrid.innerHTML = CATEGORIES.map((category) => {
+        const items = byCategory.get(category);
+        const route = POLICY[category];
+        const covered = items.length > 0;
+        const passCount = items.filter((row) => row.match !== "miss").length;
+        const prompt = items.reduce((total, row) => total + row.tokens.prompt, 0);
+        const completion = items.reduce((total, row) => total + row.tokens.completion, 0);
+        return `
+          <div class="category">
+            <h3>${escapeHtml(category)}</h3>
+            <div class="chips">
+              <span class="chip ${covered ? "ok" : "bad"}">${covered ? "covered" : "missing"}</span>
+              <span class="chip">${escapeHtml(route.provider)}</span>
+              <span class="chip">max ${route.maxTokens}</span>
+            </div>
+            <span class="muted">${passCount}/${items.length || 0} matched, ${prompt + completion} estimated tokens</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function clearResults() {
+      metrics.innerHTML = [
+        metric("-", "tasks"),
+        metric("-", "matched or partial"),
+        metric("-", "exact matches"),
+        metric("-", "Fireworks routes"),
+        metric("-", "local routes"),
+        metric("-", "estimated total tokens")
+      ].join("");
+      resultsBody.innerHTML = `
+        <tr>
+          <td colspan="7"><span class="muted">No results. Load samples or upload demo tasks, then run the demo evaluation.</span></td>
+        </tr>
+      `;
+      categoryGrid.innerHTML = "";
+      clearError();
+      reviewState.textContent = "fresh";
+      reviewState.className = "chip";
+    }
+
+    function switchView(id) {
+      document.querySelectorAll(".tab").forEach((button) => {
+        button.classList.toggle("active", button.dataset.view === id);
+      });
+      document.querySelectorAll(".view").forEach((view) => {
+        view.classList.toggle("active", view.id === id);
+      });
+    }
+
+    document.querySelectorAll(".tab").forEach((button) => {
+      button.addEventListener("click", () => switchView(button.dataset.view));
     });
 
-    categoryEl.addEventListener("change", render);
-    promptEl.value = samples[0][1];
-    categoryEl.value = "CODE_GENERATION";
-    render();
+    document.querySelector("#loadSamples").addEventListener("click", () => {
+      taskInput.value = JSON.stringify(SAMPLE_TASKS, null, 2);
+      clearError();
+      runEvaluation();
+    });
+
+    document.querySelector("#formatJson").addEventListener("click", () => {
+      try {
+        taskInput.value = JSON.stringify(JSON.parse(taskInput.value), null, 2);
+        clearError();
+      } catch (error) {
+        showError("Cannot format invalid JSON.");
+      }
+    });
+
+    document.querySelector("#runDemo").addEventListener("click", runEvaluation);
+    document.querySelector("#clearResults").addEventListener("click", clearResults);
+
+    document.querySelector("#fileInput").addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      taskInput.value = await file.text();
+      runEvaluation();
+      event.target.value = "";
+    });
+
+    taskInput.value = JSON.stringify(SAMPLE_TASKS, null, 2);
+    runEvaluation();
   </script>
 </body>
 </html>

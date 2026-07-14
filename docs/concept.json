@@ -1,11 +1,11 @@
 {
   "schema": "amd_hackathon.public_concept.v2",
-  "name": "Version 7 Pipelined Category Routing Runtime",
+  "name": "Version 7 Post-Classification Parallel Category Routing Runtime",
   "track": "AMD Developer Hackathon Track 1",
   "summary": "A token-efficient batch runtime that classifies each official task locally, routes by a locked category policy, uses Fireworks Kimi for five categories, uses bundled local Nemotron for three categories, and writes the official minimal result file.",
   "active_submission_version": "version_7",
-  "official_image_target": "ghcr.io/hatikva/amd-hackathon-app:version7-production-f1dfc86",
-  "publication_state": "pending GHCR permission; do not submit until publicly pullable",
+  "official_image_target": "ghcr.io/hatikva/amd-hackathon-app:version7-production-429c37b",
+  "publication_state": "public image accessible; current source tree requires a new immutable image tag before final-policy submission",
   "local_model": "nemotron-3-nano:4b bundled with CPU Ollama",
   "remote_model_alias": "kimi-k2p7-code resolved from ALLOWED_MODELS",
   "official_runtime_contract": {

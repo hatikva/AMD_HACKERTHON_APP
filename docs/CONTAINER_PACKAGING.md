@@ -45,19 +45,27 @@ is enabled, and then runs the deterministic Version 7 scheduler.
 Version 7 uses one canonical classifier and eight official categories:
 
 - `CODE_GENERATION`: Fireworks Kimi, `max_tokens=1000`
-- `FACTUAL`: Fireworks Kimi, `max_tokens=64`
-- `LOGICAL`: Fireworks Kimi, `max_tokens=64`
+- `FACTUAL`: Fireworks Kimi, `max_tokens=256`
+- `LOGICAL`: Fireworks Kimi, `max_tokens=256`
 - `MATH`: Fireworks Kimi, `max_tokens=400`
-- `SENTIMENT`: Fireworks Kimi, `max_tokens=64`
+- `SENTIMENT`: Fireworks Kimi, `max_tokens=256`
 - `CODE_DEBUGGING`: local Ollama, `max_tokens=1000`
 - `NAMED_ENTITY_RECOGNITION`: local Ollama, `max_tokens=1000`
 - `TEXT_SUMMARISATION`: local Ollama, `max_tokens=1000`
 
-Classification is serial. Remote tasks are dispatched immediately after
-classification with bounded concurrency. Local answer generation waits until all
-tasks have been classified, then runs serially to protect the embedded local
-model under the target CPU and memory envelope. Output order always matches the
-input order.
+Classification is serial. The default scheduler classifies and routes every
+task first, then starts answer generation. Fireworks tasks run with bounded
+remote concurrency while local answer generation runs serially to protect the
+embedded local model under the target CPU and memory envelope. Output order
+always matches the input order.
+
+Answer prompt policy is fixed in code. Wrappers are user-message prefixes, not
+system prompts. Primary Fireworks calls use the raw official prompt except
+`FACTUAL_KNOWLEDGE`, which uses the factual wrapper. Local Ollama answer
+categories use their category wrappers. Fallback answer calls inherit the same
+category prompt policy: factual fallback to Minimax keeps the factual wrapper,
+and local-primary categories that fall back to Fireworks keep their category
+wrapper.
 
 ## Verification
 
