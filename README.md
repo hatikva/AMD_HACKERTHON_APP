@@ -194,17 +194,17 @@ Credential boundary:
 Current public image reference:
 
 ```text
-ghcr.io/hatikva/amd-hackathon-app:version7-production-429c37b
+ghcr.io/hatikva/amd-hackathon-app:version7-production-83c6053
 ```
 
-Status: accessible. Anonymous pull from a clean Docker/Podman auth context succeeded on 2026-07-14 and resolved image config `sha256:868de9991a985a2993fa794cbf34213869483250c2d61dc72d4506c4b1fda729`.
+Status: accessible. Anonymous pull from a clean Docker/Podman auth context succeeded on 2026-07-14 and resolved image config `sha256:c1b6d50c5a5fc86e870eb5c940d7a216bffda7533508257b9202837ca95453a4`.
 
-This public tag is the previously verified image. The final policy in the current source tree requires a new image build and immutable tag before submission.
+This public tag is the final-policy image built from app commit `83c6053` and verified by anonymous pull. Manifest digest: `sha256:174f888fec5624328d4d73d2a92e5a2b17716b1b431dca2ba70880076b7a9649`.
 
 Pull the public image:
 
 ```bash
-docker pull ghcr.io/hatikva/amd-hackathon-app:version7-production-429c37b
+docker pull ghcr.io/hatikva/amd-hackathon-app:version7-production-83c6053
 ```
 
 Run it with official input and output mounts:
@@ -216,7 +216,7 @@ docker run --rm \
   -e ALLOWED_MODELS="$ALLOWED_MODELS" \
   -v "$PWD/input:/input:ro" \
   -v "$PWD/output:/output" \
-  ghcr.io/hatikva/amd-hackathon-app:version7-production-429c37b
+  ghcr.io/hatikva/amd-hackathon-app:version7-production-83c6053
 ```
 
 Verification recorded on 2026-07-14:
@@ -226,9 +226,7 @@ graph ingestion: refreshed codebase-memory index for /home/user/repos/Hatikva/AM
 unit tests: 68 passed via PYTHONPATH=src python3 -m unittest discover -s tests
 public pull: passed with fresh DOCKER_CONFIG and REGISTRY_AUTH_FILE
 image verification: scripts/verify-version7-image.sh passed
-compressed image size: 3,038,200,608 bytes
-constrained container smoke: passed under --memory=4g --cpus=2 with a fake Fireworks-compatible endpoint
-smoke output: [{"task_id":"factual-smoke","answer":"Paris"}]
+compressed image size: 3,038,207,484 bytes
 ```
 
 ## Final Policy

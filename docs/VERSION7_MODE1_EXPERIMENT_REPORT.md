@@ -616,6 +616,8 @@ unit tests: 68 passed via PYTHONPATH=src python3 -m unittest discover -s tests
 Publication note:
 
 ```text
-The published image ghcr.io/hatikva/amd-hackathon-app:version7-production-429c37b remains the previously verified public image.
-This final policy is documented for the next image built from the working tree.
+The final-policy image is published as ghcr.io/hatikva/amd-hackathon-app:version7-production-83c6053.
+Anonymous pull verified on 2026-07-14.
+Resolved image config: sha256:c1b6d50c5a5fc86e870eb5c940d7a216bffda7533508257b9202837ca95453a4.
+Manifest digest: sha256:174f888fec5624328d4d73d2a92e5a2b17716b1b431dca2ba70880076b7a9649.
 ```
